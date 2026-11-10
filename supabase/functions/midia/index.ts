@@ -118,41 +118,134 @@ function vista(a: any, yo: string) {
     estado: a.estado, motivo: a.motivo, nota_fin: a.nota_fin, due_final: a.due_final, fin_final: a.fin_final,
     creado: a.creado, actualizado: a.actualizado,
     de_nombre: a.de_nombre, para_nombre: a.para_nombre, ...(mio ? { para_correo: a.para_correo } : {}),
+    grupo: a.grupo ?? null, ...(a._con ? { con: a._con } : {}),
   };
 }
+// Avance de una tarea compartida: cuántos la tienen todavía (no rechazada ni cancelada) y cuántos la terminaron.
+async function avanceGrupo(grupo: string) {
+  const { data } = await db.from("midia_asignaciones").select("para_nombre,estado").eq("grupo", grupo);
+  const vivos = (data ?? []).filter((x) => x.estado !== "rechazada" && x.estado !== "cancelada");
+  return { total: vivos.length, hechas: vivos.filter((x) => x.estado === "hecha").length, nombres: vivos.map((x) => x.para_nombre) };
+}
+const MAX_PARA = 5; // personas por tarea compartida
 const TOPE_DIA = 40; // envíos por cuenta en 24 h: frena el abuso sin estorbar el uso normal
+
+/* ---------- contactos por invitación ---------- */
+const ALFA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sin 0/O ni 1/I: se leen y se dictan sin confundirse
+const nuevoCodigo = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), (n) => ALFA[n % ALFA.length]).join("");
+const limpiaCodigo = (v: unknown) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+async function huella(t: string) {
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
+  return Array.from(new Uint8Array(d), (x) => x.toString(16).padStart(2, "0")).join("");
+}
+async function correoDe(id: string): Promise<string> {
+  const { data } = await db.auth.admin.getUserById(id);
+  return String(data?.user?.email ?? "");
+}
+// Quién invitó, para mostrarlo ANTES de entrar («Fabián te invitó»). Sólo el nombre; nada si venció o ya se usó.
+async function verInvitacion(b: any) {
+  const c = limpiaCodigo(b.codigo);
+  if (c.length !== 8) return json({ ok: false }, 404);
+  const { data } = await db.from("midia_invitaciones").select("de_nombre,vence,usado").eq("codigo_hash", await huella(c)).maybeSingle();
+  if (!data || data.usado || Date.parse(data.vence) < Date.now()) return json({ ok: false, error: "Esta invitación ya se usó o venció." }, 404);
+  return json({ ok: true, nombre: data.de_nombre });
+}
+const TOPE_INV = 20; // invitaciones por cuenta en 24 h
+
+async function contactos(yo: Quien, b: any) {
+  const accion = String(b.accion || "");
+  if (accion === "invitar") {
+    const desde = new Date(Date.now() - 864e5).toISOString();
+    const { count } = await db.from("midia_invitaciones").select("id", { count: "exact", head: true }).eq("de", yo.id).gte("creado", desde);
+    if ((count ?? 0) >= TOPE_INV) return json({ ok: false, error: "Llegaste al tope de invitaciones de hoy." }, 429);
+    const codigo = nuevoCodigo();
+    const { data, error } = await db.from("midia_invitaciones").insert({
+      codigo_hash: await huella(codigo), de: yo.id, de_nombre: await nombreDe(yo.id, yo.email),
+      vence: new Date(Date.now() + 7 * 864e5).toISOString(),
+    }).select("id").single();
+    if (error) return json({ ok: false, error: "No se pudo crear la invitación." }, 500);
+    return json({ ok: true, codigo, id: data.id });
+  }
+  if (accion === "aceptar") {
+    const c = limpiaCodigo(b.codigo);
+    if (c.length !== 8) return json({ ok: false, error: "Esa invitación no es válida." }, 400);
+    // Un solo PATCH con todas las condiciones: si dos personas usan el mismo enlace a la vez, sólo una lo logra.
+    const { data: inv } = await db.from("midia_invitaciones").update({ usado: new Date().toISOString(), usado_por: yo.id })
+      .eq("codigo_hash", await huella(c)).is("usado", null).gt("vence", new Date().toISOString()).neq("de", yo.id)
+      .select("id,de,de_nombre").maybeSingle();
+    if (!inv) return json({ ok: false, error: "Esta invitación ya se usó, venció o es tuya." }, 404);
+    const { data: ya } = await db.from("midia_conexiones").select("a").or(`and(a.eq.${inv.de},b.eq.${yo.id}),and(a.eq.${yo.id},b.eq.${inv.de})`).limit(1);
+    if (!ya?.length) await db.from("midia_conexiones").insert({ a: inv.de, b: yo.id, invitacion: inv.id });
+    const miNombre = await nombreDe(yo.id, yo.email);
+    await avisar(inv.de, { title: miNombre + " aceptó tu invitación", body: "Ya está en tus contactos de Mi día: pueden pasarse tareas.", tag: "inv-" + inv.id });
+    return json({ ok: true, contacto: { nombre: inv.de_nombre, correo: await correoDe(inv.de) } });
+  }
+  if (accion === "conexiones") {
+    const { data } = await db.from("midia_conexiones").select("a,b,invitacion,creado").or(`a.eq.${yo.id},b.eq.${yo.id}`).limit(300);
+    const out = [];
+    for (const x of data ?? []) {
+      const otro = x.a === yo.id ? x.b : x.a;
+      const correo = await correoDe(otro);
+      out.push({ nombre: await nombreDe(otro, correo), correo, invitacion: x.a === yo.id ? x.invitacion : null, desde: x.creado });
+    }
+    return json({ ok: true, conexiones: out });
+  }
+  if (accion === "existe") {
+    const correo = texto(b.correo, 120).toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return json({ ok: false, error: "Revisa el correo." }, 400);
+    const { data: id } = await db.rpc("midia_usuario_por_correo", { correo });
+    return json({ ok: true, usa: !!id, nombre: id ? await nombreDe(id as string, correo) : null });
+  }
+  return json({ ok: false, error: "Acción no reconocida." }, 400);
+}
 
 async function asignar(yo: Quien, b: any) {
   const accion = String(b.accion || "");
   const ahora = new Date().toISOString();
 
   if (accion === "enviar") {
-    const correo = texto(b.correo, 120).toLowerCase();
+    // Una persona (`correo`) o varias a la vez (`correos`, hasta MAX_PARA): una tarea compartida.
+    const lista = (Array.isArray(b.correos) ? b.correos : [b.correo]).map((c: unknown) => texto(c, 120).toLowerCase());
+    const correos = [...new Set(lista.filter(Boolean))].slice(0, MAX_PARA) as string[];
     const titulo = texto(b.titulo, 200);
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return json({ ok: false, error: "Revisa el correo." }, 400);
+    if (!correos.length || correos.some((c) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c))) return json({ ok: false, error: "Revisa el correo." }, 400);
     if (!titulo) return json({ ok: false, error: "Escribe la tarea." }, 400);
-    if (correo === yo.email.toLowerCase()) return json({ ok: false, error: "Ese correo es el tuyo." }, 400);
+    if (correos.includes(yo.email.toLowerCase())) return json({ ok: false, error: "Ese correo es el tuyo." }, 400);
     const desde = new Date(Date.now() - 864e5).toISOString();
     const { count } = await db.from("midia_asignaciones").select("id", { count: "exact", head: true })
       .eq("de", yo.id).gte("creado", desde);
-    if ((count ?? 0) >= TOPE_DIA) return json({ ok: false, error: "Llegaste al tope de envíos de hoy." }, 429);
-    const { data: para } = await db.rpc("midia_usuario_por_correo", { correo });
-    if (!para) return json({ ok: false, sinCuenta: true, error: "Ese correo no tiene cuenta en Mi día." });
+    if ((count ?? 0) + correos.length > TOPE_DIA) return json({ ok: false, error: "Llegaste al tope de envíos de hoy." }, 429);
+    // Si alguno no tiene cuenta, no se manda a nadie: la app pregunta qué hacer con ese.
+    const paras: string[] = [], faltan: string[] = [];
+    for (const c of correos) {
+      const { data: id } = await db.rpc("midia_usuario_por_correo", { correo: c });
+      if (id) paras.push(id as string); else faltan.push(c);
+    }
+    if (faltan.length) return json({ ok: false, sinCuenta: true, faltan, error: faltan.join(", ") + (faltan.length === 1 ? " no tiene" : " no tienen") + " cuenta en Mi día." });
     const due = fecha(b.due);
     let fin = fecha(b.fin);
     if (due && (!fin || fin <= due)) fin = new Date(Date.parse(due) + 30 * 6e4).toISOString();
-    const fila = {
-      de: yo.id, de_nombre: await nombreDe(yo.id, yo.email),
-      para, para_nombre: await nombreDe(para as string, correo), para_correo: correo,
-      titulo, nota: texto(b.nota, 300) || null, due, fin: due ? fin : null,
-      urgente: !!b.urgente, importante: b.importante !== false,
-    };
-    const { data, error } = await db.from("midia_asignaciones").insert(fila).select().single();
-    if (error) return json({ ok: false, error: "No se pudo guardar." }, 500);
-    await avisar(para as string, {
-      title: fila.de_nombre + " te asignó una tarea", body: titulo + " · " + cuando(due), tag: "asg-" + data.id,
-    });
-    return json({ ok: true, asignacion: vista(data, yo.id) });
+    const grupo = paras.length > 1 ? crypto.randomUUID() : null;
+    const deNombre = await nombreDe(yo.id, yo.email);
+    const filas = [];
+    for (let i = 0; i < paras.length; i++) {
+      filas.push({
+        de: yo.id, de_nombre: deNombre, para: paras[i], para_nombre: await nombreDe(paras[i], correos[i]), para_correo: correos[i],
+        titulo, nota: texto(b.nota, 300) || null, due, fin: due ? fin : null,
+        urgente: !!b.urgente, importante: b.importante !== false, grupo,
+      });
+    }
+    const { data, error } = await db.from("midia_asignaciones").insert(filas).select();
+    if (error || !data?.length) return json({ ok: false, error: "No se pudo guardar." }, 500);
+    for (const a of data) {
+      const otros = data.filter((x) => x.id !== a.id).map((x) => x.para_nombre);
+      await avisar(a.para, {
+        title: deNombre + " te asignó una tarea",
+        body: titulo + " · " + cuando(due) + (otros.length ? " · compartida con " + otros.join(" y ") : ""), tag: "asg-" + a.id,
+      });
+    }
+    const vistas = data.map((a) => vista(a, yo.id));
+    return json({ ok: true, asignacion: vistas[0], asignaciones: vistas });
   }
 
   if (accion === "listar") {
@@ -164,9 +257,15 @@ async function asignar(yo: Quien, b: any) {
         .or("estado.in.(pendiente,aceptada),actualizado.gte." + hace)
         .order("actualizado", { ascending: false }).limit(150),
     ]);
+    const rec = r.data ?? [];
+    const grupos = [...new Set(rec.map((a) => a.grupo).filter(Boolean))];
+    if (grupos.length) {
+      const { data: g } = await db.from("midia_asignaciones").select("grupo,para,para_nombre").in("grupo", grupos);
+      for (const a of rec) if (a.grupo) a._con = (g ?? []).filter((x) => x.grupo === a.grupo && x.para !== yo.id).map((x) => x.para_nombre);
+    }
     return json({
       ok: true,
-      recibidas: (r.data ?? []).map((a) => vista(a, yo.id)),
+      recibidas: rec.map((a) => vista(a, yo.id)),
       enviadas: (e.data ?? []).map((a) => vista(a, yo.id)),
     });
   }
@@ -212,7 +311,12 @@ async function asignar(yo: Quien, b: any) {
     if (!Object.keys(cambio).length) return json({ ok: true, asignacion: vista(a, yo.id) });
     const nueva = await guardar(cambio);
     if (b.hecha === true && a.estado !== "hecha") {
-      await avisar(a.de, { title: "✓ " + a.para_nombre + " terminó", body: a.titulo + (cambio.nota_fin ? " · " + cambio.nota_fin : ""), tag: "asg-" + id });
+      const g = a.grupo ? await avanceGrupo(a.grupo) : null;
+      const parte = g && g.total > 1 ? " · " + g.hechas + " de " + g.total : "";
+      await avisar(a.de, { title: "✓ " + a.para_nombre + " terminó", body: a.titulo + (cambio.nota_fin ? " · " + cambio.nota_fin : "") + parte, tag: "asg-" + id });
+      if (g && g.total > 1 && g.hechas === g.total) {
+        await avisar(a.de, { title: "✓ Todos terminaron", body: a.titulo + " · " + g.nombres.join(" y "), tag: "asg-g-" + a.grupo });
+      }
     }
     return json({ ok: true, asignacion: vista(nueva, yo.id) });
   }
@@ -299,6 +403,21 @@ Deno.serve(async (req) => {
     } catch (e) {
       console.error("atlas", String(e));
       return json({ ok: false, error: "No hubo conexión con Atlas." }, 502);
+    }
+  }
+
+  // Ver quién invita (antes de entrar a la app): sólo el nombre.
+  if (b.op === "inv") return await verInvitacion(b);
+
+  // Contactos: invitar, aceptar una invitación, conexiones, ¿ese correo usa Mi día?
+  if (b.op === "ctc") {
+    const yo = await quien(req);
+    if (!yo) return json({ ok: false, error: "Tu sesión de Mi día venció. Entra de nuevo." }, 401);
+    try {
+      return await contactos(yo, b);
+    } catch (e) {
+      console.error("ctc", String(e));
+      return json({ ok: false, error: "No se pudo completar. Intenta de nuevo." }, 500);
     }
   }
 

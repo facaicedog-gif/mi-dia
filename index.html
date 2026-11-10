@@ -369,6 +369,42 @@ body.psheet #psheet{transform:none}
 #asg-in.nueva h3 i{animation:sacude .7s ease-in-out 3}
 .beta{display:inline-block;vertical-align:middle;margin-left:8px;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8a5300;background:var(--q3b);border:1px solid #f5d49b;border-radius:99px;padding:2px 8px;position:relative;top:-2px}
 #auth-f .beta-n{font-size:12.5px;color:#8a5300;background:var(--q3b);border-radius:12px;padding:8px 10px;margin:0 0 4px}
+/* contactos */
+#acct-pop #acct-ctc{background:var(--blue-soft);color:var(--blue);margin-bottom:8px}
+#v-ctc .bk{display:inline-flex;align-items:center;gap:4px;color:var(--blue);font-weight:700;font-size:14px;margin:0 4px 6px;padding:6px 0}
+#v-ctc h2.t{margin:0 4px 2px;font-size:22px;letter-spacing:-.02em}
+#v-ctc p.s{margin:0 4px 12px;color:var(--mut);font-size:13px}
+.cbtns{display:flex;gap:8px;margin:0 4px 10px}
+.cbtns button{flex:1;padding:12px 6px;border-radius:13px;font-weight:700;font-size:14.5px;background:var(--blue-soft);color:var(--blue)}
+.cbtns button[data-ctc-inv]{background:#e7f8ee;color:#128c4a}
+#ctc-q{display:block;width:calc(100% - 8px);margin:0 4px 6px;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font:inherit;font-size:16px;background:var(--q4b);color:var(--ink)}
+#v-ctc .sec{font-size:11.5px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin:14px 6px 2px}
+.crow{display:flex;align-items:center;gap:10px;padding:10px 6px;border-bottom:1px solid var(--line);cursor:pointer}
+.crow .bd{flex:1;min-width:0}.crow b{display:block;font-size:14.5px;overflow-wrap:anywhere}.crow small{display:block;color:var(--mut);font-size:12.5px}
+.cst{display:inline-block;font-size:11px;font-weight:700;border-radius:99px;padding:1px 8px;margin-top:3px}
+.cst.y{background:#e8f7ee;color:#15803d}.cst.w{background:#e7f8ee;color:#128c4a}.cst.p{background:var(--q3b);color:#a35f00}
+.cstar{flex:none;font-size:22px;color:#cfd6e2;padding:4px 6px}.cstar.on{color:#f5b301}
+#c-form{position:fixed;left:0;right:0;bottom:0;z-index:23;background:var(--card);border-radius:22px 22px 0 0;padding:8px 16px calc(16px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .24s cubic-bezier(.2,.8,.2,1);max-width:760px;margin:0 auto;max-height:92vh;overflow:auto}
+body.csheet #scrim{opacity:1;pointer-events:auto}
+body.csheet #c-form{transform:none}
+#c-form h3{margin:6px 0 10px;font-size:19px;overflow-wrap:anywhere}
+#c-form label{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:700;margin-top:10px}
+#c-form label span{text-transform:none;letter-spacing:0;font-weight:600}
+#c-form input{display:block;width:100%;margin-top:5px;border:1.5px solid var(--line);border-radius:12px;padding:11px 12px;font:inherit;font-size:16px;background:var(--q4b);color:var(--ink);text-transform:none;letter-spacing:0;font-weight:400}
+#c-acts{display:flex;gap:7px;margin:0 0 6px;flex-wrap:wrap}
+#c-acts a,#c-acts button{flex:1;text-align:center;padding:10px 6px;border-radius:12px;background:var(--blue-soft);color:var(--blue);font-weight:700;font-size:13px;text-decoration:none}
+#c-acts a.wa{background:#e7f8ee;color:#128c4a}
+#c-pick{width:100%;padding:10px;border-radius:12px;background:var(--q4b);font-weight:700;font-size:13.5px;margin-bottom:4px}
+#c-msg{min-height:18px;font-size:13px;font-weight:600;margin-top:10px;color:var(--mut)}
+#c-msg.c-y{color:#15803d}#c-msg.c-w{color:#128c4a}#c-msg.c-p{color:#a35f00}
+#c-form .big{display:block;width:100%;padding:14px;border-radius:14px;font-weight:700;margin-top:10px}
+#c-ok{background:var(--blue);color:#fff}#c-ok:disabled{opacity:.6}
+#c-del{background:var(--q1b);color:var(--q1)}#c-no{background:var(--q4b);color:var(--ink)}
+#as-hint{font-size:12.5px;color:var(--blue);font-weight:600;margin-top:2px}
+.gbar{height:7px;border-radius:9px;background:var(--q4b);margin:8px 0 4px;overflow:hidden}.gbar i{display:block;height:100%;background:#16a34a}
+.gmem{display:flex;align-items:flex-start;gap:8px;font-size:13px;padding:5px 0}
+.gmem .av{width:26px;height:26px;font-size:11px}
+.gmem .st{margin-top:0}
 </style>
 </head>
 <body class="out">
@@ -386,7 +422,7 @@ body.psheet #psheet{transform:none}
     <button type="button" class="link" id="a-forgot">Olvidé mi contraseña</button>
   </form>
 </div>
-<div id="acct-pop"><div class="pf"><button type="button" id="pf-pic" aria-label="Cambiar foto de perfil"></button><div><small>Tu cuenta</small><b id="acct-mail"></b></div></div><div class="pfb"><button type="button" id="pf-set">Agregar foto</button><button type="button" id="pf-del">Quitar</button></div><input type="file" id="pf-file" accept="image/*" hidden><small>Tu nombre (lo ven a quienes les asignas tareas)</small><input id="pf-name" maxlength="40" autocomplete="name" placeholder="Cómo te llamas"><button type="button" id="acct-asg">Tareas que asigné</button><div id="atl-box"></div><p id="cloud"></p><button type="button" id="acct-upd">Buscar actualización</button><button type="button" id="acct-out">Cerrar sesión</button></div>
+<div id="acct-pop"><div class="pf"><button type="button" id="pf-pic" aria-label="Cambiar foto de perfil"></button><div><small>Tu cuenta</small><b id="acct-mail"></b></div></div><div class="pfb"><button type="button" id="pf-set">Agregar foto</button><button type="button" id="pf-del">Quitar</button></div><input type="file" id="pf-file" accept="image/*" hidden><small>Tu nombre (lo ven a quienes les asignas tareas)</small><input id="pf-name" maxlength="40" autocomplete="name" placeholder="Cómo te llamas"><button type="button" id="acct-ctc">Contactos</button><button type="button" id="acct-asg">Tareas que asigné</button><div id="atl-box"></div><p id="cloud"></p><button type="button" id="acct-upd">Buscar actualización</button><button type="button" id="acct-out">Cerrar sesión</button></div>
 <div id="ptr">Desliza para actualizar</div>
 <header>
   <div><h1>Mi día<span class="beta" title="App en desarrollo">Beta</span></h1><p id="sub"></p></div>
@@ -410,6 +446,7 @@ body.psheet #psheet{transform:none}
   </section>
   <section class="view" id="v-agenda"></section>
   <section class="view" id="v-asg"></section>
+  <section class="view" id="v-ctc"></section>
 </main>
 
 <nav>
@@ -446,7 +483,7 @@ body.psheet #psheet{transform:none}
     <button type="button" data-q="4"><strong>Después</strong><small>Ni urgente ni importante</small></button>
   </div>
   <div id="as-box"><div class="lbl">Asignar a</div><div class="who" id="as-who"></div>
-    <div id="as-more"><input id="as-mail" type="email" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="Correo de la persona"><input id="as-nota" maxlength="300" autocomplete="off" placeholder="Nota para la persona (opcional)"></div></div>
+    <div id="as-more"><input id="as-mail" type="email" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="Correo de la persona"><input id="as-nota" maxlength="300" autocomplete="off" placeholder="Nota para la persona (opcional)"></div><div id="as-hint"></div></div>
   <div class="acts"><button type="button" id="f-del">Eliminar</button><button type="button" id="f-share">WhatsApp</button><button type="submit" id="f-save">Guardar</button></div>
 </form>
 <div id="asheet">
@@ -485,6 +522,19 @@ body.psheet #psheet{transform:none}
   <button type="button" class="big" id="p-go">Enviar</button>
   <button type="button" class="big" id="p-no">Cancelar</button>
 </div>
+<form id="c-form" autocomplete="off">
+  <div class="grab"></div>
+  <h3 id="c-title"></h3>
+  <div id="c-acts"></div>
+  <button type="button" id="c-pick">📇 Elegir de mis contactos</button>
+  <label>Nombre<input id="c-nom" maxlength="60" autocomplete="off" autocapitalize="words" placeholder="Cómo lo llamas"></label>
+  <label>Celular<input id="c-cel" type="tel" inputmode="tel" maxlength="20" autocomplete="off" placeholder="300 123 4567"></label>
+  <label>Correo <span>(opcional · para pasarle tareas dentro de la app)</span><input id="c-mail" type="email" inputmode="email" maxlength="120" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="nombre@correo.com"></label>
+  <div id="c-msg"></div>
+  <button type="submit" class="big" id="c-ok">Guardar contacto</button>
+  <button type="button" class="big" id="c-del">Borrar contacto</button>
+  <button type="button" class="big" id="c-no">Cancelar</button>
+</form>
 <div id="qa"><form autocomplete="off"><h4 id="qa-t"></h4><p id="qa-p"></p><textarea id="qa-x" maxlength="300"></textarea><div class="ia"><button type="button" id="qa-no">Cancelar</button><button type="submit" id="qa-ok">Enviar</button></div></form></div>
 
 <script>
@@ -677,7 +727,7 @@ function cardEl(t,o){
     d.textContent=(t.rule&&!o.note?'↻ ':'')+(o.note||(cls==='late'?(dayDiff(dd)<0?'Viene de '+fmtDay(dd).toLowerCase():'Atrasada · '+spanTxt(t)):spanTxt(t)));
     c.querySelector('.ct').appendChild(d);
   }
-  if(t.de){const g=document.createElement('span');g.className='from';g.textContent='de '+t.de;c.querySelector('.ct').appendChild(g)}
+  if(t.de){const g=document.createElement('span');g.className='from';g.textContent='de '+t.de+(t.con?' · con '+t.con.map(n=>n.split(' ')[0]).join(' y '):'');c.querySelector('.ct').appendChild(g)}
   if(o.tag&&!t.done){const g=document.createElement('span');g.className='tag';g.textContent=QN[t.q];(c.querySelector('.due')||c.querySelector('.ct')).appendChild(g)}
   return c;
 }
@@ -904,7 +954,7 @@ function openSheet(t,pre){
   $('#rep-box').style.display=t?'none':'';
   $('#f-wk').checked=false;wkShow();
   $('#f-save').textContent=t?'Guardar cambios':'Guardar';
-  asTo=null;$('#as-mail').value='';$('#as-nota').value='';paintWho();
+  asSel=[];asOther=false;$('#as-mail').value='';$('#as-nota').value='';paintWho();
   if(pre&&pre.assign){$('#hint').textContent='Elige a quién se la asignas';fixed=false}
   if(t&&t.de)$('#hint').textContent='Te la asignó '+t.de+(t.nota?' · «'+t.nota+'»':'');
   document.body.classList.add('sheet');
@@ -959,7 +1009,7 @@ $$('.chip').forEach(c=>c.onclick=()=>{
 });
 $$('#qpick button').forEach(b=>b.onclick=()=>{quadTouched=true;setQ(+b.dataset.q)});
 $('#fab').onclick=()=>openSheet();
-$('#scrim').onclick=()=>{closeSheet();closeAtlas();closePass()};
+$('#scrim').onclick=()=>{closeSheet();closeAtlas();closePass();closeCtc()};
 $('#sheet').addEventListener('submit',e=>{
   e.preventDefault();
   let title=fT.value.trim();
@@ -970,7 +1020,7 @@ $('#sheet').addEventListener('submit',e=>{
   let end=getEnd(due);
   if(due&&end<=due){toast('La hora final debe ser después de la inicial');return}
   const ask=()=>{if('Notification'in window&&Notification.permission==='default')askPerm()};
-  if(asTo&&!editing){sendAssign(title,due,end);return}
+  if(asgWanted()&&!editing){sendAssign(title,due,end);return}
   if(rep){
     if(!due){due=day0(now);due.setHours(9);end=new Date(due.getTime()+DEF*6e4)}
     const r={id:uid(),kind:'rule',title,q:pickQ,freq:rep,time:hm(due),dur:Math.round((end-due)/6e4),start:ymd(due<day0(now)?now:due),until:null,gen:''};
@@ -1235,11 +1285,15 @@ let justDragged=false;
 document.addEventListener('click',e=>{
   if(e.target.closest('[data-go]')){$('nav .tab[data-v=agenda]').click();return}
   if(e.target.closest('[data-asg]')){showAsg();return}
+  const cf=e.target.closest('[data-ctc-fav]');if(cf){ctcFav(cf.dataset.ctcFav);return}
+  if(e.target.closest('[data-ctc-inv]')){ctcInvitar();return}
+  if(e.target.closest('[data-ctc-add]')){openCtc();return}
+  const cr=e.target.closest('[data-ctc]');if(cr){const c=ctcAll().find(x=>x.id===cr.dataset.ctc);if(c)openCtc(c);return}
   const ab=e.target.closest('[data-asg-ok],[data-asg-no],[data-asg-act],[data-asg-tab],[data-asg-back]');
   if(ab){
     if(ab.dataset.asgOk)asgAccept(ab.dataset.asgOk,ab);
     else if(ab.dataset.asgNo)asgReject(ab.dataset.asgNo);
-    else if(ab.dataset.asgAct)asgAct(ab.dataset.asgAct,ab.dataset.id,ab);
+    else if(ab.dataset.asgAct)asgAct(ab.dataset.asgAct,ab.dataset.id,ab,ab.dataset.g);
     else if(ab.dataset.asgTab){asgTab=ab.dataset.asgTab;paintAsg()}
     else $('nav .tab[data-v=board]').click();
     return;
@@ -1584,6 +1638,7 @@ function enter(){
   document.body.classList.remove('out');$('#acct-mail').textContent=sess.email;
   if(ASG.uid!==sess.uid){ASG={rec:[],env:[],uid:sess.uid};asgQ=[];lsSet('midia.asg.q',[])}
   track();store();atlasStart();render();tick();syncNow();cloudSync();checkUpdate();asgLoad(true,true);
+  ctcMigrar();invAceptar();ctcSync();
   if(pendingAdd){const a=pendingAdd;pendingAdd=null;openSheet(null,a)}
 }
 async function signOut(){
@@ -1593,7 +1648,7 @@ async function signOut(){
   const at=sess&&sess.at;
   await atlasOff(true); // otra persona en este celular no debe ver tu agenda de Atlas
   setSess(null);S={tasks:[],rules:[],extra:[]};known={};outbox={};cursor='';store();
-  ASG={rec:[],env:[]};lsSet('midia.asg.cache',null);asgQ=[];lsSet('midia.asg.q',[]);asgSeen={};asgSt=null;lsSet('midia.asg.seen',null);lsSet('midia.asg.st',null);
+  ASG={rec:[],env:[]};lsSet('midia.asg.cache',null);asgQ=[];lsSet('midia.asg.q',[]);asgSeen={};asgSt=null;lsSet('midia.asg.seen',null);lsSet('midia.asg.st',null);ctcAt=0;
   syncNow(); // este dispositivo deja de recibir avisos de la cuenta
   if(at)authCall('logout',{},at).catch(()=>{});
   render();showAuth('in');
@@ -1867,6 +1922,7 @@ function paintAsgIn(){
     const tt=document.createElement('div');tt.className='tt';tt.textContent=a.titulo;c.appendChild(tt);
     if(a.urgente){const g=document.createElement('span');g.className='tg u';g.textContent='Urgente';c.appendChild(g)}
     const w=document.createElement('span');w.className='tg';w.textContent=asgSpan(a);c.appendChild(w);
+    if(Array.isArray(a.con)&&a.con.length){const g=document.createElement('span');g.className='tg';g.textContent='Compartida con '+a.con.join(' y ');c.appendChild(g)}
     if(a.nota){const m=document.createElement('div');m.className='msg';m.textContent='«'+a.nota+'»';c.appendChild(m)}
     const f=asgFit(a);let okTxt='Aceptar';
     if(f.moved){
@@ -1889,7 +1945,7 @@ async function asgAccept(id,btn){
     if(!j.ok){toast(j.error||'No se pudo aceptar');asgLoad(true);return}
     asgKeep(j.asignacion);
     const q=asgQ4(a),nid=uid();
-    S.tasks.push({id:nid,title:a.titulo,q,due,end,done:false,notified:!!(due&&new Date(due)<=new Date()),order:-1,created:Date.now(),asg:a.id,de:a.de_nombre,nota:a.nota||''});
+    S.tasks.push({id:nid,title:a.titulo,q,due,end,done:false,notified:!!(due&&new Date(due)<=new Date()),order:-1,created:Date.now(),asg:a.id,de:a.de_nombre,nota:a.nota||'',con:Array.isArray(a.con)&&a.con.length?a.con:undefined});
     newId=nid;reorder();save();render();newId=null;
     toast(due&&ymd(new Date(due))>ymd(new Date())?'Aceptada · queda en el calendario '+fmtDue(new Date(due)).toLowerCase():'Aceptada · está en «'+QN[q]+'»');
   }catch(e){toast('Sin conexión. Inténtalo de nuevo.')}
@@ -1926,33 +1982,72 @@ function asgState(a){
   return ['off','Cancelada'];
 }
 function asgIsOpen(a){return a.estado==='pendiente'||a.estado==='aceptada'}
+// Las enviadas juntas (mismo grupo) se ven como UNA tarjeta con su avance.
+function asgEntradas(){
+  const out=[],por={};
+  for(const a of ASG.env){
+    if(a.grupo){if(!por[a.grupo]){por[a.grupo]={grupo:a.grupo,miembros:[]};out.push(por[a.grupo])}por[a.grupo].miembros.push(a)}
+    else out.push({grupo:null,miembros:[a]});
+  }
+  return out;
+}
+const entAbierta=e=>e.miembros.some(asgIsOpen);
 function paintAsg(){
   const V=$('#v-asg');if(!V||!V.classList.contains('act'))return;
   V.textContent='';
-  const open=ASG.env.filter(asgIsOpen),closed=ASG.env.filter(a=>!asgIsOpen(a));
+  const E=asgEntradas(),open=E.filter(entAbierta),closed=E.filter(e=>!entAbierta(e));
   V.insertAdjacentHTML('beforeend','<button type="button" class="bk" data-asg-back>‹ Tablero</button><h2 class="t">Asigné</h2><p class="s">Lo que le pediste a otros. Te aviso cuando la acepten, la rechacen o la terminen.</p>');
   const sg=document.createElement('div');sg.className='seg';
   sg.innerHTML='<button type="button" data-asg-tab="a">Abiertas · '+open.length+'</button><button type="button" data-asg-tab="c">Cerradas · '+closed.length+'</button>';
   sg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.asgTab===asgTab));V.appendChild(sg);
   const L=asgTab==='a'?open:closed;
   if(!L.length){const p=document.createElement('p');p.className='empty';p.textContent=asgTab==='a'?'No tienes tareas asignadas abiertas. Para asignar una, toca + y elige a la persona en «Asignar a».':'Aquí quedan las de los últimos 30 días.';V.appendChild(p)}
-  for(const a of L){
-    const it=document.createElement('div');it.className='it';it.appendChild(avEl(a.para_nombre,true));
+  for(const e of L){
+    const a=e.miembros[0],it=document.createElement('div');it.className='it';
     const bd=document.createElement('div');bd.className='bd';
     const tt=document.createElement('div');tt.className='tt';tt.textContent=a.titulo;bd.appendChild(tt);
-    const sb=document.createElement('div');sb.className='sub';sb.textContent=a.para_nombre+' · '+asgSpan(a);bd.appendChild(sb);
-    const [cls,txt]=asgState(a),st=document.createElement('span');st.className='st '+cls;st.textContent=txt;bd.appendChild(st);
-    const why=a.estado==='rechazada'?a.motivo:a.estado==='hecha'?a.nota_fin:null;
-    if(why){const w=document.createElement('div');w.className='why';w.textContent='«'+why+'»';bd.appendChild(w)}
     const mini=document.createElement('div');mini.className='mini';
-    const B=(label,act,c)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.asgAct=act;b.dataset.id=a.id;if(c)b.className=c;mini.appendChild(b)};
-    if(asgIsOpen(a)){B('Recordarle','rec');B('WhatsApp','wa','wa');B('Cancelar','can','x')}
-    else if(a.estado==='rechazada'){B('Asignar a otra persona','re');B('Quedármela','mine')}
+    const B=(label,act,c,id,g)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.asgAct=act;b.dataset.id=id||a.id;if(g)b.dataset.g=g;if(c)b.className=c;mini.appendChild(b)};
+    if(!e.grupo){
+      it.appendChild(avEl(a.para_nombre,true));
+      const sb=document.createElement('div');sb.className='sub';sb.textContent=a.para_nombre+' · '+asgSpan(a);bd.appendChild(sb);
+      const [cls,txt]=asgState(a),st=document.createElement('span');st.className='st '+cls;st.textContent=txt;bd.appendChild(st);
+      const why=a.estado==='rechazada'?a.motivo:a.estado==='hecha'?a.nota_fin:null;
+      if(why){const w=document.createElement('div');w.className='why';w.textContent='«'+why+'»';bd.appendChild(w)}
+      if(asgIsOpen(a)){B('Recordarle','rec');B('WhatsApp','wa','wa');B('Cancelar','can','x')}
+      else if(a.estado==='rechazada'){B('Asignar a otra persona','re');B('Quedármela','mine')}
+    }else{
+      {const g=avEl('G',true);g.textContent='👥';g.style.setProperty('--av','var(--blue-soft)');it.appendChild(g)}
+      const vivos=e.miembros.filter(m=>m.estado!=='rechazada'&&m.estado!=='cancelada'),hechas=vivos.filter(m=>m.estado==='hecha').length;
+      const sb=document.createElement('div');sb.className='sub';sb.textContent='Compartida · '+asgSpan(a);bd.appendChild(sb);
+      if(vivos.length){
+        const bar=document.createElement('div');bar.className='gbar';bar.innerHTML='<i></i>';bar.firstChild.style.width=Math.round(hechas/vivos.length*100)+'%';bd.appendChild(bar);
+        const pr=document.createElement('div');pr.className='sub';pr.style.cssText='font-weight:700;color:#15803d';pr.textContent=hechas===vivos.length?'✓ Todos terminaron':hechas+' de '+vivos.length+(hechas===1?' la terminó':' la terminaron');bd.appendChild(pr);
+      }
+      for(const m of e.miembros){
+        const row=document.createElement('div');row.className='gmem';row.appendChild(avEl(m.para_nombre,true));
+        const col=document.createElement('div');
+        const nm=document.createElement('div');nm.textContent=m.para_nombre+' ';const [cls,txt]=asgState(m),st=document.createElement('span');st.className='st '+cls;st.textContent=txt;nm.appendChild(st);col.appendChild(nm);
+        const why=m.estado==='rechazada'?m.motivo:m.estado==='hecha'?m.nota_fin:null;
+        if(why){const w=document.createElement('div');w.className='why';w.textContent='«'+why+'»';col.appendChild(w)}
+        if(m.estado==='rechazada'){const mm=document.createElement('div');mm.className='mini';const b=document.createElement('button');b.type='button';b.textContent='Pasársela a otra persona';b.dataset.asgAct='re';b.dataset.id=m.id;mm.appendChild(b);col.appendChild(mm)}
+        row.appendChild(col);bd.appendChild(row);
+      }
+      if(entAbierta(e)){B('Recordarles','grec',null,null,e.grupo);B('Cancelar','gcan','x',null,e.grupo)}
+    }
     if(mini.children.length)bd.appendChild(mini);
     it.appendChild(bd);V.appendChild(it);
   }
 }
-async function asgAct(act,id,btn){
+async function asgAct(act,id,btn,grupo){
+  if(act==='grec'||act==='gcan'){
+    const ms=ASG.env.filter(x=>x.grupo===grupo&&asgIsOpen(x));if(!ms.length)return;
+    if(act==='gcan'){const ok=await askText('¿Cancelar «'+ms[0].titulo+'»?','Se les quita a '+ms.map(m=>m.para_nombre).join(' y ')+' con un aviso.','Sí, cancelar',false,'No');if(ok==null)return}
+    btn.disabled=true;let bien=0,err='';
+    for(const m of ms){try{const j=await asgCall(act==='grec'?'recordar':'cancelar',{id:m.id});if(j.ok){bien++;if(j.asignacion)asgKeep(j.asignacion)}else err=j.error||err}catch(e){err='Sin conexión.'}}
+    btn.disabled=false;
+    toast(bien?(act==='grec'?'Les recordé a '+bien+(bien===1?' persona':' personas'):'Cancelada'):(err||'No se pudo'));paintAsg();render();return;
+  }
   const a=ASG.env.find(x=>x.id===id);if(!a)return;
   if(act==='wa'){
     const txt='Hola '+a.para_nombre+', te asigné en Mi día: «'+a.titulo+'»'+(a.due?' · '+asgSpan(a):'')+'. Ábrela en la app para verla.';
@@ -1976,55 +2071,272 @@ async function asgAct(act,id,btn){
   }catch(e){toast('Sin conexión. Inténtalo de nuevo.')}
   finally{btn.disabled=false}
 }
-/* la fila «Asignar a» de la hoja */
-let asTo=null; // null = para mí; {correo,nombre}; nombre '' = va a escribir el correo
-const dests=()=>{const d=S.extra.find(x=>x.id==='_dest');return d&&Array.isArray(d.list)?d.list:[]};
-function addDest(correo,nombre){
-  const L=dests().filter(x=>x.correo!==correo);L.unshift({correo,nombre});
-  S.extra=S.extra.filter(x=>x.id!=='_dest');S.extra.push({id:'_dest',kind:'dest',list:L.slice(0,8)});
+/* ---------- contactos ---------- */
+// Tus contactos son tuyos: viajan con tu cuenta (S.extra «_contactos») y nadie más los ve. Cada uno: nombre, celular,
+// correo, favorito, si usa Mi día (usa) y, si lo invitaste, el id de la invitación (inv).
+// Se agregan a mano, por invitación (enlace por WhatsApp) o solos al asignarse tareas.
+const ctcAll=()=>{const d=S.extra.find(x=>x.id==='_contactos');return d&&Array.isArray(d.list)?d.list:[]};
+function ctcSet(list){S.extra=S.extra.filter(x=>x.id!=='_contactos');S.extra.push({id:'_contactos',kind:'contactos',list:list.slice(0,500)})}
+// La lista de «recientes» de antes se vuelve contactos (una sola vez)
+function ctcMigrar(){
+  const old=S.extra.find(x=>x.id==='_dest');if(!old)return;
+  const L=ctcAll();
+  (old.list||[]).forEach((d,i)=>{if(d&&d.correo&&!L.some(c=>c.correo===d.correo))L.push({id:uid(),nombre:d.nombre||d.correo,correo:d.correo,cel:'',usa:true,fav:false,usado:Date.now()-i})});
+  S.extra=S.extra.filter(x=>x.id!=='_dest');ctcSet(L);save();
 }
+// Con quién se puede trabajar dentro de la app: los que usan Mi día, favoritos primero y luego los más usados.
+function dests(){
+  return ctcAll().filter(c=>c.correo&&c.usa).sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||(b.usado||0)-(a.usado||0)).map(c=>({correo:c.correo,nombre:c.nombre}));
+}
+function addDest(correo,nombre){
+  const L=ctcAll();const c=L.find(x=>x.correo===correo);
+  if(c){c.usa=true;c.usado=Date.now();if(!c.nombre||c.nombre===c.correo)c.nombre=nombre}
+  else L.push({id:uid(),nombre:nombre||correo,correo,cel:'',usa:true,fav:false,usado:Date.now()});
+  ctcSet(L);
+}
+const ctcSub=c=>c.cel?telFmt(c.cel):(c.correo||'');
+function ctcEstado(c){
+  if(c.usa)return ['y','✓ Usa Mi día'];
+  if(c.inv)return ['p','Invitado · aún no entra'];
+  return ['w','Sólo WhatsApp'];
+}
+const waNum=cel=>{const d=String(cel||'').replace(/\D/g,'');return d.length===10&&d[0]==='3'?'57'+d:d.length>=11?d:''};
+let ctcQ='';
+function showCtc(){
+  $$('nav .tab').forEach(x=>x.classList.remove('act'));
+  $$('.view').forEach(v=>v.classList.toggle('act',v.id==='v-ctc'));
+  scrollTo(0,0);paintCtc();ctcSync();
+}
+function paintCtc(){
+  const V=$('#v-ctc');if(!V||!V.classList.contains('act'))return;
+  const q=plain(ctcQ.trim().toLowerCase());
+  const L=ctcAll().filter(c=>!q||plain((c.nombre+' '+(c.correo||'')+' '+(c.cel||'')).toLowerCase()).includes(q))
+    .sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),'es'));
+  const keep=document.activeElement&&document.activeElement.id==='ctc-q';
+  V.textContent='';
+  V.insertAdjacentHTML('beforeend','<button type="button" class="bk" data-asg-back>‹ Tablero</button><h2 class="t">Contactos</h2><p class="s">Las ⭐ salen en la franja al arrastrar una tarjeta (hasta 4).</p>'
+    +'<div class="cbtns"><button type="button" data-ctc-inv>📲 Invitar</button><button type="button" data-ctc-add>＋ Agregar</button></div>'
+    +'<input id="ctc-q" type="search" placeholder="🔍 Buscar por nombre" autocomplete="off">');
+  const qi=$('#ctc-q');qi.value=ctcQ;qi.oninput=()=>{ctcQ=qi.value;paintCtc()};if(keep){qi.focus();qi.setSelectionRange(qi.value.length,qi.value.length)}
+  const grupo=(titulo,lista)=>{
+    if(!lista.length)return;
+    const h=document.createElement('p');h.className='sec';h.textContent=titulo;V.appendChild(h);
+    for(const c of lista){
+      const r=document.createElement('div');r.className='crow';r.dataset.ctc=c.id;
+      r.appendChild(avEl(c.nombre));
+      const bd=document.createElement('div');bd.className='bd';
+      const b=document.createElement('b');b.textContent=c.nombre;bd.appendChild(b);
+      const sm=document.createElement('small');sm.textContent=ctcSub(c);bd.appendChild(sm);
+      const [k,t]=ctcEstado(c),st=document.createElement('span');st.className='cst '+k;st.textContent=t;bd.appendChild(st);
+      r.appendChild(bd);
+      const s=document.createElement('button');s.type='button';s.className='cstar'+(c.fav?' on':'');s.dataset.ctcFav=c.id;s.textContent='★';s.setAttribute('aria-label',c.fav?'Quitar de favoritos':'Marcar como favorito');
+      r.appendChild(s);V.appendChild(r);
+    }
+  };
+  if(!ctcAll().length){const p=document.createElement('p');p.className='empty';p.textContent='Aún no tienes contactos. Invita a alguien por WhatsApp o agrégalo a mano.';V.appendChild(p);return}
+  grupo('Favoritos',L.filter(c=>c.fav));grupo(q?'Resultados':'Todos',L.filter(c=>!c.fav));
+}
+function ctcFav(id){
+  const L=ctcAll(),c=L.find(x=>x.id===id);if(!c)return;
+  if(!c.fav&&L.filter(x=>x.fav).length>=4){toast('Ya tienes 4 favoritos. Quita uno primero.');return}
+  c.fav=!c.fav;ctcSet(L);save();paintCtc();
+}
+/* la hoja de un contacto: agregar o editar */
+let cCur=null;
+function openCtc(c){
+  cCur=c||null;
+  $('#c-title').textContent=c?c.nombre:'Nuevo contacto';
+  $('#c-nom').value=c?c.nombre:'';$('#c-cel').value=c?c.cel||'':'';$('#c-mail').value=c?c.correo||'':'';
+  $('#c-msg').textContent='';$('#c-msg').className='';
+  const acts=$('#c-acts');acts.textContent='';
+  if(c){
+    const A=(txt,href,cls)=>{const a=document.createElement('a');a.textContent=txt;a.href=href;if(cls)a.className=cls;a.target='_blank';a.rel='noopener';acts.appendChild(a)};
+    if(c.cel)A('Llamar','tel:'+String(c.cel).replace(/\D/g,''));
+    if(waNum(c.cel))A('WhatsApp','https://wa.me/'+waNum(c.cel),'wa');
+    if(c.usa&&c.correo){const b=document.createElement('button');b.type='button';b.textContent='Asignarle algo';b.onclick=()=>{closeCtc();openSheet();asSel=[{correo:c.correo,nombre:c.nombre}];paintWho()};acts.appendChild(b)}
+    if(!c.usa){const b=document.createElement('button');b.type='button';b.textContent='Invitar';b.onclick=()=>ctcInvitar(c);acts.appendChild(b)}
+    const [k,t]=ctcEstado(c);$('#c-msg').className='c-'+k;$('#c-msg').textContent=t;
+  }
+  acts.style.display=acts.children.length?'':'none';
+  $('#c-del').style.display=c?'':'none';
+  $('#c-pick').style.display=!c&&'contacts'in navigator&&'select'in navigator.contacts?'':'none';
+  document.body.classList.add('csheet');
+  if(!c)setTimeout(()=>$('#c-nom').focus(),250);
+}
+function closeCtc(){document.body.classList.remove('csheet');cCur=null;['#c-nom','#c-cel','#c-mail'].forEach(s=>$(s).blur())}
+$('#c-no').onclick=closeCtc;
+$('#c-del').onclick=async()=>{
+  const c=cCur;if(!c)return;
+  const ok=await askText('¿Borrar a '+c.nombre+'?','Sale de tus contactos. Las tareas que se pasaron siguen como están.','Borrar',false,'No');
+  if(ok==null)return;
+  ctcSet(ctcAll().filter(x=>x.id!==c.id));save();closeCtc();paintCtc();toast('Contacto borrado');
+};
+// Android: elegir de los contactos del teléfono (el iPhone no lo permite a una app web)
+$('#c-pick').onclick=async()=>{
+  try{
+    const [p]=await navigator.contacts.select(['name','tel','email'],{multiple:false});if(!p)return;
+    if(p.name&&p.name[0])$('#c-nom').value=p.name[0];
+    if(p.tel&&p.tel[0])$('#c-cel').value=String(p.tel[0]).replace(/^\+?57/,'').replace(/[^\d ]/g,'').trim();
+    if(p.email&&p.email[0])$('#c-mail').value=p.email[0];
+  }catch(e){toast('No se pudo abrir tus contactos')}
+};
+$('#c-form').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const nombre=$('#c-nom').value.replace(/\s+/g,' ').trim().slice(0,60),cel=$('#c-cel').value.replace(/[^\d+ ]/g,'').trim().slice(0,20),correo=$('#c-mail').value.trim().toLowerCase().slice(0,120);
+  if(!nombre){toast('Escribe el nombre');$('#c-nom').focus();return}
+  if(!cel&&!correo){toast('Pon al menos el celular o el correo');$('#c-cel').focus();return}
+  if(correo&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){toast('Revisa el correo');$('#c-mail').focus();return}
+  if(correo&&sess&&correo===String(sess.email).toLowerCase()){toast('Ese correo es el tuyo');return}
+  const L=ctcAll();
+  if(correo&&L.some(x=>x.correo===correo&&(!cCur||x.id!==cCur.id))){toast('Ya tienes un contacto con ese correo');return}
+  const c=cCur?L.find(x=>x.id===cCur.id):{id:uid(),fav:false,usado:0};
+  const cambioCorreo=!cCur||c.correo!==correo;
+  Object.assign(c,{nombre,cel,correo});
+  if(cambioCorreo){c.usa=false;if(correo){
+    const btn=$('#c-ok');btn.disabled=true;$('#c-msg').className='';$('#c-msg').textContent='Revisando si usa Mi día…';
+    try{const j=await ctcCall('existe',{correo});if(j.ok)c.usa=!!j.usa}catch(err){}
+    btn.disabled=false;
+  }}
+  if(!cCur)L.push(c);
+  ctcSet(L);save();paintCtc();
+  if(c.usa){closeCtc();toast('✓ '+nombre+' usa Mi día: ya puedes pasarle tareas')}
+  else{closeCtc();toast('Guardado · '+nombre+' aún no usa Mi día');setTimeout(()=>{if(waNum(cel))ctcInvitar(c)},400)}
+});
+async function ctcCall(accion,extra){
+  const tk=await token();if(!tk)throw new Error('Sin conexión.');
+  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify(Object.assign({},extra,{op:'ctc',accion}))});
+  let j={};try{j=await r.json()}catch(e){j={ok:false,error:'Respuesta ilegible.'}}
+  j.status=r.status;return j;
+}
+/* invitar por WhatsApp: el enlace lleva un código de un solo uso (vence en 7 días), nunca tu correo */
+async function ctcInvitar(c){
+  let nombre=c&&c.nombre;
+  if(!c){
+    const n=await askText('¿A quién invitas?','Así lo reconoces en tus contactos mientras entra. Puedes dejarlo vacío.','Seguir','Nombre (opcional)');
+    if(n==null)return;nombre=n;
+  }
+  let j;
+  try{j=await ctcCall('invitar',{})}catch(e){toast('Sin conexión. Inténtalo de nuevo.');return}
+  if(!j.ok){toast(j.error||'No se pudo crear la invitación');return}
+  const L=ctcAll();
+  if(c){const x=L.find(y=>y.id===c.id);if(x)x.inv=j.id}
+  else if(nombre)L.push({id:uid(),nombre,cel:'',correo:'',usa:false,fav:false,inv:j.id,usado:0});
+  ctcSet(L);save();paintCtc();
+  const yo=(profile()&&profile().nombre)||'';
+  const txt='Hola'+(nombre?' '+nombre.split(' ')[0]:'')+', te invito a Mi día'+(yo?' ('+yo+')':'')+' para pasarnos tareas y recordatorios 🙌\nÁbrelo aquí y quedamos conectados:\n'+HOME+'#inv='+j.codigo;
+  const url='https://wa.me/'+(c&&waNum(c.cel)?waNum(c.cel):'')+'?text='+encodeURIComponent(txt);
+  // El enlace se abre con un toque tuyo (los navegadores bloquean abrir ventanas después de esperar al servidor).
+  const q=$('#qa'),x=$('#qa-x'),f=$('#qa form');
+  $('#qa-t').textContent='Invitación lista';$('#qa-p').textContent='Se abre WhatsApp con el mensaje y el enlace. El enlace sirve una vez y vence en 7 días.';
+  x.style.display='none';$('#qa-ok').textContent='Abrir WhatsApp';$('#qa-no').textContent='Cerrar';q.classList.add('show');
+  const done=()=>{q.classList.remove('show');f.onsubmit=null;$('#qa-no').onclick=null;q.onclick=null};
+  f.onsubmit=e=>{e.preventDefault();window.open(url,'_blank');done()};
+  $('#qa-no').onclick=done;q.onclick=e=>{if(e.target===q)done()};
+}
+// Quien abre una invitación: se acepta al entrar (también si tuvo que crear su cuenta y confirmar el correo).
+let invPend=lsGet('midia.inv',null);
+(()=>{const m=/^#inv=([A-Za-z0-9-]{8,9})$/.exec(location.hash);if(m){invPend=m[1].replace(/-/g,'').toUpperCase();lsSet('midia.inv',invPend);history.replaceState(null,'',location.pathname)}})();
+async function invQuien(){
+  if(!invPend||sess)return;
+  try{
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'inv',codigo:invPend})});
+    const j=await r.json();
+    if(j.ok&&j.nombre){$('#a-sub').textContent=j.nombre+' te invitó a Mi día. Entra o crea tu cuenta y quedan conectados para pasarse tareas.';showAuth('up')}
+    else{invPend=null;lsSet('midia.inv',null)}
+  }catch(e){}
+}
+async function invAceptar(){
+  if(!invPend||!sess)return;
+  const c=invPend;
+  try{
+    const j=await ctcCall('aceptar',{codigo:c});
+    invPend=null;lsSet('midia.inv',null);
+    if(j.ok&&j.contacto){addDest(j.contacto.correo,j.contacto.nombre);save();render();toast('✓ Quedaste conectado con '+j.contacto.nombre)}
+    else if(j.status!==401)toast(j.error||'Esa invitación ya no sirve');
+  }catch(e){}
+}
+// Las conexiones nuevas (alguien aceptó tu invitación) entran a tus contactos.
+let ctcAt=0;
+async function ctcSync(){
+  if(!sess||Date.now()-ctcAt<30000)return;ctcAt=Date.now();
+  let j;try{j=await ctcCall('conexiones',{})}catch(e){return}
+  if(!j.ok||!Array.isArray(j.conexiones))return;
+  const L=ctcAll();let n=0,nuevos=[];
+  for(const k of j.conexiones){
+    if(!k.correo)continue;
+    let c=L.find(x=>x.correo===k.correo)||(k.invitacion&&L.find(x=>x.inv===k.invitacion));
+    if(!c){c={id:uid(),nombre:k.nombre,cel:'',correo:k.correo,usa:true,fav:false,usado:0};L.push(c);n++;nuevos.push(k.nombre);continue}
+    if(!c.usa||c.correo!==k.correo){if(c.inv&&!c.usa)nuevos.push(k.nombre);c.usa=true;c.correo=k.correo;if(!c.nombre)c.nombre=k.nombre;n++}
+  }
+  if(n){ctcSet(L);save();paintCtc();if(nuevos.length)toast('✓ '+nuevos[0]+(nuevos.length>1?' y '+(nuevos.length-1)+' más':'')+' ya '+(nuevos.length>1?'están':'está')+' en tus contactos')}
+}
+
+/* la fila «Asignar a» de la hoja: una o varias personas (tarea compartida, hasta 5) */
+let asSel=[],asOther=false; // asSel = [{correo,nombre}]; asOther = escribir un correo nuevo
+const MAX_PARA=5;
+const asgWanted=()=>asSel.length>0||asOther;
 function paintWho(){
   const show=!editing&&!!sess;
   $('#as-box').classList.toggle('show',show);
-  if(!show)asTo=null;
+  if(!show){asSel=[];asOther=false}
   const w=$('#as-who');w.textContent='';
-  const B=(name,label,key,add)=>{
+  const B=(name,label,key,add,on)=>{
     const b=document.createElement('button');b.type='button';b.dataset.who=key;
     const av=avEl(name);if(add){av.className='av add';av.textContent='+'}else if(key==='me')av.style.setProperty('--av','var(--blue)');
     const s=document.createElement('span');s.textContent=label;b.append(av,s);
-    const on=key==='me'?!asTo:key==='other'?(asTo&&!asTo.nombre):(asTo&&asTo.correo===key);
     b.classList.toggle('on',!!on);w.appendChild(b);
   };
-  B((sess&&sess.email)||'Yo','Yo','me');
-  dests().forEach(d=>B(d.nombre,d.nombre.split(' ')[0],d.correo));
-  B('','Otro','other',true);
-  $('#as-more').classList.toggle('show',!!asTo);
-  $('#as-mail').classList.toggle('show',!!(asTo&&!asTo.nombre));
-  $('#as-nota').placeholder=asTo&&asTo.nombre?'Nota para '+asTo.nombre.split(' ')[0]+' (opcional)':'Nota para la persona (opcional)';
-  $('#rep-box').style.display=asTo||editing?'none':'';
-  $('#f-save').textContent=editing?'Guardar cambios':asTo?(asTo.nombre?'Enviar a '+asTo.nombre.split(' ')[0]:'Enviar'):'Guardar';
+  B((sess&&sess.email)||'Yo','Yo','me',false,!asgWanted());
+  const ds=dests();
+  // los ya elegidos que no estén entre los primeros 8 también se ven
+  const vis=ds.slice(0,8);asSel.forEach(s=>{if(!vis.some(d=>d.correo===s.correo))vis.push(s)});
+  vis.forEach(d=>B(d.nombre,d.nombre.split(' ')[0],d.correo,false,asSel.some(s=>s.correo===d.correo)));
+  B('','Otro','other',true,asOther);
+  const n=asSel.length+(asOther?1:0),pri=asSel.map(s=>s.nombre.split(' ')[0]);
+  $('#as-more').classList.toggle('show',asgWanted());
+  $('#as-mail').classList.toggle('show',asOther);
+  $('#as-nota').placeholder=n>1?'Nota para todos (opcional)':pri.length?'Nota para '+pri[0]+' (opcional)':'Nota para la persona (opcional)';
+  $('#rep-box').style.display=asgWanted()||editing?'none':'';
+  const quien=asOther&&!pri.length?'':pri.length===1&&!asOther?pri[0]:n===2&&!asOther?pri[0]+' y '+pri[1]:n+' personas';
+  $('#f-save').textContent=editing?'Guardar cambios':asgWanted()?(quien?'Enviar a '+quien:'Enviar'):'Guardar';
+  $('#as-hint').textContent=n>1?'Tarea compartida: cada persona la acepta y la marca hecha por su lado.':'';
 }
 $('#as-who').onclick=e=>{
   const b=e.target.closest('[data-who]');if(!b)return;
   const k=b.dataset.who;
-  if(k==='me')asTo=null;
-  else if(k==='other'){asTo={correo:'',nombre:''};setTimeout(()=>$('#as-mail').focus(),50)}
-  else asTo=dests().find(d=>d.correo===k)||null;
+  if(k==='me'){asSel=[];asOther=false}
+  else if(k==='other'){
+    if(!asOther&&asSel.length>=MAX_PARA){toast('Máximo '+MAX_PARA+' personas por tarea');return}
+    asOther=!asOther;if(asOther)setTimeout(()=>$('#as-mail').focus(),50);
+  }else{
+    const i=asSel.findIndex(s=>s.correo===k);
+    if(i>=0)asSel.splice(i,1);
+    else{if(asSel.length+(asOther?1:0)>=MAX_PARA){toast('Máximo '+MAX_PARA+' personas por tarea');return}const d=dests().find(x=>x.correo===k);if(d)asSel.push(d)}
+  }
   clearHint();paintWho();
 };
 async function sendAssign(title,due,end){
-  const correo=(asTo.correo||$('#as-mail').value).trim().toLowerCase();
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){toast('Escribe el correo de la persona');$('#as-mail').focus();return}
+  const correos=asSel.map(s=>s.correo);
+  if(asOther){
+    const m=$('#as-mail').value.trim().toLowerCase();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m)){toast('Escribe el correo de la persona');$('#as-mail').focus();return}
+    if(!correos.includes(m))correos.push(m);
+  }
+  if(!correos.length){toast('Elige a quién se la asignas');return}
   const btn=$('#f-save');btn.disabled=true;
   try{
-    const j=await asgCall('enviar',{correo,titulo:title,nota:$('#as-nota').value.trim(),due:due?due.toISOString():null,fin:due?end.toISOString():null,urgente:pickQ===1||pickQ===3,importante:pickQ===1||pickQ===2});
+    const j=await asgCall('enviar',{correos,titulo:title,nota:$('#as-nota').value.trim(),due:due?due.toISOString():null,fin:due?end.toISOString():null,urgente:pickQ===1||pickQ===3,importante:pickQ===1||pickQ===2});
     if(j.sinCuenta){
-      const el=$('#hint');el.className='wa';el.textContent=correo+' no tiene cuenta en Mi día. Toca aquí para enviárselo por WhatsApp.';
+      const faltan=j.faltan||correos,el=$('#hint');el.className='wa';
+      el.textContent=faltan.join(', ')+(faltan.length===1?' no tiene':' no tienen')+' cuenta en Mi día'+(correos.length>faltan.length?' (no se envió a nadie). Quítalo de la lista o toca aquí para mandárselo por WhatsApp.':'. Toca aquí para enviárselo por WhatsApp.');
       hintAct=()=>shareWa({title,due:due?due.toISOString():null,end:due?end.toISOString():null,q:pickQ});return;
     }
     if(!j.ok){toast(j.error||'No se pudo enviar');return}
-    asgKeep(j.asignacion);addDest(correo,j.asignacion.para_nombre);save();closeSheet();render();
-    toast('Enviada a '+j.asignacion.para_nombre+' · te aviso cuando la acepte');
+    const lista=j.asignaciones||[j.asignacion];
+    lista.forEach(a=>{asgKeep(a);addDest(a.para_correo,a.para_nombre)});
+    save();closeSheet();render();
+    const nom=lista.map(a=>a.para_nombre.split(' ')[0]);
+    toast('Enviada a '+(nom.length>2?nom.length+' personas':nom.join(' y '))+' · te aviso cuando la acepten');
   }catch(e){toast('Sin conexión. Inténtalo de nuevo.')}
   finally{btn.disabled=false}
 }
@@ -2099,6 +2411,12 @@ function asgNews(){
       else if(a.estado==='hecha')msgs.push('✓ '+a.para_nombre+' terminó «'+a.titulo+'»');
       else if(a.estado==='rechazada')msgs.push(a.para_nombre+' no puede con «'+a.titulo+'»');
     }
+    for(const e of asgEntradas()){
+      if(!e.grupo)continue;
+      const vivos=e.miembros.filter(m=>m.estado!=='rechazada'&&m.estado!=='cancelada');
+      const ahora=vivos.length>1&&vivos.every(m=>m.estado==='hecha'),antes=vivos.every(m=>asgSt[m.id]==='hecha');
+      if(ahora&&!antes)msgs.unshift('✓ Todos terminaron «'+e.miembros[0].titulo+'»');
+    }
     if(msgs.length){chime();if(navigator.vibrate)navigator.vibrate([120,60,120]);toast(msgs.length===1?msgs[0]:msgs[0]+' (y '+(msgs.length-1)+' más en «Asigné»)')}
   }
   asgSt=now;lsSet('midia.asg.st',now);
@@ -2126,6 +2444,7 @@ function setPerfil(patch){
 const setPhoto=url=>setPerfil({photo:url||null});
 $('#pf-name').addEventListener('change',e=>{setPerfil({nombre:e.target.value.replace(/\s+/g,' ').trim().slice(0,40)});toast('Nombre guardado')});
 $('#acct-asg').onclick=()=>{$('#acct-pop').classList.remove('show');showAsg()};
+$('#acct-ctc').onclick=()=>{$('#acct-pop').classList.remove('show');showCtc()};
 async function pickPhoto(file){
   try{
     const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=URL.createObjectURL(file)});
@@ -2162,7 +2481,7 @@ async function cloudSync(){
         cursor=r.updated_at;
         let arr=S.tasks,i=arr.findIndex(t=>t.id===r.id);
         if(i<0){const j=S.rules.findIndex(t=>t.id===r.id);if(j>=0||(r.data&&r.data.kind==='rule')){arr=S.rules;i=j}}
-        if(i<0&&arr===S.tasks){const k=S.extra.findIndex(t=>t.id===r.id);if(k>=0||(r.data&&(r.data.kind==='profile'||r.data.kind==='dest'))){arr=S.extra;i=k}}
+        if(i<0&&arr===S.tasks){const k=S.extra.findIndex(t=>t.id===r.id);if(k>=0||(r.data&&(r.data.kind==='profile'||r.data.kind==='dest'||r.data.kind==='contactos'))){arr=S.extra;i=k}}
         const loc=i>=0?arr[i]:null,ru=(r.data&&r.data.u)||0;
         if(outbox[r.id]==='del')continue;
         if(loc&&(loc.u||0)>=ru)continue;
@@ -2186,7 +2505,7 @@ function cloudSoon(){clearTimeout(cloudT);cloudT=setTimeout(cloudSync,1200)}
 let ticks=0;
 setInterval(()=>{if(sess&&!document.hidden&&++ticks%4===0)cloudSync()},15000);
 // al salir de la app se sube lo pendiente; al volver se baja lo nuevo y se busca versión nueva
-document.addEventListener('visibilitychange',()=>{cloudSync();if(!document.hidden){checkUpdate();atlasLoad();asgLoad(true,true)}});
+document.addEventListener('visibilitychange',()=>{cloudSync();if(!document.hidden){checkUpdate();atlasLoad();asgLoad(true,true);ctcSync()}});
 setInterval(()=>{if(sess&&!document.hidden)asgLoad()},60000);
 window.addEventListener('pagehide',()=>{cloudSync()});
 
@@ -2263,7 +2582,7 @@ if('serviceWorker'in navigator)navigator.serviceWorker.addEventListener('message
 bellState();
 (async()=>{
   await fromLink();
-  if(recovering)showAuth('new');else if(sess)enter();else showAuth('in',linkMsg);
+  if(recovering)showAuth('new');else if(sess)enter();else{showAuth('in',linkMsg);invQuien()}
   if(openPend&&sess){const id=openPend;openPend=null;setTimeout(()=>openById(id),400)}
 })();
 </script>
