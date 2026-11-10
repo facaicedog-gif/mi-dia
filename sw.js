@@ -1,5 +1,5 @@
 // Mi día · service worker: funciona sin conexión y muestra los avisos.
-const CACHE = 'midia-v4';
+const CACHE = 'midia-v5';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-180.png'];
 
 self.addEventListener('install', e => {
@@ -15,11 +15,12 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Red primero (para recibir versiones nuevas); si no hay conexión, lo guardado.
+// Red primero y sin usar la copia del navegador, para recibir siempre la versión nueva;
+// si no hay conexión, lo guardado.
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || !e.request.url.startsWith(self.location.origin)) return;
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request.url, { cache: 'no-store' })
       .then(r => {
         const copy = r.clone();
         caches.open(CACHE).then(c => c.put(e.request, copy));
@@ -36,6 +37,7 @@ self.addEventListener('push', e => {
   e.waitUntil(self.registration.showNotification(d.title || 'Tienes un pendiente', {
     body: d.body || '',
     tag: d.tag,
+    silent: false,
     icon: 'icon-192.png',
     badge: 'icon-192.png',
     data: d.data || {}

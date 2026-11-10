@@ -221,6 +221,21 @@ html.dragging{overflow:hidden;overscroll-behavior:none}
 /* en iPhone, cualquier campo con letra menor de 16 px hace zoom al tocarlo */
 input,select,textarea{font-size:16px}
 #f-title{font-size:19px}
+/* guardado en la cuenta y actualización */
+#acct{position:relative}
+#acct::after{content:"";position:absolute;top:8px;right:8px;width:9px;height:9px;border-radius:50%;background:#12a150;border:2px solid var(--card)}
+#acct.pend::after{background:var(--q3)}
+#acct-pop #acct-upd{background:var(--blue-soft);color:var(--blue);margin-bottom:8px}
+#ptr{position:fixed;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translate(-50%,-90px);z-index:40;background:var(--ink);color:#fff;padding:9px 16px;border-radius:99px;font-size:13px;font-weight:600;white-space:nowrap;pointer-events:none;transition:transform .18s}
+/* foto de perfil */
+.pf{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.pf>div{min-width:0}
+.pf b{margin-bottom:0!important}
+#acct-pop #pf-pic{flex:none;width:60px;height:60px;padding:0;border-radius:50%;background:var(--blue-soft) center/cover no-repeat;color:var(--blue);font-size:24px;font-weight:800}
+.pfb{display:flex;gap:8px;margin:0 0 10px}
+#acct-pop .pfb button{flex:1;width:auto;padding:9px;font-size:13px;background:var(--q4b);color:var(--ink)}
+#acct.has{background:center/cover no-repeat}
+#acct.has svg{display:none}
 </style>
 </head>
 <body class="out">
@@ -237,7 +252,8 @@ input,select,textarea{font-size:16px}
     <button type="button" class="link" id="a-forgot">Olvidé mi contraseña</button>
   </form>
 </div>
-<div id="acct-pop"><small>Tu cuenta</small><b id="acct-mail"></b><p id="cloud"></p><button type="button" id="acct-out">Cerrar sesión</button></div>
+<div id="acct-pop"><div class="pf"><button type="button" id="pf-pic" aria-label="Cambiar foto de perfil"></button><div><small>Tu cuenta</small><b id="acct-mail"></b></div></div><div class="pfb"><button type="button" id="pf-set">Agregar foto</button><button type="button" id="pf-del">Quitar</button></div><input type="file" id="pf-file" accept="image/*" hidden><p id="cloud"></p><button type="button" id="acct-upd">Buscar actualización</button><button type="button" id="acct-out">Cerrar sesión</button></div>
+<div id="ptr">Desliza para actualizar</div>
 <header>
   <div><h1>Mi día</h1><p id="sub"></p></div>
   <span class="sp"></span>
@@ -307,8 +323,9 @@ const CHECK='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 /* ---------- datos ---------- */
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-if(!S||!Array.isArray(S.tasks))S={tasks:[],rules:[]};
+if(!S||!Array.isArray(S.tasks))S={tasks:[],rules:[],extra:[]};
 if(!Array.isArray(S.rules))S.rules=[];
+if(!Array.isArray(S.extra))S.extra=[];
 const lsGet=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
 const lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 // Lo que cambió desde la última vez queda anotado para subirlo a la cuenta.
@@ -316,13 +333,16 @@ let known=lsGet('midia.known',{}),outbox=lsGet('midia.outbox',{}),cursor=lsGet('
 const sig=t=>{const c=Object.assign({},t);delete c.u;return JSON.stringify(c)};
 function track(){
   const seen={};
-  for(const t of S.tasks.concat(S.rules)){seen[t.id]=1;const s=sig(t);if(known[t.id]!==s){t.u=Date.now();known[t.id]=s;outbox[t.id]=1}}
+  for(const t of S.tasks.concat(S.rules,S.extra)){seen[t.id]=1;const s=sig(t);if(known[t.id]!==s){t.u=Date.now();known[t.id]=s;outbox[t.id]=1}}
   for(const id in known)if(!seen[id]){delete known[id];outbox[id]='del'}
 }
-function store(){lsSet(KEY,S);lsSet('midia.known',known);lsSet('midia.outbox',outbox);lsSet('midia.cursor',cursor)}
+function store(){
+  lsSet(KEY,S);lsSet('midia.known',known);lsSet('midia.outbox',outbox);lsSet('midia.cursor',cursor);
+  $('#acct').classList.toggle('pend',Object.keys(outbox).length>0);
+}
 const save=()=>{track();store();syncSoon();cloudSoon()};
 const byId=id=>S.tasks.find(t=>t.id===id);
-const getItem=id=>byId(id)||S.rules.find(r=>r.id===id);
+const getItem=id=>byId(id)||S.rules.find(r=>r.id===id)||S.extra.find(r=>r.id===id);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
 /* ---------- fechas (siempre hora local) ---------- */
@@ -497,6 +517,7 @@ function rollover(){
 }
 function render(){
   if(drag)return;
+  paintProfile();
   const now=new Date(), open=S.tasks.filter(t=>!t.done);
   const sub=now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
   $('#sub').textContent=sub[0].toUpperCase()+sub.slice(1);
@@ -1115,12 +1136,35 @@ const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform===
 const standalone=navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;
 if(isIOS&&!standalone)$('#ios').style.display='block';
 
+// Sonido propio cuando el aviso llega con la app abierta. El audio sólo puede sonar después
+// de que hayas tocado la pantalla alguna vez, y respeta el interruptor de silencio del iPhone.
+let actx=null;
+function unlockAudio(){
+  try{
+    if(!actx){const C=window.AudioContext||window.webkitAudioContext;if(C)actx=new C()}
+    if(actx&&actx.state==='suspended')actx.resume();
+  }catch(e){}
+}
+document.addEventListener('touchend',unlockAudio,{passive:true});
+document.addEventListener('click',unlockAudio);
+function chime(){
+  try{
+    if(!actx||actx.state!=='running')return;
+    const t=actx.currentTime;
+    [[880,0],[1175,.17],[1568,.34]].forEach(([f,d])=>{
+      const o=actx.createOscillator(),g=actx.createGain();
+      o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t+d);g.gain.exponentialRampToValueAtTime(0.28,t+d+.02);g.gain.exponentialRampToValueAtTime(0.0001,t+d+.4);
+      o.connect(g);g.connect(actx.destination);o.start(t+d);o.stop(t+d+.45);
+    });
+  }catch(e){}
+}
 async function notify(t){
-  toast('⏰ '+t.title);
+  toast('⏰ '+t.title);chime();
   if(navigator.vibrate)navigator.vibrate([120,60,120]);
   if(pushOn)return; // el servidor ya envía este aviso
   if(!canNotify||Notification.permission!=='granted')return;
-  const opt={body:QN[t.q]+' · '+spanTxt(t).replace(/^[^·]*· /,''),tag:t.id,icon:'icon-192.png',badge:'icon-192.png',data:{id:t.id}};
+  const opt={body:QN[t.q]+' · '+spanTxt(t).replace(/^[^·]*· /,''),tag:t.id,silent:false,icon:'icon-192.png',badge:'icon-192.png',data:{id:t.id}};
   try{
     const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();
     if(reg)await reg.showNotification(t.title,opt);else new Notification(t.title,opt);
@@ -1235,10 +1279,10 @@ async function fromLink(){
 }
 function enter(){
   // Si en este dispositivo había pendientes de otra cuenta, no se mezclan.
-  if(S.owner&&S.owner!==sess.uid){S={tasks:[],rules:[]};known={};outbox={};cursor=''}
+  if(S.owner&&S.owner!==sess.uid){S={tasks:[],rules:[],extra:[]};known={};outbox={};cursor=''}
   S.owner=sess.uid;
   document.body.classList.remove('out');$('#acct-mail').textContent=sess.email;
-  track();store();render();tick();syncNow();cloudSync();
+  track();store();render();tick();syncNow();cloudSync();checkUpdate();
   if(pendingAdd){const a=pendingAdd;pendingAdd=null;openSheet(null,a)}
 }
 async function signOut(){
@@ -1246,7 +1290,7 @@ async function signOut(){
   await cloudSync();
   if(Object.keys(outbox).length){toast('Sin conexión: conéctate para cerrar sesión sin perder cambios');return}
   const at=sess&&sess.at;
-  setSess(null);S={tasks:[],rules:[]};known={};outbox={};cursor='';store();
+  setSess(null);S={tasks:[],rules:[],extra:[]};known={};outbox={};cursor='';store();
   syncNow(); // este dispositivo deja de recibir avisos de la cuenta
   if(at)authCall('logout',{},at).catch(()=>{});
   render();showAuth('in');
@@ -1259,6 +1303,37 @@ $('#acct').onclick=e=>{
 $('#acct-pop').onclick=e=>e.stopPropagation();
 document.addEventListener('click',()=>$('#acct-pop').classList.remove('show'));
 $('#acct-out').onclick=signOut;
+
+/* ---------- foto de perfil ---------- */
+// La foto se recorta en cuadro y se reduce a 112 px en el propio celular; así pesa unos
+// pocos KB y viaja con la cuenta a cualquier dispositivo.
+const profile=()=>S.extra.find(x=>x.id==='_perfil');
+function paintProfile(){
+  const p=profile(),src=p&&typeof p.photo==='string'&&p.photo.startsWith('data:image/')?p.photo:'';
+  const a=$('#acct'),pic=$('#pf-pic'),bg=src?'url("'+src+'")':'';
+  a.classList.toggle('has',!!src);a.style.backgroundImage=bg;
+  pic.style.backgroundImage=bg;pic.textContent=src?'':(((sess&&sess.email)||'?')[0]||'?').toUpperCase();
+  $('#pf-del').style.display=src?'':'none';$('#pf-set').textContent=src?'Cambiar foto':'Agregar foto';
+}
+function setPhoto(url){
+  S.extra=S.extra.filter(x=>x.id!=='_perfil');
+  if(url)S.extra.push({id:'_perfil',kind:'profile',photo:url});
+  save();paintProfile();
+}
+async function pickPhoto(file){
+  try{
+    const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=URL.createObjectURL(file)});
+    const n=112,s=Math.min(img.naturalWidth,img.naturalHeight),c=document.createElement('canvas');c.width=c.height=n;
+    c.getContext('2d').drawImage(img,(img.naturalWidth-s)/2,(img.naturalHeight-s)/2,s,s,0,0,n,n);
+    URL.revokeObjectURL(img.src);
+    let url=c.toDataURL('image/jpeg',0.62);if(url.length>6500)url=c.toDataURL('image/jpeg',0.4);
+    if(url.length>7200){toast('Esa foto no se pudo reducir lo suficiente. Prueba con otra.');return}
+    setPhoto(url);toast('Foto de perfil actualizada');
+  }catch(e){toast('No pude leer esa imagen. Prueba con otra.')}
+}
+$('#pf-pic').onclick=$('#pf-set').onclick=()=>$('#pf-file').click();
+$('#pf-del').onclick=()=>{setPhoto(null);toast('Foto quitada')};
+$('#pf-file').addEventListener('change',e=>{const f=e.target.files[0];e.target.value='';if(f)pickPhoto(f)});
 
 /* ---------- pendientes guardados en la cuenta ---------- */
 let syncing=false,cloudT=null;
@@ -1281,6 +1356,7 @@ async function cloudSync(){
         cursor=r.updated_at;
         let arr=S.tasks,i=arr.findIndex(t=>t.id===r.id);
         if(i<0){const j=S.rules.findIndex(t=>t.id===r.id);if(j>=0||(r.data&&r.data.kind==='rule')){arr=S.rules;i=j}}
+        if(i<0&&arr===S.tasks){const k=S.extra.findIndex(t=>t.id===r.id);if(k>=0||(r.data&&r.data.kind==='profile')){arr=S.extra;i=k}}
         const loc=i>=0?arr[i]:null,ru=(r.data&&r.data.u)||0;
         if(outbox[r.id]==='del')continue;
         if(loc&&(loc.u||0)>=ru)continue;
@@ -1300,10 +1376,61 @@ async function cloudSync(){
   syncing=false;store();
   if(changed&&!drag&&!document.body.classList.contains('sheet'))render();
 }
-function cloudSoon(){clearTimeout(cloudT);cloudT=setTimeout(cloudSync,2500)}
+function cloudSoon(){clearTimeout(cloudT);cloudT=setTimeout(cloudSync,1200)}
 let ticks=0;
 setInterval(()=>{if(sess&&!document.hidden&&++ticks%4===0)cloudSync()},15000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)cloudSync()});
+// al salir de la app se sube lo pendiente; al volver se baja lo nuevo y se busca versión nueva
+document.addEventListener('visibilitychange',()=>{cloudSync();if(!document.hidden)checkUpdate()});
+window.addEventListener('pagehide',()=>{cloudSync()});
+
+/* ---------- actualización de la app ---------- */
+// El iPhone deja la app instalada «congelada» y no vuelve a descargarla sola. Aquí se compara
+// la fecha de la página abierta con la del servidor y, si hay una más nueva, se recarga.
+// Recargar no borra nada: los pendientes están en la cuenta y en el dispositivo.
+let updBusy=false;
+async function checkUpdate(){
+  if(updBusy)return false;updBusy=true;let did=false;
+  try{
+    const r=await fetch('./?t='+Date.now(),{method:'HEAD',cache:'no-store'});
+    const lm=r.ok&&r.headers.get('last-modified'),srv=lm?Date.parse(lm):0,mine=Date.parse(document.lastModified);
+    if(srv&&mine&&srv-mine>2000){
+      let tried=null;try{tried=JSON.parse(sessionStorage.getItem('midia.upd'))}catch(e){}
+      const again=tried&&tried.lm===lm&&Date.now()-tried.at<12*6e4;
+      if(!again&&!drag&&!document.body.classList.contains('sheet')){
+        try{sessionStorage.setItem('midia.upd',JSON.stringify({lm,at:Date.now()}))}catch(e){}
+        did=true;toast('Hay una versión nueva. Actualizando…');
+        await cloudSync();
+        try{const reg=await navigator.serviceWorker.getRegistration();if(reg)await reg.update()}catch(e){}
+        setTimeout(()=>location.replace(location.pathname+'?u='+Date.now()),700);
+      }
+    }
+  }catch(e){}
+  updBusy=false;return did;
+}
+setInterval(()=>{if(!document.hidden)checkUpdate()},20*6e4);
+async function refreshAll(){
+  toast('Actualizando…');
+  await cloudSync();
+  if(!(await checkUpdate()))toast(Object.keys(outbox).length?'Sin conexión: tus cambios se suben cuando vuelva':'Todo al día y guardado en tu cuenta');
+}
+$('#acct-upd').onclick=()=>{$('#acct-pop').classList.remove('show');refreshAll()};
+// deslizar hacia abajo desde arriba de la pantalla
+let ptr=null;const ptrEl=$('#ptr');
+const ptrShow=d=>{ptrEl.style.transform='translate(-50%,'+(d>0?Math.min(d/2,60)-10:-90)+'px)';ptrEl.textContent=d>130?'Suelta para actualizar':'Desliza para actualizar'};
+document.addEventListener('touchstart',e=>{
+  ptr=null;
+  if(scrollY>0||e.touches.length>1||document.body.classList.contains('sheet')||document.body.classList.contains('out'))return;
+  ptr={y:e.touches[0].clientY,d:0};
+},{passive:true});
+document.addEventListener('touchmove',e=>{
+  if(!ptr)return;
+  if(drag||scrollY>0){ptr=null;ptrShow(0);return}
+  ptr.d=e.touches[0].clientY-ptr.y;ptrShow(ptr.d>24?ptr.d:0);
+},{passive:true});
+document.addEventListener('touchend',()=>{
+  const go=ptr&&ptr.d>130&&!drag&&scrollY<=0;ptr=null;ptrShow(0);
+  if(go)refreshAll();
+},{passive:true});
 
 // Enlace compartido por WhatsApp: «…#add=…» trae un pendiente para agregar.
 let pendingAdd=null;
