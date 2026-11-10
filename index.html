@@ -236,6 +236,37 @@ input,select,textarea{font-size:16px}
 #acct-pop .pfb button{flex:1;width:auto;padding:9px;font-size:13px;background:var(--q4b);color:var(--ink)}
 #acct.has{background:center/cover no-repeat}
 #acct.has svg{display:none}
+/* Atlas conectado: las tarjetas que vienen de la agenda de Atlas */
+.atl{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.06em;padding:2px 6px;border-radius:6px;background:var(--blue);color:#fff;margin-bottom:4px}
+.card[data-q="1"] .atl{background:#fff;color:var(--blue)}
+.card .co{font-size:11.5px;font-weight:500;opacity:.8;margin-top:1px;overflow-wrap:anywhere}
+#atl-box{border-top:1px solid var(--line);margin:4px 0 10px;padding-top:10px;font-size:13px}
+#atl-box small{color:var(--mut)}
+#atl-box .row{display:flex;gap:6px;margin-top:8px}
+#atl-box input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;text-align:center}
+#acct-pop #atl-go{width:auto;padding:9px 14px;background:var(--blue);color:#fff}
+#acct-pop #atl-open,#acct-pop #atl-off{width:auto;padding:0;background:none;color:var(--blue);font-size:13px}
+#acct-pop #atl-off{color:var(--mut);font-weight:600}
+#atl-box .okk{color:#12a150;font-weight:700}
+#asheet{position:fixed;left:0;right:0;bottom:0;z-index:22;background:var(--card);border-radius:22px 22px 0 0;padding:8px 16px calc(16px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .24s cubic-bezier(.2,.8,.2,1);max-width:760px;margin:0 auto;max-height:92vh;overflow:auto}
+body.asheet #scrim{opacity:1;pointer-events:auto}
+body.asheet #asheet{transform:none}
+#asheet h3{margin:6px 0 2px;font-size:19px;overflow-wrap:anywhere}
+#a-who{color:var(--mut);font-size:13px;margin-bottom:6px}
+#a-notas{font-size:13px;background:var(--q4b);border-radius:12px;padding:9px 11px;margin-bottom:10px;white-space:pre-wrap;overflow-wrap:anywhere}
+#a-acts{display:flex;gap:7px;margin:10px 0 4px}
+#a-acts a{flex:1;text-align:center;padding:11px 4px;border-radius:12px;background:var(--blue-soft);color:var(--blue);font-weight:700;font-size:13px;text-decoration:none}
+#a-acts a.wa{background:#e7f8ee;color:#128c4a}
+#a-como{display:flex;gap:7px}
+#a-como button{flex:1;padding:10px;border-radius:12px;background:var(--q4b);font-weight:700;font-size:13.5px}
+#a-como button.on{background:var(--blue);color:#fff}
+#a-nota{width:100%;min-height:74px;border:1.5px solid var(--line);border-radius:12px;padding:10px;font-family:inherit;color:var(--ink);background:var(--card);resize:vertical}
+#a-err{color:var(--q1);font-size:13px;font-weight:600;min-height:18px;margin-top:6px}
+#asheet .big{display:block;width:100%;padding:14px;border-radius:14px;font-weight:700;margin-top:8px}
+#a-ok{background:var(--blue);color:#fff}
+#a-sin,#a-rep{background:var(--q4b);color:var(--ink)}
+#a-repbox{display:none;margin-top:8px}
+#a-repbox.show{display:block}
 </style>
 </head>
 <body class="out">
@@ -252,7 +283,7 @@ input,select,textarea{font-size:16px}
     <button type="button" class="link" id="a-forgot">Olvidé mi contraseña</button>
   </form>
 </div>
-<div id="acct-pop"><div class="pf"><button type="button" id="pf-pic" aria-label="Cambiar foto de perfil"></button><div><small>Tu cuenta</small><b id="acct-mail"></b></div></div><div class="pfb"><button type="button" id="pf-set">Agregar foto</button><button type="button" id="pf-del">Quitar</button></div><input type="file" id="pf-file" accept="image/*" hidden><p id="cloud"></p><button type="button" id="acct-upd">Buscar actualización</button><button type="button" id="acct-out">Cerrar sesión</button></div>
+<div id="acct-pop"><div class="pf"><button type="button" id="pf-pic" aria-label="Cambiar foto de perfil"></button><div><small>Tu cuenta</small><b id="acct-mail"></b></div></div><div class="pfb"><button type="button" id="pf-set">Agregar foto</button><button type="button" id="pf-del">Quitar</button></div><input type="file" id="pf-file" accept="image/*" hidden><div id="atl-box"></div><p id="cloud"></p><button type="button" id="acct-upd">Buscar actualización</button><button type="button" id="acct-out">Cerrar sesión</button></div>
 <div id="ptr">Desliza para actualizar</div>
 <header>
   <div><h1>Mi día</h1><p id="sub"></p></div>
@@ -310,6 +341,28 @@ input,select,textarea{font-size:16px}
   </div>
   <div class="acts"><button type="button" id="f-del">Eliminar</button><button type="button" id="f-share">WhatsApp</button><button type="submit" id="f-save">Guardar</button></div>
 </form>
+<div id="asheet">
+  <div class="grab"></div>
+  <span class="atl">ATLAS</span>
+  <h3 id="a-title"></h3>
+  <div id="a-who"></div>
+  <div id="a-notas"></div>
+  <div id="a-acts"></div>
+  <div id="a-ask">
+    <div class="lbl" id="a-como-l">¿Cómo salió?</div>
+    <div id="a-como"><button type="button" data-como="contesto" class="on">Contestó</button><button type="button" data-como="no_contesta">No contestó</button></div>
+    <div class="lbl" id="a-nota-l">Nota para Atlas</div>
+    <textarea id="a-nota"></textarea>
+  </div>
+  <div id="a-err"></div>
+  <button type="button" class="big" id="a-ok">Ya lo hice · guardar en Atlas</button>
+  <button type="button" class="big" id="a-sin">Cerrar sin anotar</button>
+  <button type="button" class="big" id="a-rep">Reprogramar</button>
+  <div id="a-repbox">
+    <div class="drow"><label>Día<input type="date" id="a-date"></label><label>Hora<input type="time" id="a-time"></label></div>
+    <button type="button" class="big" id="a-repok" style="background:var(--blue);color:#fff">Guardar la nueva fecha en Atlas</button>
+  </div>
+</div>
 <input type="file" id="xl-file" accept=".xlsx,.xls,.csv" hidden>
 <div id="toast"></div>
 
@@ -341,7 +394,10 @@ function store(){
   $('#acct').classList.toggle('pend',Object.keys(outbox).length>0);
 }
 const save=()=>{track();store();syncSoon();cloudSoon()};
-const byId=id=>S.tasks.find(t=>t.id===id);
+// Los pendientes que vienen de la agenda de Atlas (si la cuenta está conectada). No son de Mi día: no se guardan en
+// la cuenta ni se suben; se leen de Atlas y viven sólo en este dispositivo.
+let ATLAS=[];
+const byId=id=>S.tasks.find(t=>t.id===id)||ATLAS.find(t=>t.id===id);
 const getItem=id=>byId(id)||S.rules.find(r=>r.id===id)||S.extra.find(r=>r.id===id);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
@@ -488,6 +544,11 @@ function cardEl(t,o){
   c.className='card'+(t.done&&!o.plain?' done':'')+(t.id===newId?' new':'');c.dataset.id=t.id;c.dataset.q=t.q;
   c.innerHTML='<button class="chk" aria-label="Marcar como hecha">'+CHECK+'</button><div class="ct"><div class="tt"></div></div>';
   c.querySelector('.tt').textContent=t.title;
+  if(t.atlas){
+    const g=document.createElement('span');g.className='atl';g.textContent='ATLAS';
+    c.querySelector('.ct').insertBefore(g,c.querySelector('.tt'));
+    if(t.empresa&&t.empresa.nombre){const e=document.createElement('div');e.className='co';e.textContent=t.empresa.nombre;c.querySelector('.ct').appendChild(e)}
+  }
   if(o.note||t.due){
     const d=document.createElement('div'),dd=t.due&&new Date(t.due),cls=o.note?(o.noteCls||''):dueClass(t);
     d.className='due '+cls;
@@ -502,9 +563,10 @@ let calM=null,selDay=null;
 const dueK=t=>t.due?ymd(new Date(t.due)):null, doneK=t=>t.done&&t.doneAt?ymd(new Date(t.doneAt)):null;
 function dayInfo(k,todayK){
   const done=S.tasks.filter(t=>doneK(t)===k);let missed=[],planned=[];
-  if(k<todayK)missed=S.tasks.filter(t=>t.due&&dueK(t)<=k&&(!t.done||doneK(t)>k));
-  else if(k===todayK)planned=S.tasks.filter(t=>!t.done&&t.due&&dueK(t)<=k);
-  else planned=S.tasks.filter(t=>!t.done&&dueK(t)===k);
+  const todo=S.tasks.concat(ATLAS);
+  if(k<todayK)missed=todo.filter(t=>t.due&&dueK(t)<=k&&(!t.done||doneK(t)>k));
+  else if(k===todayK)planned=todo.filter(t=>!t.done&&t.due&&dueK(t)<=k);
+  else planned=todo.filter(t=>!t.done&&dueK(t)===k);
   return {done,missed,planned};
 }
 /* lo que no se hizo un día amanece primero en «Hacer ya» */
@@ -518,7 +580,7 @@ function rollover(){
 function render(){
   if(drag)return;
   paintProfile();
-  const now=new Date(), open=S.tasks.filter(t=>!t.done);
+  const now=new Date(), open=S.tasks.filter(t=>!t.done).concat(ATLAS);
   const sub=now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
   $('#sub').textContent=sub[0].toUpperCase()+sub.slice(1);
   // resumen
@@ -635,7 +697,7 @@ function clearHint(){const el=$('#hint');el.textContent='';el.className='';freeA
 /* ---------- que no se crucen dos actividades ---------- */
 const tStart=t=>new Date(t.due).getTime(),tEnd=t=>t.end?new Date(t.end).getTime():tStart(t)+DEF*6e4;
 function clash(s,e,skip){
-  const c=S.tasks.find(t=>!t.done&&t.due&&t.id!==skip&&tStart(t)<e&&tEnd(t)>s);
+  const c=S.tasks.concat(ATLAS).find(t=>!t.done&&t.due&&t.id!==skip&&tStart(t)<e&&tEnd(t)>s);
   if(c)return c;
   // repetitivas cuyas tarjetas de ese día todavía no existen
   const d=new Date(s),k=ymd(d);
@@ -738,7 +800,7 @@ $$('.chip').forEach(c=>c.onclick=()=>{
 });
 $$('#qpick button').forEach(b=>b.onclick=()=>{quadTouched=true;setQ(+b.dataset.q)});
 $('#fab').onclick=()=>openSheet();
-$('#scrim').onclick=closeSheet;
+$('#scrim').onclick=()=>{closeSheet();closeAtlas()};
 $('#sheet').addEventListener('submit',e=>{
   e.preventDefault();
   let title=fT.value.trim();
@@ -987,6 +1049,7 @@ document.addEventListener('click',e=>{
   if(db){selDay=db.dataset.day;render();return}
   const card=e.target.closest('.card');if(!card||justDragged)return;
   const t=byId(card.dataset.id);if(!t)return;
+  if(t.atlas){openAtlas(t);return}
   if(e.target.closest('.chk')){
     t.done=!t.done;t.doneAt=t.done?Date.now():null;if(!t.done)t.order=-1;
     card.classList.toggle('done',t.done);reorder();save();
@@ -1047,7 +1110,7 @@ function dragEnd(){
     q.classList.remove('over');
     q.querySelectorAll('.card').forEach((c,i)=>{const t=byId(c.dataset.id);if(t){t.q=+q.dataset.q;t.order=i}});
   });
-  save();render();
+  atlasKeep();save();render();
   const t=byId(card.dataset.id);if(t&&t.q!==from)toast('Movida a «'+QN[t.q]+'»');
   justDragged=true;setTimeout(()=>justDragged=false,350);
 }
@@ -1282,7 +1345,7 @@ function enter(){
   if(S.owner&&S.owner!==sess.uid){S={tasks:[],rules:[],extra:[]};known={};outbox={};cursor=''}
   S.owner=sess.uid;
   document.body.classList.remove('out');$('#acct-mail').textContent=sess.email;
-  track();store();render();tick();syncNow();cloudSync();checkUpdate();
+  track();store();atlasStart();render();tick();syncNow();cloudSync();checkUpdate();
   if(pendingAdd){const a=pendingAdd;pendingAdd=null;openSheet(null,a)}
 }
 async function signOut(){
@@ -1290,19 +1353,149 @@ async function signOut(){
   await cloudSync();
   if(Object.keys(outbox).length){toast('Sin conexión: conéctate para cerrar sesión sin perder cambios');return}
   const at=sess&&sess.at;
+  await atlasOff(true); // otra persona en este celular no debe ver tu agenda de Atlas
   setSess(null);S={tasks:[],rules:[],extra:[]};known={};outbox={};cursor='';store();
   syncNow(); // este dispositivo deja de recibir avisos de la cuenta
   if(at)authCall('logout',{},at).catch(()=>{});
   render();showAuth('in');
 }
 $('#acct').onclick=e=>{
-  e.stopPropagation();const n=Object.keys(outbox).length;
+  e.stopPropagation();paintAtlas();const n=Object.keys(outbox).length;
   $('#cloud').textContent=n?(n===1?'1 cambio por subir':n+' cambios por subir')+' cuando haya conexión':'Todo guardado en tu cuenta';
   $('#acct-pop').classList.toggle('show');
 };
 $('#acct-pop').onclick=e=>e.stopPropagation();
 document.addEventListener('click',()=>$('#acct-pop').classList.remove('show'));
 $('#acct-out').onclick=signOut;
+
+/* ---------- Atlas: la agenda comercial en Mi día (opcional) ---------- */
+// Quien no usa Atlas no ve nada distinto. Quien lo conecta recibe sus pendientes de Atlas como tarjetas y, al
+// gestionarlos aquí, el resultado se guarda EN ATLAS. Mi día no copia esa agenda a su base: la pide cada vez.
+// El navegador no habla con Atlas: lo hace el servidor de Mi día, y Atlas sólo acepta el token de enlace.
+let atlasLink=lsGet('midia.atlas',null),atlasPrefs=lsGet('midia.atlas.prefs',{}),atlasAt=0,atlasBusy=false;
+async function atlasCall(llamada,enlace){
+  const tk=await token();if(!tk)throw new Error('Sin conexión.');
+  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({op:'atlas',llamada,enlace:enlace||(atlasLink&&atlasLink.token)||''})});
+  let j={};try{j=await r.json()}catch(e){}
+  j.status=r.status;return j;
+}
+function atlasMap(e){
+  const id='A:'+e.id,p=atlasPrefs[id]||{},due=e.fecha||null;
+  const hoyOantes=due&&ymd(new Date(due))<=ymd(new Date());
+  return {id,aid:e.id,atlas:true,title:e.titulo||'Pendiente de Atlas',q:p.q||(hoyOantes?1:2),order:p.order!=null?p.order:-1,
+    due,end:due&&e.duracion_min?new Date(new Date(due).getTime()+e.duracion_min*6e4).toISOString():null,
+    done:false,notified:true,notas:e.notas||'',tipo:e.tipo||'',clase:e.clase||null,empresa:e.empresa||null,contacto:e.contacto||null};
+}
+function atlasSet(evs){ATLAS=(evs||[]).map(atlasMap);lsSet('midia.atlas.cache',evs||[])}
+// El cuadrante y el orden que les des aquí son tuyos: se recuerdan en este celular, Atlas no los conoce.
+function atlasKeep(){
+  if(!ATLAS.length)return;
+  const p={};ATLAS.forEach(t=>{p[t.id]={q:t.q,order:t.order}});atlasPrefs=p;lsSet('midia.atlas.prefs',p);
+}
+function atlasStart(){
+  if(atlasLink&&sess&&atlasLink.uid!==sess.uid){atlasLink=null;lsSet('midia.atlas',null);lsSet('midia.atlas.cache',null)}
+  ATLAS=atlasLink?lsGet('midia.atlas.cache',[]).map(atlasMap):[];
+  atlasLoad(true);
+}
+async function atlasLoad(force){
+  if(!atlasLink||!sess||atlasBusy||drag)return;
+  if(!force&&Date.now()-atlasAt<60000)return;
+  atlasBusy=true;
+  try{
+    const j=await atlasCall({operacion:'listar'});
+    if(j.status===401){atlasLink=null;lsSet('midia.atlas',null);atlasSet([]);toast('La conexión con Atlas ya no está activa');}
+    else if(j.ok&&Array.isArray(j.eventos)){atlasAt=Date.now();atlasSet(j.eventos);if(j.aviso)toast(j.aviso)}
+    else if(force&&j.error)toast('Atlas: '+j.error);
+    if(!drag&&!document.body.classList.contains('sheet')&&!document.body.classList.contains('asheet'))render();
+  }catch(e){if(force)toast('No hubo conexión con Atlas; se muestra lo último que se trajo')}
+  atlasBusy=false;paintAtlas();
+}
+async function atlasOff(quiet){
+  if(!atlasLink)return;
+  try{await atlasCall({operacion:'desvincular'})}catch(e){}
+  atlasLink=null;atlasPrefs={};lsSet('midia.atlas',null);lsSet('midia.atlas.prefs',null);atlasSet([]);
+  if(!quiet){render();paintAtlas();toast('Atlas desconectado de este celular')}
+}
+function paintAtlas(){
+  const b=$('#atl-box');if(!b)return;
+  if(atlasLink){
+    b.innerHTML='<span class="okk">✓ Atlas conectado</span> <small></small><br><button type="button" id="atl-off">Desconectar</button>';
+    b.querySelector('small').textContent='· '+(ATLAS.length===1?'1 pendiente':ATLAS.length+' pendientes');
+    b.querySelector('#atl-off').onclick=()=>atlasOff();
+  }else if(b.dataset.open){
+    b.innerHTML='<b style="margin:0">Conectar con Atlas</b><small>Pega el código que te dieron para vincular tu usuario.</small><div class="row"><input id="atl-code" maxlength="9" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX"><button type="button" id="atl-go">Conectar</button></div><small id="atl-msg" style="color:var(--q1)"></small>';
+    b.querySelector('#atl-go').onclick=atlasLinkNow;
+  }else{
+    b.innerHTML='<button type="button" id="atl-open">¿Usas Atlas? Conéctalo</button>';
+    b.querySelector('#atl-open').onclick=e=>{e.stopPropagation();b.dataset.open='1';paintAtlas()};
+  }
+}
+async function atlasLinkNow(){
+  const msg=$('#atl-msg'),codigo=($('#atl-code').value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(codigo.length!==8){msg.textContent='El código tiene 8 caracteres.';return}
+  msg.style.color='var(--mut)';msg.textContent='Conectando…';
+  try{
+    const j=await atlasCall({operacion:'canjear',codigo},'-');
+    if(!j.ok||!j.token){msg.style.color='var(--q1)';msg.textContent=j.error||'No se pudo conectar. Inténtalo de nuevo.';return}
+    atlasLink={token:j.token,nombre:j.nombre||'',uid:sess.uid};lsSet('midia.atlas',atlasLink);
+    delete $('#atl-box').dataset.open;paintAtlas();toast('Atlas conectado');await atlasLoad(true);
+  }catch(e){msg.style.color='var(--q1)';msg.textContent='Sin conexión. Inténtalo de nuevo.'}
+}
+
+/* ---------- la hoja de un pendiente de Atlas ---------- */
+let aCur=null,aComo='contesto';
+const soloDig=s=>String(s||'').replace(/\D/g,'');
+function openAtlas(t){
+  aCur=t;aComo='contesto';
+  $('#a-title').textContent=t.title;
+  const emp=t.empresa||{},con=t.contacto||{};
+  $('#a-who').textContent=[emp.nombre,con.nombre?(con.nombre+(con.cargo?', '+con.cargo:'')):'',t.due?spanTxt(t):'Sin fecha'].filter(Boolean).join(' · ');
+  const n=$('#a-notas');n.textContent=t.notas||'';n.style.display=t.notas?'':'none';
+  // Para actuar con un toque. El teléfono del contacto manda; si no hay, el de la empresa.
+  const tel=soloDig(con.telefono||emp.telefono),mail=con.correo||emp.correo||'',acts=$('#a-acts');acts.textContent='';
+  const link=(txt,href,cls)=>{const a=document.createElement('a');a.textContent=txt;a.href=href;if(cls)a.className=cls;a.target='_blank';a.rel='noopener';acts.appendChild(a)};
+  if(tel.length>=7)link('Llamar','tel:'+tel);
+  if(tel.length===10&&tel[0]==='3')link('WhatsApp','https://wa.me/57'+tel,'wa');
+  if(/^[^\s@]+@[^\s@]+$/.test(mail))link('Correo','mailto:'+mail);
+  acts.style.display=acts.children.length?'':'none';
+  // Las mismas preguntas que el «Ya lo hice» de Atlas: una llamada pregunta si contestó; lo interno se cierra sin más.
+  $('#a-ask').style.display=t.clase?'':'none';
+  $('#a-como-l').style.display=$('#a-como').style.display=t.clase==='llamada'?'':'none';
+  $('#a-nota-l').textContent=t.clase==='reunion'?'¿Cómo salió la reunión?':t.clase==='llamada'?'Nota para Atlas':'¿Algo que anotar?';
+  $('#a-nota').value='';$('#a-err').textContent='';
+  $$('#a-como button').forEach(b=>b.classList.toggle('on',b.dataset.como===aComo));
+  $('#a-ok').textContent=t.clase?'Ya lo hice · guardar en Atlas':'Ya lo hice';
+  $('#a-sin').style.display=t.clase?'':'none';
+  $('#a-repbox').classList.remove('show');
+  const d=t.due?new Date(t.due):new Date();$('#a-date').value=ymd(d);$('#a-time').value=hm(d);
+  document.body.classList.add('asheet');
+}
+function closeAtlas(){document.body.classList.remove('asheet');aCur=null}
+$$('#a-como button').forEach(b=>b.onclick=()=>{aComo=b.dataset.como;$$('#a-como button').forEach(x=>x.classList.toggle('on',x===b))});
+async function atlasDo(llamada,okMsg){
+  const t=aCur,err=$('#a-err');if(!t)return;
+  err.style.color='var(--mut)';err.textContent='Guardando en Atlas…';
+  try{
+    const j=await atlasCall(Object.assign({id:t.aid},llamada));
+    if(!j.ok){err.style.color='var(--q1)';err.textContent=j.error||'Atlas no lo guardó. Inténtalo de nuevo.';return}
+    closeAtlas();toast(okMsg);atlasAt=0;
+    if(llamada.operacion==='cerrar'){ATLAS=ATLAS.filter(x=>x.id!==t.id);render()}
+    atlasLoad(true);
+  }catch(e){err.style.color='var(--q1)';err.textContent='Sin conexión. Lo que escribiste sigue aquí; inténtalo de nuevo.'}
+}
+$('#a-ok').onclick=()=>{
+  const t=aCur;if(!t)return;const nota=$('#a-nota').value.trim();
+  if(t.clase&&!nota){$('#a-err').style.color='var(--q1)';$('#a-err').textContent='Escribe qué pasó, o usa «Cerrar sin anotar».';return}
+  atlasDo({operacion:'cerrar',nota,como:aComo},'Guardado en Atlas');
+};
+$('#a-sin').onclick=()=>atlasDo({operacion:'cerrar',nota:''},'Cerrado en Atlas');
+$('#a-rep').onclick=()=>$('#a-repbox').classList.toggle('show');
+$('#a-repok').onclick=()=>{
+  const d=$('#a-date').value,h=$('#a-time').value||'09:00';
+  if(!d){$('#a-err').style.color='var(--q1)';$('#a-err').textContent='Elige el día.';return}
+  const [y,m,da]=d.split('-').map(Number),[hh,mm]=h.split(':').map(Number);
+  atlasDo({operacion:'reprogramar',fecha:new Date(y,m-1,da,hh,mm).toISOString()},'Reprogramado en Atlas');
+};
 
 /* ---------- foto de perfil ---------- */
 // La foto se recorta en cuadro y se reduce a 112 px en el propio celular; así pesa unos
@@ -1380,7 +1573,7 @@ function cloudSoon(){clearTimeout(cloudT);cloudT=setTimeout(cloudSync,1200)}
 let ticks=0;
 setInterval(()=>{if(sess&&!document.hidden&&++ticks%4===0)cloudSync()},15000);
 // al salir de la app se sube lo pendiente; al volver se baja lo nuevo y se busca versión nueva
-document.addEventListener('visibilitychange',()=>{cloudSync();if(!document.hidden)checkUpdate()});
+document.addEventListener('visibilitychange',()=>{cloudSync();if(!document.hidden){checkUpdate();atlasLoad()}});
 window.addEventListener('pagehide',()=>{cloudSync()});
 
 /* ---------- actualización de la app ---------- */
@@ -1410,7 +1603,7 @@ async function checkUpdate(){
 setInterval(()=>{if(!document.hidden)checkUpdate()},20*6e4);
 async function refreshAll(){
   toast('Actualizando…');
-  await cloudSync();
+  await cloudSync();await atlasLoad(true);
   if(!(await checkUpdate()))toast(Object.keys(outbox).length?'Sin conexión: tus cambios se suben cuando vuelva':'Todo al día y guardado en tu cuenta');
 }
 $('#acct-upd').onclick=()=>{$('#acct-pop').classList.remove('show');refreshAll()};

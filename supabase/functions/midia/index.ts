@@ -13,7 +13,7 @@ const db = createClient(
 const SUBJECT = Deno.env.get("SUPABASE_URL")!;
 const cors = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "content-type",
+  "Access-Control-Allow-Headers": "content-type, authorization",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const json = (body: unknown, status = 200) =>
@@ -72,6 +72,9 @@ function validSub(s: any): boolean {
   }
 }
 const clip = (v: unknown, n: number) => String(v ?? "").slice(0, n);
+// A dónde se releva y qué se puede pedir: fijo aquí, la app no elige ni la dirección ni la operación.
+const ATLAS_URL = "https://atlas.veltrion.com.co/.netlify/functions/midia-puente";
+const ATLAS_OPS = ["canjear", "listar", "cerrar", "reprogramar", "desvincular"];
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
@@ -98,6 +101,37 @@ Deno.serve(async (req) => {
   }
 
   if (b.op === "key") return json({ key: (await vapid()).pub });
+
+  // Relevo hacia Atlas (piloto). Atlas no acepta llamadas de navegadores de otro dominio, así que la app le habla a
+  // esta función y ella a Atlas, de servidor a servidor. Aquí no se guarda nada de Atlas: sólo se pasa la petición y
+  // se devuelve la respuesta. Sólo para quien tenga sesión iniciada en Mi día.
+  if (b.op === "atlas") {
+    const jwt = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
+    if (!jwt) return json({ ok: false, error: "Inicia sesión en Mi día." }, 401);
+    const u = await fetch(Deno.env.get("SUPABASE_URL")! + "/auth/v1/user", {
+      headers: { apikey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, Authorization: "Bearer " + jwt },
+    });
+    if (!u.ok) return json({ ok: false, error: "Tu sesión de Mi día venció. Entra de nuevo." }, 401);
+    const ll = b.llamada && typeof b.llamada === "object" ? b.llamada : {};
+    if (!ATLAS_OPS.includes(String(ll.operacion))) return json({ ok: false, error: "Operación no reconocida." }, 400);
+    const cuerpo = JSON.stringify(ll);
+    if (cuerpo.length > 6000) return json({ ok: false, error: "Petición demasiado grande." }, 400);
+    const enlace = typeof b.enlace === "string" ? b.enlace.slice(0, 200) : "";
+    try {
+      const r = await fetch(ATLAS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + enlace },
+        body: cuerpo,
+      });
+      const texto = await r.text();
+      let j: unknown;
+      try { j = JSON.parse(texto); } catch { j = { ok: false, error: "Atlas respondió algo ilegible." }; }
+      return json(j, r.status);
+    } catch (e) {
+      console.error("atlas", String(e));
+      return json({ ok: false, error: "No hubo conexión con Atlas." }, 502);
+    }
+  }
 
   const device = typeof b.device === "string" ? b.device : "";
   if (!/^[a-f0-9]{32,64}$/.test(device)) return json({ error: "dispositivo" }, 400);
