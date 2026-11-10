@@ -425,6 +425,21 @@ body.csheet #c-form{transform:none}
 .arow .bd{flex:1;min-width:0}.arow b{display:block;font-size:14px;overflow-wrap:anywhere}.arow small{display:block;color:var(--mut);font-size:12px}
 .arow .st{margin-top:4px}
 .grp.as h2{color:#7c3aed}
+/* tus contactos, siempre a la vista en el tablero: fichas cuadradas (estilo A, elegido el 10-nov) */
+#ppl{display:none;align-items:flex-start;gap:8px;margin:0 2px 12px;overflow-x:auto;scrollbar-width:none;padding:4px 2px 4px}
+#ppl::-webkit-scrollbar{display:none}
+#ppl.show{display:flex}
+#ppl .pp{flex:none;display:flex;flex-direction:column;align-items:center;gap:7px;width:62px;font-size:11.5px;color:var(--ink);font-weight:700;position:relative}
+#ppl .pp span.n{max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ppl .sq{width:54px;height:54px;border-radius:17px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:19px;background:linear-gradient(135deg,var(--av),color-mix(in srgb,var(--av) 55%,#fff)) center/cover no-repeat;box-shadow:0 8px 16px -8px color-mix(in srgb,var(--av) 80%,#000);transition:transform .12s}
+#ppl .pp:active .sq{transform:scale(.94)}
+#ppl .sq.foto{color:transparent}
+#ppl .tag{position:absolute;top:45px;left:50%;transform:translateX(-50%);font-size:8.5px;font-weight:800;background:var(--card);border-radius:99px;padding:1px 6px;box-shadow:0 1px 4px rgba(0,0,0,.18);white-space:nowrap}
+#ppl .tag.y{color:#15803d}#ppl .tag.w{color:#128c4a}#ppl .tag.p{color:#a35f00}
+#ppl .fav{position:absolute;top:-5px;right:0;font-size:12px}
+#ppl .add .sq{background:var(--card);border:2px dashed #bcd0fb;color:var(--blue);font-size:26px;box-shadow:none}
+#ppl .all .sq{background:var(--q4b);color:var(--mut);font-size:13px;box-shadow:none}
+#ppl .hint{flex:1;min-width:160px;align-self:center;font-size:13px;color:var(--mut);padding-left:4px}
 </style>
 </head>
 <body class="out">
@@ -457,6 +472,7 @@ body.csheet #c-form{transform:none}
     <div id="ios"><b>Instálala para recibir avisos.</b> En Safari toca <svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg> <b>Compartir</b> y elige <b>«Agregar a inicio»</b>. Después abre Mi día desde ese ícono y anota ahí tus pendientes.</div>
     <div id="asg-in"></div>
     <div id="focus"></div>
+    <div id="ppl"></div>
     <div class="grid" id="grid">
       <div class="quad" data-q="1"><div class="qh"><div><strong>Hacer ya</strong><small>Urgente e importante</small></div><span></span></div><div class="list"></div></div>
       <div class="quad" data-q="2"><div class="qh"><div><strong>Planear</strong><small>Importante, sin afán</small></div><span></span></div><div class="list"></div></div>
@@ -806,7 +822,7 @@ function rollover(){
 }
 function render(){
   if(drag)return;
-  paintProfile();paintAsgIn();
+  paintProfile();paintAsgIn();paintPpl();
   const now=new Date(), open=S.tasks.filter(t=>!t.done).concat(ATLAS);
   const sub=now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
   $('#sub').textContent=sub[0].toUpperCase()+sub.slice(1);
@@ -1330,6 +1346,8 @@ document.addEventListener('click',e=>{
   const cf=e.target.closest('[data-ctc-fav]');if(cf){ctcFav(cf.dataset.ctcFav);return}
   if(e.target.closest('[data-ctc-inv]')){ctcInvitar();return}
   if(e.target.closest('[data-ctc-add]')){openCtc();return}
+  const pb=e.target.closest('[data-ppl]');if(pb){pplTap(pb.dataset.ppl);return}
+  if(e.target.closest('[data-ppl-all]')){showCtc();return}
   const cr=e.target.closest('[data-ctc]');if(cr){const c=ctcAll().find(x=>x.id===cr.dataset.ctc);if(c)openCtc(c);return}
   const ab=e.target.closest('[data-asg-ok],[data-asg-no],[data-asg-act],[data-asg-tab],[data-asg-back]');
   if(ab){
@@ -1693,7 +1711,7 @@ async function signOut(){
   const at=sess&&sess.at;
   await atlasOff(true); // otra persona en este celular no debe ver tu agenda de Atlas
   setSess(null);S={tasks:[],rules:[],extra:[]};known={};outbox={};cursor='';store();
-  ASG={rec:[],env:[]};lsSet('midia.asg.cache',null);asgQ=[];lsSet('midia.asg.q',[]);asgSeen={};asgSt=null;lsSet('midia.asg.seen',null);lsSet('midia.asg.st',null);ctcAt=0;
+  ASG={rec:[],env:[]};lsSet('midia.asg.cache',null);asgQ=[];lsSet('midia.asg.q',[]);asgSeen={};asgSt=null;lsSet('midia.asg.seen',null);lsSet('midia.asg.st',null);ctcAt=0;FOTOS={};lsSet('midia.fotos',null);
   syncNow(); // este dispositivo deja de recibir avisos de la cuenta
   if(at)authCall('logout',{},at).catch(()=>{});
   render();showAuth('in');
@@ -2190,7 +2208,7 @@ function paintCtc(){
     const h=document.createElement('p');h.className='sec';h.textContent=titulo;V.appendChild(h);
     for(const c of lista){
       const r=document.createElement('div');r.className='crow';r.dataset.ctc=c.id;
-      r.appendChild(avEl(c.nombre));
+      {const a=avEl(c.nombre),f=fotoDe(c);if(f){a.style.background='center/cover no-repeat url("'+f+'")';a.textContent=''}r.appendChild(a)}
       const bd=document.createElement('div');bd.className='bd';
       const b=document.createElement('b');b.textContent=c.nombre;bd.appendChild(b);
       const sm=document.createElement('small');sm.textContent=ctcSub(c);bd.appendChild(sm);
@@ -2206,7 +2224,55 @@ function paintCtc(){
 function ctcFav(id){
   const L=ctcAll(),c=L.find(x=>x.id===id);if(!c)return;
   if(!c.fav&&L.filter(x=>x.fav).length>=4){toast('Ya tienes 4 favoritos. Quita uno primero.');return}
-  c.fav=!c.fav;ctcSet(L);save();paintCtc();
+  c.fav=!c.fav;ctcSet(L);save();paintCtc();render();
+}
+/* tus contactos en el tablero: tocar uno = nueva tarea para esa persona; «+» = agregar contacto */
+// Fotos de perfil de tus contactos (sólo las de quien está conectado contigo; ver op «fotos» del servidor).
+// Se guardan en el celular y se renuevan una vez al día.
+let FOTOS=lsGet('midia.fotos',{}),fotosAt=0;
+const fotoDe=c=>c&&c.correo&&FOTOS[c.correo]&&FOTOS[c.correo].f||'';
+async function fotosSync(force){
+  if(!sess||(!force&&Date.now()-fotosAt<60000))return;fotosAt=Date.now();
+  const viejos=ctcAll().filter(c=>c.usa&&c.correo&&(!FOTOS[c.correo]||Date.now()-FOTOS[c.correo].at>864e5)).map(c=>c.correo).slice(0,30);
+  if(!viejos.length)return;
+  let j;try{j=await ctcCall('fotos',{correos:viejos})}catch(e){return}
+  if(!j.ok||!j.fotos)return;
+  for(const c of viejos)FOTOS[c]={f:j.fotos[c]||'',at:Date.now()};
+  lsSet('midia.fotos',FOTOS);paintPpl();paintCtc();
+}
+function ficha(nombre,foto){
+  const d=document.createElement('div');d.className='sq'+(foto?' foto':'');
+  d.style.setProperty('--av',avColor(nombre));
+  if(foto)d.style.backgroundImage='url("'+foto+'")';
+  d.textContent=(String(nombre||'?').trim()[0]||'?').toUpperCase();
+  return d;
+}
+const TAG={y:'Mi día',w:'WhatsApp',p:'Invitado'};
+function paintPpl(){
+  const box=$('#ppl');if(!box)return;
+  box.classList.toggle('show',!!sess);box.textContent='';
+  if(!sess)return;
+  const L=ctcAll().slice().sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||(b.usa?1:0)-(a.usa?1:0)||(b.usado||0)-(a.usado||0)||String(a.nombre).localeCompare(String(b.nombre),'es'));
+  // el «+» va primero: siempre a la vista aunque haya muchos contactos
+  const add=document.createElement('button');add.type='button';add.className='pp add';add.dataset.ctcAdd='1';
+  const ai=document.createElement('div');ai.className='sq';ai.textContent='+';const as=document.createElement('span');as.className='n';as.textContent='Agregar';add.append(ai,as);
+  box.appendChild(add);
+  for(const c of L.slice(0,12)){
+    const b=document.createElement('button');b.type='button';b.className='pp';b.dataset.ppl=c.id;
+    b.appendChild(ficha(c.nombre,fotoDe(c)));
+    const [k]=ctcEstado(c),tg=document.createElement('span');tg.className='tag '+k;tg.textContent=TAG[k];b.appendChild(tg);
+    if(c.fav){const st=document.createElement('span');st.className='fav';st.textContent='⭐';b.appendChild(st)}
+    const sp=document.createElement('span');sp.className='n';sp.textContent=c.nombre.split(' ')[0];b.appendChild(sp);
+    b.title=c.usa?'Pasarle una tarea a '+c.nombre:c.nombre+' aún no usa Mi día';
+    box.appendChild(b);
+  }
+  if(L.length>12){const all=document.createElement('button');all.type='button';all.className='pp all';all.dataset.pplAll='1';const av=document.createElement('div');av.className='sq';av.textContent='+'+(L.length-12);const sp=document.createElement('span');sp.className='n';sp.textContent='Ver todos';all.append(av,sp);box.appendChild(all)}
+  if(!L.length){const h=document.createElement('div');h.className='hint';h.textContent='Agrega tus contactos para pasarles tareas con un toque.';box.appendChild(h)}
+}
+function pplTap(id){
+  const c=ctcAll().find(x=>x.id===id);if(!c)return;
+  if(c.usa&&c.correo){openSheet();asSel=[{correo:c.correo,nombre:c.nombre}];paintWho();toast('Nueva tarea para '+c.nombre.split(' ')[0])}
+  else openCtc(c);   // aún no usa Mi día: su ficha (WhatsApp, llamar, invitar)
 }
 /* la hoja de un contacto: agregar o editar */
 let cCur=null;
@@ -2236,7 +2302,7 @@ $('#c-del').onclick=async()=>{
   const c=cCur;if(!c)return;
   const ok=await askText('¿Borrar a '+c.nombre+'?','Sale de tus contactos. Las tareas que se pasaron siguen como están.','Borrar',false,'No');
   if(ok==null)return;
-  ctcSet(ctcAll().filter(x=>x.id!==c.id));save();closeCtc();paintCtc();toast('Contacto borrado');
+  ctcSet(ctcAll().filter(x=>x.id!==c.id));save();closeCtc();paintCtc();render();toast('Contacto borrado');
 };
 // Android: elegir de los contactos del teléfono (el iPhone no lo permite a una app web)
 $('#c-pick').onclick=async()=>{
@@ -2265,7 +2331,7 @@ $('#c-form').addEventListener('submit',async e=>{
     btn.disabled=false;
   }}
   if(!cCur)L.push(c);
-  ctcSet(L);save();paintCtc();
+  ctcSet(L);save();paintCtc();render();
   if(c.usa){closeCtc();toast('✓ '+nombre+' usa Mi día: ya puedes pasarle tareas')}
   else{closeCtc();toast('Guardado · '+nombre+' aún no usa Mi día');setTimeout(()=>{if(waNum(cel))ctcInvitar(c)},400)}
 });
@@ -2336,6 +2402,7 @@ async function ctcSync(){
     if(!c){c={id:uid(),nombre:k.nombre,cel:'',correo:k.correo,usa:true,fav:false,usado:0};L.push(c);n++;nuevos.push(k.nombre);continue}
     if(!c.usa||c.correo!==k.correo){if(c.inv&&!c.usa)nuevos.push(k.nombre);c.usa=true;c.correo=k.correo;if(!c.nombre)c.nombre=k.nombre;n++}
   }
+  fotosSync(true);
   if(n){ctcSet(L);save();paintCtc();if(nuevos.length)toast('✓ '+nuevos[0]+(nuevos.length>1?' y '+(nuevos.length-1)+' más':'')+' ya '+(nuevos.length>1?'están':'está')+' en tus contactos')}
 }
 

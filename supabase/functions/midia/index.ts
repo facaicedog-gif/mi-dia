@@ -190,6 +190,28 @@ async function contactos(yo: Quien, b: any) {
     }
     return json({ ok: true, conexiones: out });
   }
+  // Fotos de perfil: sólo de quien está conectado contigo (aceptó una invitación) o con quien se han pasado tareas.
+  // Así nadie ve la foto de otra persona sólo con saber su correo.
+  if (accion === "fotos") {
+    const correos = [...new Set((Array.isArray(b.correos) ? b.correos : []).map((c: unknown) => texto(c, 120).toLowerCase()))]
+      .filter((c) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c)).slice(0, 30) as string[];
+    const out: Record<string, string | null> = {};
+    for (const c of correos) {
+      out[c] = null;
+      const { data: id } = await db.rpc("midia_usuario_por_correo", { correo: c });
+      if (!id || id === yo.id) continue;
+      const otro = id as string;
+      const [k, x] = await Promise.all([
+        db.from("midia_conexiones").select("a").or(`and(a.eq.${otro},b.eq.${yo.id}),and(a.eq.${yo.id},b.eq.${otro})`).limit(1),
+        db.from("midia_asignaciones").select("id").or(`and(de.eq.${otro},para.eq.${yo.id}),and(de.eq.${yo.id},para.eq.${otro})`).limit(1),
+      ]);
+      if (!k.data?.length && !x.data?.length) continue;
+      const { data: pf } = await db.from("midia_tareas").select("data").eq("user_id", otro).eq("id", "_perfil").maybeSingle();
+      const f = String((pf?.data as any)?.photo || "");
+      if (f.startsWith("data:image/") && f.length <= 9000) out[c] = f;
+    }
+    return json({ ok: true, fotos: out });
+  }
   if (accion === "existe") {
     const correo = texto(b.correo, 120).toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return json({ ok: false, error: "Revisa el correo." }, 400);
