@@ -74,7 +74,7 @@ function validSub(s: any): boolean {
 const clip = (v: unknown, n: number) => String(v ?? "").slice(0, n);
 // A dónde se releva y qué se puede pedir: fijo aquí, la app no elige ni la dirección ni la operación.
 const ATLAS_URL = "https://atlas.veltrion.com.co/.netlify/functions/midia-puente";
-const ATLAS_OPS = ["canjear", "listar", "cerrar", "reprogramar", "desvincular"];
+const ATLAS_OPS = ["canjear", "listar", "cerrar", "reprogramar", "desvincular", "ocupado"];
 
 // Quién llama, según su sesión de Mi día. null si no trae sesión o si venció.
 type Quien = { id: string; email: string };
@@ -283,7 +283,8 @@ Deno.serve(async (req) => {
     const ll = b.llamada && typeof b.llamada === "object" ? b.llamada : {};
     if (!ATLAS_OPS.includes(String(ll.operacion))) return json({ ok: false, error: "Operación no reconocida." }, 400);
     const cuerpo = JSON.stringify(ll);
-    if (cuerpo.length > 6000) return json({ ok: false, error: "Petición demasiado grande." }, 400);
+    // «ocupado» lleva hasta 400 franjas (sólo inicio y fin): necesita más espacio que las demás.
+    if (cuerpo.length > (ll.operacion === "ocupado" ? 48000 : 6000)) return json({ ok: false, error: "Petición demasiado grande." }, 400);
     const enlace = typeof b.enlace === "string" ? b.enlace.slice(0, 200) : "";
     try {
       const r = await fetch(ATLAS_URL, {
