@@ -405,6 +405,21 @@ body.csheet #c-form{transform:none}
 .gmem{display:flex;align-items:flex-start;gap:8px;font-size:13px;padding:5px 0}
 .gmem .av{width:26px;height:26px;font-size:11px}
 .gmem .st{margin-top:0}
+/* permisos al empezar */
+#perm{position:fixed;inset:0;z-index:45;display:none;align-items:center;justify-content:center;background:rgba(20,32,51,.45);padding:16px}
+#perm.show{display:flex}
+#perm .box{background:var(--card);border-radius:22px;max-width:420px;width:100%;padding:20px 18px 16px;box-shadow:0 20px 50px rgba(0,0,0,.25);max-height:92vh;overflow:auto}
+#perm h3{margin:0 0 4px;font-size:20px;letter-spacing:-.01em}
+#perm .intro{margin:0 0 12px;color:var(--mut);font-size:13.5px}
+.prow{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.prow .ic{flex:none;width:40px;height:40px;border-radius:12px;background:var(--blue-soft);display:grid;place-items:center;font-size:20px}
+.prow .tx{flex:1;min-width:0}.prow b{display:block;font-size:15px}.prow small{display:block;color:var(--mut);font-size:12.5px;line-height:1.35}
+.prow button{flex:none;padding:9px 14px;border-radius:11px;background:var(--blue);color:#fff;font-weight:700;font-size:13.5px}
+.prow .ok{flex:none;color:#15803d;font-weight:800;font-size:13.5px}
+.prow .no{flex:none;color:var(--q1);font-weight:700;font-size:12.5px;max-width:120px;text-align:right}
+#perm .fin{display:block;width:100%;margin-top:14px;padding:14px;border-radius:14px;background:var(--blue);color:#fff;font-weight:700}
+#perm .luego{display:block;width:100%;margin-top:6px;padding:10px;color:var(--mut);font-weight:600;font-size:13.5px}
+#acct-pop #acct-perm{background:var(--q4b);color:var(--ink);margin-bottom:8px}
 </style>
 </head>
 <body class="out">
@@ -415,6 +430,7 @@ body.csheet #c-form{transform:none}
     <p id="a-sub">Tus pendientes, ordenados y contigo en cualquier dispositivo.</p>
     <p class="beta-n">Versión beta: la app está en desarrollo y puede cambiar. Tus datos quedan guardados en tu cuenta.</p>
     <div class="seg" id="a-seg"><button type="button" data-mode="in" class="on">Entrar</button><button type="button" data-mode="up">Crear cuenta</button></div>
+    <input id="a-name" maxlength="40" placeholder="Tu nombre (así te verán los demás)" autocomplete="name" autocapitalize="words">
     <input id="a-email" type="email" placeholder="Correo" autocomplete="email" autocapitalize="off" required>
     <input id="a-pass" type="password" placeholder="Contraseña" autocomplete="current-password" minlength="8" required>
     <div id="a-msg"></div>
@@ -422,7 +438,7 @@ body.csheet #c-form{transform:none}
     <button type="button" class="link" id="a-forgot">Olvidé mi contraseña</button>
   </form>
 </div>
-<div id="acct-pop"><div class="pf"><button type="button" id="pf-pic" aria-label="Cambiar foto de perfil"></button><div><small>Tu cuenta</small><b id="acct-mail"></b></div></div><div class="pfb"><button type="button" id="pf-set">Agregar foto</button><button type="button" id="pf-del">Quitar</button></div><input type="file" id="pf-file" accept="image/*" hidden><small>Tu nombre (lo ven a quienes les asignas tareas)</small><input id="pf-name" maxlength="40" autocomplete="name" placeholder="Cómo te llamas"><button type="button" id="acct-ctc">Contactos</button><button type="button" id="acct-asg">Tareas que asigné</button><div id="atl-box"></div><p id="cloud"></p><button type="button" id="acct-upd">Buscar actualización</button><button type="button" id="acct-out">Cerrar sesión</button></div>
+<div id="acct-pop"><div class="pf"><button type="button" id="pf-pic" aria-label="Cambiar foto de perfil"></button><div><small>Tu cuenta</small><b id="acct-mail"></b></div></div><div class="pfb"><button type="button" id="pf-set">Agregar foto</button><button type="button" id="pf-del">Quitar</button></div><input type="file" id="pf-file" accept="image/*" hidden><small>Tu nombre (lo ven a quienes les asignas tareas)</small><input id="pf-name" maxlength="40" autocomplete="name" placeholder="Cómo te llamas"><button type="button" id="acct-ctc">Contactos</button><button type="button" id="acct-asg">Tareas que asigné</button><div id="atl-box"></div><p id="cloud"></p><button type="button" id="acct-perm">Permisos de este dispositivo</button><button type="button" id="acct-upd">Buscar actualización</button><button type="button" id="acct-out">Cerrar sesión</button></div>
 <div id="ptr">Desliza para actualizar</div>
 <header>
   <div><h1>Mi día<span class="beta" title="App en desarrollo">Beta</span></h1><p id="sub"></p></div>
@@ -510,6 +526,13 @@ body.csheet #c-form{transform:none}
 </div>
 <input type="file" id="xl-file" accept=".xlsx,.xls,.csv" hidden>
 <div id="toast"></div>
+<div id="perm" role="dialog" aria-modal="true" aria-labelledby="perm-t"><div class="box">
+  <h3 id="perm-t">Prepara Mi día en este dispositivo</h3>
+  <p class="intro">Para que te avise a tiempo, necesita tu permiso. Toca cada botón; el sistema te pregunta y puedes cambiarlo después en los ajustes.</p>
+  <div id="perm-rows"></div>
+  <button type="button" class="fin" id="perm-ok">Listo</button>
+  <button type="button" class="luego" id="perm-no">Ahora no</button>
+</div></div>
 <div id="pdock"><p>Suéltala sobre alguien para pasársela</p><div class="people"></div></div>
 <div id="psheet">
   <div class="grab"></div>
@@ -1584,6 +1607,7 @@ function showAuth(m,msg,good){
   $$('#a-seg button').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));
   $('#a-seg').style.display=(m==='in'||m==='up')?'':'none';
   aE.style.display=m==='new'?'none':'';aE.required=m!=='new';
+  $('#a-name').style.display=m==='up'?'':'none';$('#a-name').required=m==='up';
   aP.style.display=m==='forgot'?'none':'';aP.required=m!=='forgot';
   aP.placeholder=m==='new'?'Nueva contraseña (mínimo 8)':m==='up'?'Contraseña (mínimo 8)':'Contraseña';
   aP.autocomplete=m==='in'?'current-password':'new-password';
@@ -1603,7 +1627,9 @@ $('#auth-f').addEventListener('submit',async e=>{
       const r=await authCall('token?grant_type=password',{email,password});
       if(r.ok){takeSession(r.j);aP.value='';enter()}else showAuth('in',authErr(r));
     }else if(mode==='up'){
-      const r=await authCall('signup?redirect_to='+encodeURIComponent(HOME),{email,password});
+      // El nombre se guarda aquí hasta la primera entrada (si toca confirmar el correo, se entra después).
+      const nombre=$('#a-name').value.replace(/\s+/g,' ').trim().slice(0,40);lsSet('midia.nombre.pend',nombre||null);
+      const r=await authCall('signup?redirect_to='+encodeURIComponent(HOME),{email,password,data:{nombre}});
       if(!r.ok)showAuth('up',authErr(r));
       else if(r.j.access_token){takeSession(r.j);aP.value='';enter()}
       else{aP.value='';showAuth('in','Te envié un correo para confirmar tu cuenta. Ábrelo, toca el enlace y luego entra aquí.',true)}
@@ -1638,7 +1664,7 @@ function enter(){
   document.body.classList.remove('out');$('#acct-mail').textContent=sess.email;
   if(ASG.uid!==sess.uid){ASG={rec:[],env:[],uid:sess.uid};asgQ=[];lsSet('midia.asg.q',[])}
   track();store();atlasStart();render();tick();syncNow();cloudSync();checkUpdate();asgLoad(true,true);
-  ctcMigrar();invAceptar();ctcSync();
+  ctcMigrar();invAceptar();ctcSync();inicioPerfil();
   if(pendingAdd){const a=pendingAdd;pendingAdd=null;openSheet(null,a)}
 }
 async function signOut(){
@@ -2210,6 +2236,7 @@ async function ctcCall(accion,extra){
 }
 /* invitar por WhatsApp: el enlace lleva un código de un solo uso (vence en 7 días), nunca tu correo */
 async function ctcInvitar(c){
+  await pedirNombre('Antes de invitar: así te verá la persona, en vez de tu correo.');
   let nombre=c&&c.nombre;
   if(!c){
     const n=await askText('¿A quién invitas?','Así lo reconoces en tus contactos mientras entra. Puedes dejarlo vacío.','Seguir','Nombre (opcional)');
@@ -2241,7 +2268,7 @@ async function invQuien(){
   try{
     const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'inv',codigo:invPend})});
     const j=await r.json();
-    if(j.ok&&j.nombre){$('#a-sub').textContent=j.nombre+' te invitó a Mi día. Entra o crea tu cuenta y quedan conectados para pasarse tareas.';showAuth('up')}
+    if(j.ok&&j.nombre){showAuth('up');$('#a-sub').textContent=j.nombre+' te invitó a Mi día. Entra o crea tu cuenta y quedan conectados para pasarse tareas.'}
     else{invPend=null;lsSet('midia.inv',null)}
   }catch(e){}
 }
@@ -2316,6 +2343,7 @@ $('#as-who').onclick=e=>{
   clearHint();paintWho();
 };
 async function sendAssign(title,due,end){
+  await pedirNombre('Antes de enviarla: así te verá quien la reciba, en vez de tu correo.');
   const correos=asSel.map(s=>s.correo);
   if(asOther){
     const m=$('#as-mail').value.trim().toLowerCase();
@@ -2369,6 +2397,7 @@ $$('#p-keep button').forEach(b=>b.onclick=()=>{pKeep=b.dataset.keep==='1';$$('#p
 $('#p-no').onclick=closePass;
 $('#p-go').onclick=async()=>{
   const t=pCur,d=pTo;if(!t||!d)return;
+  await pedirNombre('Antes de enviarla: así te verá quien la reciba, en vez de tu correo.');
   const btn=$('#p-go');btn.disabled=true;
   try{
     const j=await asgCall('enviar',{correo:d.correo,titulo:t.title,nota:$('#p-nota').value.trim(),due:t.due||null,fin:t.due?(t.end||null):null,urgente:t.q===1||t.q===3,importante:t.q===1||t.q===2});
@@ -2420,6 +2449,68 @@ function asgNews(){
     if(msgs.length){chime();if(navigator.vibrate)navigator.vibrate([120,60,120]);toast(msgs.length===1?msgs[0]:msgs[0]+' (y '+(msgs.length-1)+' más en «Asigné»)')}
   }
   asgSt=now;lsSet('midia.asg.st',now);
+}
+
+/* ---------- permisos al empezar ---------- */
+// Al abrir la app por primera vez en un dispositivo (celular instalado o computador), pide lo que necesita: avisos,
+// sonido y micrófono. Los navegadores sólo dejan pedir un permiso cuando la persona toca un botón: por eso es una
+// pantalla con botones y no una pregunta automática. Sale una vez por dispositivo y se vuelve a abrir desde la cuenta.
+const micOk=()=>!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);
+let micState=lsGet('midia.perm.mic',''),sndOk=false;
+function permFila(ic,tit,txt,estado,accion){
+  const r=document.createElement('div');r.className='prow';
+  r.innerHTML='<div class="ic"></div><div class="tx"><b></b><small></small></div>';
+  r.querySelector('.ic').textContent=ic;r.querySelector('b').textContent=tit;r.querySelector('small').textContent=txt;
+  if(estado==='ok'){const e=document.createElement('span');e.className='ok';e.textContent='✓ Listo';r.appendChild(e)}
+  else if(estado&&estado!=='pedir'){const e=document.createElement('span');e.className='no';e.textContent=estado;r.appendChild(e)}
+  else{const b=document.createElement('button');b.type='button';b.textContent='Permitir';b.onclick=accion;r.appendChild(b)}
+  return r;
+}
+function paintPerm(){
+  const box=$('#perm-rows');box.textContent='';
+  if(canNotify){
+    const st=Notification.permission==='granted'?'ok':Notification.permission==='denied'?'Bloqueados: actívalos en los ajustes':'pedir';
+    box.appendChild(permFila('🔔','Avisos','Te recuerda tus pendientes a su hora y te avisa lo que te asignen, aunque la app esté cerrada.',st,async()=>{await askPerm();paintPerm()}));
+  }else if(isIOS&&!standalone){
+    box.appendChild(permFila('🔔','Avisos','En iPhone primero instálala: en Safari toca Compartir → «Agregar a inicio» y ábrela desde ese ícono.','Instálala primero'));
+  }
+  box.appendChild(permFila('🔊','Sonido','Para que suene el timbre cuando llega un aviso con la app abierta.',sndOk?'ok':'pedir',()=>{unlockAudio();setTimeout(()=>{chime();if(navigator.vibrate)navigator.vibrate([120,60,120])},120);sndOk=true;paintPerm();toast('Así suena Mi día')}));
+  if(micOk()){
+    const st=micState==='ok'?'ok':micState==='no'?'Bloqueado: actívalo en los ajustes':'pedir';
+    box.appendChild(permFila('🎙️','Micrófono','Para dictar tus pendientes en vez de escribirlos.',st,async()=>{
+      try{const m=await navigator.mediaDevices.getUserMedia({audio:true});m.getTracks().forEach(t=>t.stop());micState='ok'}
+      catch(e){micState=e&&e.name==='NotAllowedError'?'no':'';if(!micState)toast('No encontré micrófono en este dispositivo')}
+      lsSet('midia.perm.mic',micState);paintPerm();
+    }));
+  }
+}
+function openPerm(){paintPerm();$('#perm').classList.add('show')}
+function closePerm(){$('#perm').classList.remove('show');lsSet('midia.perm.visto',1)}
+$('#perm-ok').onclick=closePerm;$('#perm-no').onclick=closePerm;
+$('#acct-perm').onclick=()=>{$('#acct-pop').classList.remove('show');openPerm()};
+// Primera vez en este dispositivo, con sesión: si falta el permiso de avisos (o en iPhone falta instalarla), se ofrece.
+// Quien te asigna una tarea o te invita se ve por su NOMBRE, nunca por su correo. Si alguien aún no tiene nombre
+// (cuentas creadas antes de pedirlo), se le pregunta una vez al entrar y otra antes de asignar o invitar.
+const miNombre=()=>{const p=profile();return p&&p.nombre?p.nombre:''};
+let nombrePreguntado=false;
+async function pedirNombre(motivo){
+  if(miNombre())return true;
+  const pend=lsGet('midia.nombre.pend',null);
+  if(pend){setPerfil({nombre:pend});lsSet('midia.nombre.pend',null);await cloudSync();return true}
+  const n=await askText('¿Cómo te llamas?',motivo||'Así te verán quienes te asignen o reciban tareas, en vez de tu correo.','Guardar','Tu nombre','Después');
+  const v=(n||'').replace(/\s+/g,' ').trim().slice(0,40);
+  if(!v)return false;
+  setPerfil({nombre:v});await cloudSync();toast('Listo, te verán como '+v);return true;
+}
+async function inicioPerfil(){
+  if(!nombrePreguntado&&!miNombre()){nombrePreguntado=true;await new Promise(r=>setTimeout(r,700));await pedirNombre()}
+  permInicio();
+}
+function permInicio(){
+  if(lsGet('midia.perm.visto',0))return;
+  const falta=canNotify?Notification.permission!=='granted':isIOS&&!standalone;
+  if(!falta){lsSet('midia.perm.visto',1);return}
+  setTimeout(()=>{if(!document.body.classList.contains('sheet')&&!document.body.classList.contains('out'))openPerm()},900);
 }
 
 /* ---------- foto de perfil ---------- */
