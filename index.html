@@ -846,7 +846,7 @@ function render(){
     if(inf.done.length)m+='<span class="ok">✓'+inf.done.length+'</span>';
     if(inf.missed.length)m+='<span class="no">✕'+inf.missed.length+'</span>';
     if(inf.planned.length)m+='<span class="pl">●'+inf.planned.length+'</span>';
-    const na=asgDia(k).length;if(na)m+='<span class="as">↗'+na+'</span>';
+    const na=asgDelDia(k).length;if(na)m+='<span class="as">↗'+na+'</span>';
     h+='<button class="day'+(out?' out':'')+(k===todayK?' today':'')+(k===selDay?' sel':'')+'" data-day="'+k+'">'+d.getDate()+'<div class="m">'+m+'</div></button>';
   }
   cal.innerHTML=h+'</div><div class="leg"><span class="ok">✓ hechas</span><span class="no">✕ sin hacer</span><span class="pl">● por hacer</span><span class="as">↗ asignaste</span></div>';
@@ -884,13 +884,18 @@ function render(){
     group('Sin fecha',rest.filter(t=>!t.due).sort((a,b)=>a.q-b.q||a.order-b.order),'',{tag:true});
   }else group('Programado',inf.planned.sort(byDue),'',{tag:true});
   // Lo que le enviaste a otros para ese día (y, mirando hoy, también lo de los próximos días)
-  const asgGrupo=(titulo,lista)=>{
+  const asgGrupo=(titulo,lista,conFecha)=>{
     if(!lista.length)return;
-    const g=document.createElement('div');g.className='grp as';g.innerHTML='<h2></h2>';g.firstChild.textContent=titulo+' · '+lista.length;
-    lista.forEach(e=>g.appendChild(asgFila(e,isToday&&titulo!=='Asignaste para hoy')));A.appendChild(g);
+    const g=document.createElement('div');g.className='grp as';g.innerHTML='<h2></h2>';g.firstChild.textContent=conFecha?titulo:titulo+' · '+lista.length;
+    lista.forEach(e=>g.appendChild(asgFila(e,conFecha||(isToday&&titulo!=='Asignaste para hoy'))));A.appendChild(g);
   };
-  asgGrupo(isToday?'Asignaste para hoy':'Asignaste',asgDia(selDay));
-  if(isToday)asgGrupo('Asignaste · próximos días',asgDesde(todayK));
+  const env=asgEnviadas(selDay),ya=new Set(env.map(e=>e.miembros[0].id));
+  if(env.length){
+    const h=env.filter(e=>asgHecha(e)).length;
+    asgGrupo((isToday?'Enviaste hoy':'Enviaste este día')+' · '+h+' de '+env.length+(h===1?' hecha':' hechas'),env,true);
+  }
+  asgGrupo(isToday?'Asignaste para hoy':'Asignaste para este día',asgDia(selDay).filter(e=>!ya.has(e.miembros[0].id)));
+  if(isToday)asgGrupo('Asignaste · próximos días',asgDesde(todayK).filter(e=>!ya.has(e.miembros[0].id)));
   // tareas repetitivas
   const rs=document.createElement('div');rs.className='grp';
   rs.innerHTML='<h2>Tareas repetitivas'+(S.rules.length?' · '+S.rules.length:'')+'</h2>';
@@ -2025,6 +2030,10 @@ function asgIsOpen(a){return a.estado==='pendiente'||a.estado==='aceptada'}
 /* lo que enviaste, por día de su fecha (la que quedó al aceptar, o la que pusiste) */
 const asgFecha=e=>{const a=e.miembros[0];return a.due_final||a.due};
 function asgVivas(){return sess?asgEntradas().filter(e=>asgFecha(e)&&e.miembros.some(m=>m.estado!=='cancelada')):[]}
+// Lo que enviaste un día (por la fecha en que la mandaste), tenga o no fecha para hacerse.
+function asgEnviadas(k){return sess?asgEntradas().filter(e=>e.miembros.some(m=>m.estado!=='cancelada')&&ymd(new Date(e.miembros[0].creado))===k).sort((x,y)=>new Date(x.miembros[0].creado)-new Date(y.miembros[0].creado)):[]}
+function asgHecha(e){const v=e.miembros.filter(m=>m.estado!=='rechazada'&&m.estado!=='cancelada');return v.length>0&&v.every(m=>m.estado==='hecha')}
+function asgDelDia(k){const a=asgEnviadas(k),ids=new Set(a.map(e=>e.miembros[0].id));return a.concat(asgDia(k).filter(e=>!ids.has(e.miembros[0].id)))}
 function asgDia(k){return asgVivas().filter(e=>ymd(new Date(asgFecha(e)))===k).sort((x,y)=>new Date(asgFecha(x))-new Date(asgFecha(y)))}
 function asgDesde(k){return asgVivas().filter(e=>ymd(new Date(asgFecha(e)))>k&&e.miembros.some(asgIsOpen)).sort((x,y)=>new Date(asgFecha(x))-new Date(asgFecha(y)))}
 function asgFila(e,conDia){
@@ -2033,7 +2042,7 @@ function asgFila(e,conDia){
   r.appendChild(avEl(e.grupo?'G':a.para_nombre,true));if(e.grupo){r.firstChild.textContent='👥'}
   const bd=document.createElement('div');bd.className='bd';
   const b=document.createElement('b');b.textContent=a.titulo;bd.appendChild(b);
-  const d=new Date(asgFecha(e)),cuando=conDia?fmtDue(d):fmtTime(d);
+  const f=asgFecha(e),d=f?new Date(f):null,cuando=!d?'sin fecha':conDia?fmtDue(d):fmtTime(d);
   const sm=document.createElement('small');sm.textContent='Para '+e.miembros.map(m=>m.para_nombre.split(' ')[0]).join(' y ')+' · '+cuando;bd.appendChild(sm);
   const st=document.createElement('span');
   if(e.grupo){const h=vivos.filter(m=>m.estado==='hecha').length;st.className='st '+(vivos.length&&h===vivos.length?'done':'acc');st.textContent=vivos.length&&h===vivos.length?'✓ Todos terminaron':h+' de '+vivos.length+(h===1?' la terminó':' la terminaron')}
