@@ -149,7 +149,7 @@ body.out header,body.out main,body.out nav{visibility:hidden}
 .day.today{box-shadow:inset 0 0 0 2px var(--blue)}
 .day.sel{background:var(--blue);color:#fff}
 .day .m{display:flex;gap:3px;font-size:9.5px;font-weight:800;line-height:1;height:10px}
-.ok{color:#12a150}.no{color:var(--q1)}.pl{color:var(--blue)}
+.ok{color:#12a150}.no{color:var(--q1)}.pl{color:var(--blue)}.as{color:#7c3aed}
 .day.sel .m span{color:#fff}
 .leg{display:flex;gap:14px;justify-content:center;margin-top:8px;font-size:11.5px;font-weight:700}
 .dsum{border-radius:16px;background:var(--blue-soft);padding:12px 14px;margin:0 4px 16px}
@@ -420,6 +420,11 @@ body.csheet #c-form{transform:none}
 #perm .fin{display:block;width:100%;margin-top:14px;padding:14px;border-radius:14px;background:var(--blue);color:#fff;font-weight:700}
 #perm .luego{display:block;width:100%;margin-top:6px;padding:10px;color:var(--mut);font-weight:600;font-size:13.5px}
 #acct-pop #acct-perm{background:var(--q4b);color:var(--ink);margin-bottom:8px}
+/* lo que enviaste, en el calendario */
+.arow{display:flex;align-items:center;gap:10px;background:var(--card);border:1px dashed #c4b5fd;border-radius:14px;padding:9px 10px;margin-bottom:7px;cursor:pointer}
+.arow .bd{flex:1;min-width:0}.arow b{display:block;font-size:14px;overflow-wrap:anywhere}.arow small{display:block;color:var(--mut);font-size:12px}
+.arow .st{margin-top:4px}
+.grp.as h2{color:#7c3aed}
 </style>
 </head>
 <body class="out">
@@ -841,9 +846,10 @@ function render(){
     if(inf.done.length)m+='<span class="ok">✓'+inf.done.length+'</span>';
     if(inf.missed.length)m+='<span class="no">✕'+inf.missed.length+'</span>';
     if(inf.planned.length)m+='<span class="pl">●'+inf.planned.length+'</span>';
+    const na=asgDia(k).length;if(na)m+='<span class="as">↗'+na+'</span>';
     h+='<button class="day'+(out?' out':'')+(k===todayK?' today':'')+(k===selDay?' sel':'')+'" data-day="'+k+'">'+d.getDate()+'<div class="m">'+m+'</div></button>';
   }
-  cal.innerHTML=h+'</div><div class="leg"><span class="ok">✓ hechas</span><span class="no">✕ sin hacer</span><span class="pl">● por hacer</span></div>';
+  cal.innerHTML=h+'</div><div class="leg"><span class="ok">✓ hechas</span><span class="no">✕ sin hacer</span><span class="pl">● por hacer</span><span class="as">↗ asignaste</span></div>';
   A.appendChild(cal);
   // resumen del día elegido
   const inf=dayInfo(selDay,todayK),[sy,sm,sd]=selDay.split('-').map(Number),sel=new Date(sy,sm-1,sd);
@@ -877,6 +883,14 @@ function render(){
     group('Próximos días',rest.filter(t=>t.due&&dayDiff(new Date(t.due))>1).sort(byDue),'',{tag:true});
     group('Sin fecha',rest.filter(t=>!t.due).sort((a,b)=>a.q-b.q||a.order-b.order),'',{tag:true});
   }else group('Programado',inf.planned.sort(byDue),'',{tag:true});
+  // Lo que le enviaste a otros para ese día (y, mirando hoy, también lo de los próximos días)
+  const asgGrupo=(titulo,lista)=>{
+    if(!lista.length)return;
+    const g=document.createElement('div');g.className='grp as';g.innerHTML='<h2></h2>';g.firstChild.textContent=titulo+' · '+lista.length;
+    lista.forEach(e=>g.appendChild(asgFila(e,isToday&&titulo!=='Asignaste para hoy')));A.appendChild(g);
+  };
+  asgGrupo(isToday?'Asignaste para hoy':'Asignaste',asgDia(selDay));
+  if(isToday)asgGrupo('Asignaste · próximos días',asgDesde(todayK));
   // tareas repetitivas
   const rs=document.createElement('div');rs.className='grp';
   rs.innerHTML='<h2>Tareas repetitivas'+(S.rules.length?' · '+S.rules.length:'')+'</h2>';
@@ -2008,6 +2022,24 @@ function asgState(a){
   return ['off','Cancelada'];
 }
 function asgIsOpen(a){return a.estado==='pendiente'||a.estado==='aceptada'}
+/* lo que enviaste, por día de su fecha (la que quedó al aceptar, o la que pusiste) */
+const asgFecha=e=>{const a=e.miembros[0];return a.due_final||a.due};
+function asgVivas(){return sess?asgEntradas().filter(e=>asgFecha(e)&&e.miembros.some(m=>m.estado!=='cancelada')):[]}
+function asgDia(k){return asgVivas().filter(e=>ymd(new Date(asgFecha(e)))===k).sort((x,y)=>new Date(asgFecha(x))-new Date(asgFecha(y)))}
+function asgDesde(k){return asgVivas().filter(e=>ymd(new Date(asgFecha(e)))>k&&e.miembros.some(asgIsOpen)).sort((x,y)=>new Date(asgFecha(x))-new Date(asgFecha(y)))}
+function asgFila(e,conDia){
+  const a=e.miembros[0],r=document.createElement('div');r.className='arow';r.dataset.asg='1';
+  const vivos=e.miembros.filter(m=>m.estado!=='rechazada'&&m.estado!=='cancelada');
+  r.appendChild(avEl(e.grupo?'G':a.para_nombre,true));if(e.grupo){r.firstChild.textContent='👥'}
+  const bd=document.createElement('div');bd.className='bd';
+  const b=document.createElement('b');b.textContent=a.titulo;bd.appendChild(b);
+  const d=new Date(asgFecha(e)),cuando=conDia?fmtDue(d):fmtTime(d);
+  const sm=document.createElement('small');sm.textContent='Para '+e.miembros.map(m=>m.para_nombre.split(' ')[0]).join(' y ')+' · '+cuando;bd.appendChild(sm);
+  const st=document.createElement('span');
+  if(e.grupo){const h=vivos.filter(m=>m.estado==='hecha').length;st.className='st '+(vivos.length&&h===vivos.length?'done':'acc');st.textContent=vivos.length&&h===vivos.length?'✓ Todos terminaron':h+' de '+vivos.length+(h===1?' la terminó':' la terminaron')}
+  else{const [c,t]=asgState(a);st.className='st '+c;st.textContent=t}
+  bd.appendChild(st);r.appendChild(bd);return r;
+}
 // Las enviadas juntas (mismo grupo) se ven como UNA tarjeta con su avance.
 function asgEntradas(){
   const out=[],por={};
