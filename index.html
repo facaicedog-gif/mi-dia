@@ -94,6 +94,31 @@ body.dragging{cursor:grabbing}
 .card.done[data-q] .chk{background:var(--blue);border-color:var(--blue)}
 .card.done[data-q] .due{background:none;color:var(--mut);padding:0}
 .drow input{font-size:16px}
+
+/* entrar / crear cuenta */
+#auth{position:fixed;inset:0;z-index:100;background:var(--bg);display:none;overflow:auto;padding:calc(28px + env(safe-area-inset-top)) 22px 28px}
+body.out #auth{display:flex}
+body.out header,body.out main,body.out nav{visibility:hidden}
+#auth-f{margin:auto;width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px;text-align:center}
+#auth-f img{width:76px;height:76px;border-radius:20px;margin:0 auto 4px;box-shadow:0 10px 24px rgba(29,78,216,.35)}
+#auth-f h2{margin:0;font-size:28px;letter-spacing:-.02em}
+#auth-f p{margin:-6px 0 8px;color:var(--mut)}
+.seg{display:flex;background:var(--q4b);border-radius:14px;padding:4px}
+.seg button{flex:1;padding:10px;border-radius:11px;font-weight:700;color:var(--mut)}
+.seg button.on{background:var(--card);color:var(--blue);box-shadow:var(--shadow)}
+#auth-f input{border:1.5px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font:inherit;font-size:16px;padding:14px}
+#auth-f input:focus{outline:0;border-color:var(--blue)}
+#a-go{background:var(--blue);color:#fff;font-weight:700;padding:15px;border-radius:14px;box-shadow:0 8px 20px rgba(29,78,216,.3)}
+#a-go:disabled{opacity:.6}
+#a-msg{min-height:20px;font-size:13.5px;font-weight:600;color:var(--q1)}
+#a-msg.good{color:#12a150}
+#acct{width:42px;height:42px;border-radius:14px;background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center;color:var(--mut)}
+#acct-pop{display:none;position:fixed;z-index:30;top:calc(64px + env(safe-area-inset-top));right:12px;background:var(--card);border-radius:16px;box-shadow:0 12px 32px rgba(20,32,51,.22);padding:14px;min-width:230px}
+#acct-pop.show{display:block}
+#acct-pop small{display:block;color:var(--mut);font-size:12px}
+#acct-pop b{display:block;margin:2px 0 12px;overflow-wrap:anywhere}
+#acct-pop button{width:100%;padding:12px;border-radius:12px;background:var(--q1b);color:var(--q1);font-weight:700}
+#cloud{font-size:12px;color:var(--mut);margin:0 0 10px}
 #ios{display:none;margin:0 4px 12px;padding:12px 14px;border-radius:16px;background:var(--blue-soft);color:var(--ink);font-size:13.5px;line-height:1.45}
 #ios b{color:var(--blue)}
 #ios svg{width:16px;height:16px;vertical-align:-3px;color:var(--blue)}
@@ -175,10 +200,25 @@ body.sheet #sheet{transform:none}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
-<body>
+<body class="out">
+<div id="auth">
+  <form id="auth-f">
+    <img src="icon-192.png" alt="">
+    <h2>Mi día</h2>
+    <p id="a-sub">Tus pendientes, ordenados y contigo en cualquier dispositivo.</p>
+    <div class="seg" id="a-seg"><button type="button" data-mode="in" class="on">Entrar</button><button type="button" data-mode="up">Crear cuenta</button></div>
+    <input id="a-email" type="email" placeholder="Correo" autocomplete="email" autocapitalize="off" required>
+    <input id="a-pass" type="password" placeholder="Contraseña" autocomplete="current-password" minlength="8" required>
+    <div id="a-msg"></div>
+    <button type="submit" id="a-go">Entrar</button>
+    <button type="button" class="link" id="a-forgot">Olvidé mi contraseña</button>
+  </form>
+</div>
+<div id="acct-pop"><small>Tu cuenta</small><b id="acct-mail"></b><p id="cloud"></p><button type="button" id="acct-out">Cerrar sesión</button></div>
 <header>
   <div><h1>Mi día</h1><p id="sub"></p></div>
   <span class="sp"></span>
+  <button id="acct" aria-label="Tu cuenta"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></button>
   <button id="bell" aria-label="Avisos"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button>
 </header>
 
@@ -241,7 +281,18 @@ const CHECK='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!Array.isArray(S.tasks))S={tasks:[]};
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}syncSoon()};
+const lsGet=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+const lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+// Lo que cambió desde la última vez queda anotado para subirlo a la cuenta.
+let known=lsGet('midia.known',{}),outbox=lsGet('midia.outbox',{}),cursor=lsGet('midia.cursor','');
+const sig=t=>{const c=Object.assign({},t);delete c.u;return JSON.stringify(c)};
+function track(){
+  const seen={};
+  for(const t of S.tasks){seen[t.id]=1;const s=sig(t);if(known[t.id]!==s){t.u=Date.now();known[t.id]=s;outbox[t.id]=1}}
+  for(const id in known)if(!seen[id]){delete known[id];outbox[id]='del'}
+}
+function store(){lsSet(KEY,S);lsSet('midia.known',known);lsSet('midia.outbox',outbox);lsSet('midia.cursor',cursor)}
+const save=()=>{track();store();syncSoon();cloudSoon()};
 const byId=id=>S.tasks.find(t=>t.id===id);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
@@ -665,7 +716,7 @@ async function syncNow(){
     if(!canNotify||Notification.permission!=='granted')return false;
     const sub=await pushSub();if(!sub)return false;
     const now=Date.now();
-    const reminders=S.tasks.filter(t=>!t.done&&t.due&&new Date(t.due).getTime()>now).slice(0,200)
+    const reminders=(sess?S.tasks:[]).filter(t=>!t.done&&t.due&&new Date(t.due).getTime()>now).slice(0,200)
       .map(t=>({id:t.id,title:t.title,body:QN[t.q]+' · '+fmtTime(new Date(t.due)),due:t.due}));
     const r=await api('sync',{sub:sub.toJSON(),reminders});
     pushOn=!!(r&&r.ok);
@@ -690,6 +741,7 @@ async function notify(t){
   }catch(e){}
 }
 function tick(){
+  if(!sess)return;
   const now=Date.now();let ch=false;
   for(const t of S.tasks){
     if(!t.done&&t.due&&!t.notified&&new Date(t.due).getTime()<=now){t.notified=true;ch=true;notify(t)}
@@ -704,7 +756,170 @@ setInterval(tick,15000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 
-bellState();render();tick();syncNow();
+/* ---------- cuenta: entrar, crear, recuperar ---------- */
+const SB='https://hlnxrveoytobqrwrbdvi.supabase.co',SBKEY='sb_publishable_7lUwaSXNtHss01LRoIfM3A_0N3RwWNK';
+const HOME=location.origin+location.pathname;
+let sess=lsGet('midia.session',null),mode='in',recovering=false,linkMsg='',refreshing=null;
+const setSess=s=>{sess=s;lsSet('midia.session',s)};
+async function authCall(path,body,tk,method){
+  const h={'Content-Type':'application/json',apikey:SBKEY};if(tk)h.Authorization='Bearer '+tk;
+  const r=await fetch(SB+'/auth/v1/'+path,{method:method||'POST',headers:h,body:JSON.stringify(body||{})});
+  let j={};try{j=await r.json()}catch(e){}
+  return {ok:r.ok,status:r.status,j};
+}
+const takeSession=j=>setSess({at:j.access_token,rt:j.refresh_token,exp:Date.now()+(j.expires_in||3600)*1000,uid:j.user.id,email:j.user.email});
+// Devuelve una llave vigente; sin conexión devuelve null y la sesión se conserva.
+function token(){
+  if(!sess)return Promise.resolve(null);
+  if(sess.exp-60000>Date.now())return Promise.resolve(sess.at);
+  if(!refreshing)refreshing=(async()=>{
+    try{
+      const r=await authCall('token?grant_type=refresh_token',{refresh_token:sess.rt});
+      if(r.ok){takeSession(r.j);return sess.at}
+      if(r.status===400||r.status===401){setSess(null);showAuth('in','Tu sesión venció. Entra de nuevo.')}
+    }catch(e){}
+    return null;
+  })().finally(()=>{refreshing=null});
+  return refreshing;
+}
+function authErr(r){
+  const c=(r.j&&(r.j.error_code||r.j.code||r.j.error))||'',m=(r.j&&(r.j.msg||r.j.error_description||r.j.message))||'';
+  if(c==='invalid_credentials'||/invalid login/i.test(m))return 'Correo o contraseña incorrectos.';
+  if(c==='email_not_confirmed')return 'Falta confirmar tu correo: abre el mensaje que te envié y toca el enlace.';
+  if(c==='user_already_exists'||/already registered/i.test(m))return 'Ese correo ya tiene cuenta. Entra con tu contraseña.';
+  if(c==='weak_password'||/password/i.test(m))return 'Usa una contraseña de al menos 8 caracteres.';
+  if(c==='same_password')return 'Esa es tu contraseña actual; escribe una distinta.';
+  if(/rate_limit/.test(c)||r.status===429)return 'Demasiados intentos. Espera un rato y vuelve a probar.';
+  if(c==='validation_failed'||c==='email_address_invalid')return 'Revisa que el correo esté bien escrito.';
+  return 'No se pudo completar. Intenta de nuevo.';
+}
+const aE=$('#a-email'),aP=$('#a-pass'),aM=$('#a-msg'),aGo=$('#a-go');
+function showAuth(m,msg,good){
+  mode=m;document.body.classList.add('out');
+  $$('#a-seg button').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));
+  $('#a-seg').style.display=(m==='in'||m==='up')?'':'none';
+  aE.style.display=m==='new'?'none':'';aE.required=m!=='new';
+  aP.style.display=m==='forgot'?'none':'';aP.required=m!=='forgot';
+  aP.placeholder=m==='new'?'Nueva contraseña (mínimo 8)':m==='up'?'Contraseña (mínimo 8)':'Contraseña';
+  aP.autocomplete=m==='in'?'current-password':'new-password';
+  aGo.textContent={in:'Entrar',up:'Crear mi cuenta',forgot:'Enviarme el enlace',new:'Guardar contraseña'}[m];
+  $('#a-forgot').textContent=m==='in'?'Olvidé mi contraseña':'Volver a entrar';
+  $('#a-forgot').style.display=(m==='up'||m==='new')?'none':'';
+  $('#a-sub').textContent=m==='forgot'?'Te envío un enlace para crear una contraseña nueva.':m==='new'?'Escribe tu nueva contraseña.':'Tus pendientes, ordenados y contigo en cualquier dispositivo.';
+  aM.textContent=msg||'';aM.className=good?'good':'';
+}
+$$('#a-seg button').forEach(b=>b.onclick=()=>showAuth(b.dataset.mode));
+$('#a-forgot').onclick=()=>showAuth(mode==='in'?'forgot':'in');
+$('#auth-f').addEventListener('submit',async e=>{
+  e.preventDefault();aGo.disabled=true;aM.textContent='';
+  const email=aE.value.trim().toLowerCase(),password=aP.value;
+  try{
+    if(mode==='in'){
+      const r=await authCall('token?grant_type=password',{email,password});
+      if(r.ok){takeSession(r.j);aP.value='';enter()}else showAuth('in',authErr(r));
+    }else if(mode==='up'){
+      const r=await authCall('signup?redirect_to='+encodeURIComponent(HOME),{email,password});
+      if(!r.ok)showAuth('up',authErr(r));
+      else if(r.j.access_token){takeSession(r.j);aP.value='';enter()}
+      else{aP.value='';showAuth('in','Te envié un correo para confirmar tu cuenta. Ábrelo, toca el enlace y luego entra aquí.',true)}
+    }else if(mode==='forgot'){
+      const r=await authCall('recover?redirect_to='+encodeURIComponent(HOME),{email});
+      if(r.ok)showAuth('in','Si ese correo tiene cuenta, ya va en camino el enlace.',true);else showAuth('forgot',authErr(r));
+    }else{
+      const r=await authCall('user',{password},sess&&sess.at,'PUT');
+      if(r.ok){aP.value='';recovering=false;enter();toast('Contraseña actualizada')}else showAuth('new',authErr(r));
+    }
+  }catch(err){aM.textContent='Sin conexión. Revisa tu internet e intenta de nuevo.';aM.className=''}
+  aGo.disabled=false;
+});
+// Enlaces del correo (confirmar cuenta o cambiar contraseña) llegan con la sesión en la dirección.
+async function fromLink(){
+  if(location.hash.length<2)return;
+  const h=new URLSearchParams(location.hash.slice(1));
+  if(h.get('error')||h.get('error_description')){history.replaceState(null,'',HOME);linkMsg='Ese enlace ya venció o ya se usó. Pide uno nuevo.';return}
+  const at=h.get('access_token'),rt=h.get('refresh_token');if(!at||!rt)return;
+  history.replaceState(null,'',HOME);
+  try{
+    const r=await fetch(SB+'/auth/v1/user',{headers:{apikey:SBKEY,Authorization:'Bearer '+at}});if(!r.ok)return;
+    const u=await r.json();
+    setSess({at,rt,exp:Date.now()+(+h.get('expires_in')||3600)*1000,uid:u.id,email:u.email});
+    recovering=h.get('type')==='recovery';
+  }catch(e){}
+}
+function enter(){
+  // Si en este dispositivo había pendientes de otra cuenta, no se mezclan.
+  if(S.owner&&S.owner!==sess.uid){S={tasks:[]};known={};outbox={};cursor=''}
+  S.owner=sess.uid;
+  document.body.classList.remove('out');$('#acct-mail').textContent=sess.email;
+  track();store();render();tick();syncNow();cloudSync();
+}
+async function signOut(){
+  $('#acct-pop').classList.remove('show');
+  await cloudSync();
+  if(Object.keys(outbox).length){toast('Sin conexión: conéctate para cerrar sesión sin perder cambios');return}
+  const at=sess&&sess.at;
+  setSess(null);S={tasks:[]};known={};outbox={};cursor='';store();
+  syncNow(); // este dispositivo deja de recibir avisos de la cuenta
+  if(at)authCall('logout',{},at).catch(()=>{});
+  render();showAuth('in');
+}
+$('#acct').onclick=e=>{
+  e.stopPropagation();const n=Object.keys(outbox).length;
+  $('#cloud').textContent=n?(n===1?'1 cambio por subir':n+' cambios por subir')+' cuando haya conexión':'Todo guardado en tu cuenta';
+  $('#acct-pop').classList.toggle('show');
+};
+$('#acct-pop').onclick=e=>e.stopPropagation();
+document.addEventListener('click',()=>$('#acct-pop').classList.remove('show'));
+$('#acct-out').onclick=signOut;
+
+/* ---------- pendientes guardados en la cuenta ---------- */
+let syncing=false,cloudT=null;
+async function rest(method,q,body,prefer){
+  const tk=await token();if(!tk)throw new Error('sin sesión');
+  const h={apikey:SBKEY,Authorization:'Bearer '+tk,'Content-Type':'application/json'};if(prefer)h.Prefer=prefer;
+  const r=await fetch(SB+'/rest/v1/midia_tareas'+q,{method,headers:h,body:body?JSON.stringify(body):undefined});
+  if(!r.ok)throw new Error('rest '+r.status);
+  return method==='GET'?r.json():null;
+}
+// Baja lo que cambió en otros dispositivos y sube lo pendiente de éste.
+// Si la misma tarjeta cambió en dos lados, gana el cambio más reciente.
+async function cloudSync(){
+  if(!sess||syncing||drag)return;
+  syncing=true;let changed=false;
+  try{
+    for(;;){
+      const rows=await rest('GET','?select=id,data,deleted,updated_at&order=updated_at.asc&limit=1000'+(cursor?'&updated_at=gt.'+encodeURIComponent(cursor):''));
+      for(const r of rows){
+        cursor=r.updated_at;
+        const i=S.tasks.findIndex(t=>t.id===r.id),loc=i>=0?S.tasks[i]:null,ru=(r.data&&r.data.u)||0;
+        if(outbox[r.id]==='del')continue;
+        if(loc&&(loc.u||0)>=ru)continue;
+        if(r.deleted){if(loc){S.tasks.splice(i,1);changed=true}delete known[r.id];delete outbox[r.id];continue}
+        if(loc)S.tasks[i]=r.data;else S.tasks.push(r.data);
+        known[r.id]=sig(r.data);delete outbox[r.id];changed=true;
+      }
+      if(rows.length<1000)break;
+    }
+    const ids=Object.keys(outbox);
+    if(ids.length){
+      const snap=ids.map(id=>{const t=byId(id);return outbox[id]==='del'||!t?{user_id:sess.uid,id,data:{u:Date.now()},deleted:true}:{user_id:sess.uid,id,data:t,deleted:false}});
+      for(let i=0;i<snap.length;i+=200)await rest('POST','?on_conflict=user_id,id',snap.slice(i,i+200),'resolution=merge-duplicates,return=minimal');
+      snap.forEach(r=>{const t=byId(r.id);if(r.deleted?!t:(t&&t.u===r.data.u))delete outbox[r.id]});
+    }
+  }catch(e){}
+  syncing=false;store();
+  if(changed&&!drag&&!document.body.classList.contains('sheet'))render();
+}
+function cloudSoon(){clearTimeout(cloudT);cloudT=setTimeout(cloudSync,2500)}
+let ticks=0;
+setInterval(()=>{if(sess&&!document.hidden&&++ticks%4===0)cloudSync()},15000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)cloudSync()});
+
+bellState();
+(async()=>{
+  await fromLink();
+  if(recovering)showAuth('new');else if(sess)enter();else showAuth('in',linkMsg);
+})();
 </script>
 </body>
 </html>
