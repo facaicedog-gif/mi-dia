@@ -335,6 +335,9 @@ body.asheet #asheet{transform:none}
 #qa-no{background:var(--q4b);color:var(--ink)}
 #pf-name{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:9px;font:inherit;font-size:16px;margin:0 0 10px;color:var(--ink);background:var(--card)}
 #acct-pop #acct-asg{background:var(--blue-soft);color:var(--blue);margin-bottom:8px}
+#f-wkl{display:none;align-items:center;gap:8px;margin-top:8px;font-size:14px;color:var(--ink)}
+#f-wkl.show{display:flex}
+#f-wkl input{width:20px;height:20px;accent-color:var(--blue);flex:none}
 </style>
 </head>
 <body class="out">
@@ -401,7 +404,8 @@ body.asheet #asheet{transform:none}
   </div>
   <div class="drow"><label class="w2">Día<input type="date" id="f-date"></label><label>Desde<input type="time" id="f-time"></label><label>Hasta<input type="time" id="f-end"></label></div>
   <div id="rep-box"><div class="lbl">¿Se repite?</div>
-  <select id="f-rep"><option value="">No se repite</option><option value="d">Todos los días</option><option value="wd">De lunes a viernes</option><option value="w">Cada semana, ese día</option><option value="m">Cada mes, ese día</option><option value="y">Cada año, esa fecha</option></select></div>
+  <select id="f-rep"><option value="">No se repite</option><option value="d">Todos los días</option><option value="wd">De lunes a viernes</option><option value="w">Cada semana, ese día</option><option value="m">Cada mes, ese día</option><option value="y">Cada año, esa fecha</option></select>
+  <label id="f-wkl"><input type="checkbox" id="f-wk">Si cae sábado o domingo, pasarla al viernes antes</label></div>
   <div class="lbl">¿Dónde va?</div>
   <div class="qpick" id="qpick">
     <button type="button" data-q="1"><strong>Hacer ya</strong><small>Urgente e importante</small></button>
@@ -827,6 +831,7 @@ function openSheet(t,pre){
   $('#hint').textContent=pre?'Te enviaron este pendiente · revísalo y guarda':'';
   $('#f-del').style.display=t?'':'none';$('#f-share').style.display=t?'':'none';
   $('#rep-box').style.display=t?'none':'';
+  $('#f-wk').checked=false;wkShow();
   $('#f-save').textContent=t?'Guardar cambios':'Guardar';
   asTo=null;$('#as-mail').value='';$('#as-nota').value='';paintWho();
   if(pre&&pre.assign){$('#hint').textContent='Elige a quién se la asignas';fixed=false}
@@ -847,6 +852,7 @@ function onText(){
   $('#hint').className='';freeAt=null;
   if(!dateTouched)setDue(parsed.due,parsed.end);
   if(!repTouched)fR.value=parsed.rep||'';
+  wkShow();
   const due=getDue(),bits=[];
   if(due)bits.push('Te aviso '+fmtDue(due).toLowerCase());
   if(fR.value)bits.push('se repite '+REPN[fR.value]);
@@ -868,7 +874,8 @@ $('#hint').onclick=()=>{
   const a=freeAt;endTouched=true;dateTouched=true;setDue(new Date(a.s),new Date(a.e));clearHint();
   toast('Ajusté la hora. Toca Guardar.');
 };
-fR.addEventListener('change',()=>{repTouched=true});
+function wkShow(){$('#f-wkl').classList.toggle('show',fR.value==='m'||fR.value==='y')}
+fR.addEventListener('change',()=>{repTouched=true;wkShow()});
 $$('.chip').forEach(c=>c.onclick=()=>{
   const n=new Date(),w=c.dataset.when;let d=null;
   if(w!=='no'){
@@ -898,6 +905,7 @@ $('#sheet').addEventListener('submit',e=>{
     const r={id:uid(),kind:'rule',title,q:pickQ,freq:rep,time:hm(due),dur:Math.round((end-due)/6e4),start:ymd(due<day0(now)?now:due),until:null,gen:''};
     if(rep==='w')r.dows=[due.getDay()];
     if(rep==='m')r.doms=[due.getDate()];
+    if((rep==='m'||rep==='y')&&$('#f-wk').checked)r.wk='antes';
     if(rep==='y')r.md=ymd(due).slice(5);
     const rc=ruleClash(r);if(rc){blockMsg(rc,null);return}
     S.rules.push(r);materialize();reorder();save();closeSheet();render();
@@ -948,9 +956,32 @@ function ruleText(r){
   const [h,m]=r.time.split(':').map(Number),t=fmtTime(new Date(2020,0,1,h,m));
   const w=r.freq==='d'?'Todos los días':r.freq==='wd'?'De lunes a viernes':r.freq==='w'?'Cada '+r.dows.map(i=>DOWN[i]).join(', ')
     :r.freq==='m'?'Cada mes, día '+r.doms.map(n=>n>=31?'último':n).join(' y '):'Cada año, '+(+r.md.slice(3))+' de '+MES[+r.md.slice(0,2)-1];
-  return w+' · '+t;
+  const wk=r.wk&&(r.freq==='m'||r.freq==='y')?(r.wk==='antes'?' · si cae fin de semana, el viernes antes':' · si cae fin de semana, el lunes después'):'';
+  return w+' · '+t+wk;
+}
+// Día que de verdad le toca a una fecha fija (mensual o anual) si cae en fin de semana:
+// «antes» = el viernes anterior; «despues» = el lunes siguiente; sin marca = ese mismo día.
+function wkShift(x,wk){
+  const g=x.getDay();
+  if(!wk||(g!==0&&g!==6))return x;
+  const n=wk==='antes'?(g===6?-1:-2):(g===6?2:1);
+  return new Date(x.getFullYear(),x.getMonth(),x.getDate()+n);
+}
+function fixedHits(r,d){
+  const k=ymd(d),y=d.getFullYear(),m=d.getMonth(),cands=[];
+  // se mira también el mes (o año) vecino: un 31 de sábado corrido al lunes cae en el mes siguiente
+  if(r.freq==='m'){
+    for(const dm of [-1,0,1]){const mm=new Date(y,m+dm,1),last=new Date(mm.getFullYear(),mm.getMonth()+1,0).getDate();
+      r.doms.forEach(n=>cands.push(new Date(mm.getFullYear(),mm.getMonth(),Math.min(n,last))))}
+  }else{
+    const [mo,da]=r.md.split('-').map(Number);
+    for(const yy of [y-1,y,y+1])cands.push(new Date(yy,mo-1,da));
+  }
+  // el inicio y el fin de la regla se miden con la fecha original, no con la corrida
+  return cands.some(c=>{const o=ymd(c);return o>=r.start&&(!r.until||o<=r.until)&&ymd(wkShift(c,r.wk))===k});
 }
 function ruleHits(r,d){
+  if((r.freq==='m'||r.freq==='y')&&r.wk)return fixedHits(r,d);
   const k=ymd(d);if(k<r.start||(r.until&&k>r.until))return false;
   if(r.freq==='d')return true;
   if(r.freq==='wd')return d.getDay()>=1&&d.getDay()<=5;
@@ -1029,7 +1060,7 @@ async function importFile(file){
   if(hi<0){toast('No encontré la columna «Tarea». Usa la plantilla.');return}
   const head=rows[hi].map(c=>plain(String(c)).trim());
   const col=(...names)=>head.findIndex(x=>names.some(n=>x.startsWith(n)));
-  const cT=col(...H),cF=col('frecuencia','repet','periodicidad'),cD=col('dia'),cS=col('fecha','inicio','desde'),cH=col('hora'),cP=col('prioridad','cuadrante','importancia'),cU=col('hasta','fin'),cE=col('hora fin','hora final','hora hasta','termina');
+  const cT=col(...H),cF=col('frecuencia','repet','periodicidad'),cD=col('dia'),cS=col('fecha','inicio','desde'),cH=col('hora'),cP=col('prioridad','cuadrante','importancia'),cU=col('hasta','fin'),cE=col('hora fin','hora final','hora hasta','termina'),cW=col('si cae','fin de semana','festivo');
   const at=(r,c)=>c>=0?r[c]:'';
   const today=day0(new Date()),nums=s=>(s.match(/\d{1,2}/g)||[]).map(Number).filter(n=>n>=1&&n<=31);
   let nr=0,nt=0,skip=0;
@@ -1040,6 +1071,7 @@ async function importFile(file){
     const te=xTime(at(r,cE));let dur=DEF;
     if(te){const dm=(+te.slice(0,2)*60+ +te.slice(3))-(+time.slice(0,2)*60+ +time.slice(3));if(dm>0)dur=dm}
     const base={id:uid(),kind:'rule',title,q,time,dur,start:ymd(start&&start>today?start:today),until:until?ymd(until):null,gen:''};
+    const w=plain(String(at(r,cW)));if(/viernes|antes|anterior/.test(w))base.wk='antes';else if(/lunes|despues|siguiente/.test(w))base.wk='despues';
     let rule=null;
     if(/diari|todos los dias|cada dia/.test(f))rule=Object.assign(base,{freq:'d'});
     else if(/habil|laboral|lunes a viernes|entre semana/.test(f))rule=Object.assign(base,{freq:'wd'});
@@ -1049,7 +1081,7 @@ async function importFile(file){
     else if(/anual|cada ano/.test(f))rule=Object.assign(base,{freq:'y',md:ymd(start||today).slice(5)});
     if(rule){if(ruleClash(rule)){skip++;continue}S.rules.push(rule);materialize();nr++;continue}
     let due=null;
-    if(start){const [h,m]=time.split(':').map(Number);due=new Date(start.getFullYear(),start.getMonth(),start.getDate(),h,m)}
+    if(start){const s2=wkShift(start,base.wk),[h,m]=time.split(':').map(Number);due=new Date(s2.getFullYear(),s2.getMonth(),s2.getDate(),h,m)}
     if(due&&clash(due.getTime(),due.getTime()+dur*6e4)){skip++;continue}
     S.tasks.push({id:uid(),title,q,due:due?due.toISOString():null,end:due?new Date(due.getTime()+dur*6e4).toISOString():null,done:false,notified:!!(due&&due<=new Date()),order:999,created:Date.now()});nt++;
   }
@@ -1061,16 +1093,16 @@ async function importFile(file){
 async function xlTemplate(){
   try{await loadXLSX()}catch(e){toast('Necesito conexión a internet para crear la plantilla');return}
   const ws=XLSX.utils.aoa_to_sheet([
-    ['Tarea','Frecuencia','Día','Fecha','Hora','Hora fin','Prioridad','Hasta'],
-    ['Revisar el correo','Diaria','','','8:00','8:30','Planear',''],
-    ['Reunión de equipo','Lunes a viernes','','','7:00','7:45','Hacer ya',''],
-    ['Informe semanal','Semanal','lunes','','9:00','10:00','Hacer ya',''],
-    ['Pagar el arriendo','Mensual','5','','10:30','','Hacer ya',''],
-    ['Revisar nómina','Quincenal','15, 30','','11:00','12:00','Hacer ya',''],
-    ['Renovar el seguro','Anual','','15/12/2026','14:00','','Planear',''],
-    ['Cita médica','Una vez','','20/11/2026','15:00','16:00','Planear','']
+    ['Tarea','Frecuencia','Día','Fecha','Hora','Hora fin','Prioridad','Hasta','Si cae en fin de semana'],
+    ['Revisar el correo','Diaria','','','8:00','8:30','Planear','',''],
+    ['Reunión de equipo','Lunes a viernes','','','7:00','7:45','Hacer ya','',''],
+    ['Informe semanal','Semanal','lunes','','9:00','10:00','Hacer ya','',''],
+    ['Pagar el arriendo','Mensual','5','','10:30','','Hacer ya','','Viernes antes'],
+    ['Pagar nómina','Quincenal','15, 30','','11:00','12:00','Hacer ya','','Viernes antes'],
+    ['Renovar el seguro','Anual','','15/12/2026','14:00','','Planear','','Lunes después'],
+    ['Cita médica','Una vez','','20/11/2026','15:00','16:00','Planear','','']
   ]);
-  ws['!cols']=[{wch:28},{wch:18},{wch:16},{wch:13},{wch:8},{wch:9},{wch:14},{wch:13}];
+  ws['!cols']=[{wch:28},{wch:18},{wch:16},{wch:13},{wch:8},{wch:9},{wch:14},{wch:13},{wch:22}];
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Tareas');
   XLSX.writeFile(wb,'plantilla-mi-dia.xlsx');
 }
