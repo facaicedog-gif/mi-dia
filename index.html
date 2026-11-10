@@ -338,6 +338,35 @@ body.asheet #asheet{transform:none}
 #f-wkl{display:none;align-items:center;gap:8px;margin-top:8px;font-size:14px;color:var(--ink)}
 #f-wkl.show{display:flex}
 #f-wkl input{width:20px;height:20px;accent-color:var(--blue);flex:none}
+/* pasar una tarjeta arrastrándola a una persona */
+#pdock{position:fixed;left:0;right:0;bottom:0;z-index:40;background:color-mix(in srgb,var(--card) 97%,transparent);border-top:1px solid var(--line);box-shadow:0 -10px 24px rgba(20,32,51,.14);padding:10px 10px calc(14px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .18s ease-out}
+#pdock.show{transform:none}
+#pdock p{margin:0 0 8px;text-align:center;font-size:12.5px;font-weight:700;color:var(--mut)}
+#pdock .people{display:flex;justify-content:space-around;max-width:520px;margin:0 auto}
+#pdock .pp{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:12px;color:var(--mut);width:70px;padding:4px 0}
+#pdock .pp span{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#pdock .av{width:46px;height:46px;font-size:17px;transition:transform .12s,box-shadow .12s}
+#pdock .pp.on .av{transform:scale(1.25);box-shadow:0 0 0 4px var(--card),0 0 0 7px var(--blue)}
+#pdock .pp.on{color:var(--blue);font-weight:800}
+#psheet{position:fixed;left:0;right:0;bottom:0;z-index:22;background:var(--card);border-radius:22px 22px 0 0;padding:8px 16px calc(16px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .24s cubic-bezier(.2,.8,.2,1);max-width:760px;margin:0 auto;max-height:92vh;overflow:auto}
+body.psheet #scrim{opacity:1;pointer-events:auto}
+body.psheet #psheet{transform:none}
+#psheet h3{margin:6px 0 12px;font-size:18px;display:flex;align-items:center;gap:10px}
+#p-prev{border-radius:14px;padding:11px 12px;font-weight:700;overflow-wrap:anywhere;border:1px solid #fff;background:linear-gradient(135deg,#fff,color-mix(in srgb,var(--qc,var(--blue)) 16%,#fff));box-shadow:0 8px 18px -9px color-mix(in srgb,var(--qc,var(--blue)) 60%,transparent)}
+#p-prev[data-q="1"]{background:linear-gradient(135deg,#e5484d,#ff8a5c);color:#fff;border-color:transparent}
+#p-prev small{display:block;font-weight:600;opacity:.9;margin-top:4px;font-size:12.5px}
+#p-nota{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px;font:inherit;font-size:16px;background:var(--q4b);color:var(--ink)}
+#p-keep{display:flex;gap:6px}
+#p-keep button{flex:1;padding:10px 4px;border-radius:12px;background:var(--q4b);font-weight:700;font-size:13.5px;color:var(--mut)}
+#p-keep button.on{background:var(--blue);color:#fff}
+#psheet .big{display:block;width:100%;padding:14px;border-radius:14px;font-weight:700;margin-top:10px}
+#p-go{background:var(--blue);color:#fff;box-shadow:0 8px 20px rgba(29,78,216,.3)}
+#p-go:disabled{opacity:.6}
+#p-no{background:var(--q4b);color:var(--ink)}
+/* lo que te acaban de asignar se sacude para que lo veas */
+@keyframes sacude{0%,100%{transform:none}12%{transform:translateX(-6px) rotate(-1.5deg)}25%{transform:translateX(6px) rotate(1.5deg)}37%{transform:translateX(-5px) rotate(-1deg)}50%{transform:translateX(5px) rotate(1deg)}62%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.inv.nueva{animation:sacude .7s ease-in-out 3;box-shadow:0 0 0 2px var(--blue),0 10px 22px -8px rgba(29,78,216,.6)}
+#asg-in.nueva h3 i{animation:sacude .7s ease-in-out 3}
 </style>
 </head>
 <body class="out">
@@ -441,6 +470,18 @@ body.asheet #asheet{transform:none}
 </div>
 <input type="file" id="xl-file" accept=".xlsx,.xls,.csv" hidden>
 <div id="toast"></div>
+<div id="pdock"><p>Suéltala sobre alguien para pasársela</p><div class="people"></div></div>
+<div id="psheet">
+  <div class="grab"></div>
+  <h3 id="p-title"></h3>
+  <div id="p-prev"></div>
+  <div class="lbl" id="p-nota-l">Nota (opcional)</div>
+  <input id="p-nota" maxlength="300" autocomplete="off">
+  <div class="lbl">¿Y en tu tablero?</div>
+  <div id="p-keep"><button type="button" data-keep="0" class="on">Se va de mi tablero</button><button type="button" data-keep="1">Me quedo con una copia</button></div>
+  <button type="button" class="big" id="p-go">Enviar</button>
+  <button type="button" class="big" id="p-no">Cancelar</button>
+</div>
 <div id="qa"><form autocomplete="off"><h4 id="qa-t"></h4><p id="qa-p"></p><textarea id="qa-x" maxlength="300"></textarea><div class="ia"><button type="button" id="qa-no">Cancelar</button><button type="submit" id="qa-ok">Enviar</button></div></form></div>
 
 <script>
@@ -888,7 +929,7 @@ $$('.chip').forEach(c=>c.onclick=()=>{
 });
 $$('#qpick button').forEach(b=>b.onclick=()=>{quadTouched=true;setQ(+b.dataset.q)});
 $('#fab').onclick=()=>openSheet();
-$('#scrim').onclick=()=>{closeSheet();closeAtlas()};
+$('#scrim').onclick=()=>{closeSheet();closeAtlas();closePass()};
 $('#sheet').addEventListener('submit',e=>{
   e.preventDefault();
   let title=fT.value.trim();
@@ -1203,7 +1244,11 @@ function dragStart(card,x,y){
   ghost.style.setProperty('--qc',getComputedStyle(card).getPropertyValue('--qc'));
   document.body.appendChild(ghost);
   card.parentNode.insertBefore(ph,card);card.style.display='none';
-  drag={card,ph,ghost,dx:x-r.left,dy:y-r.top,x,y,quad:null};
+  drag={card,ph,ghost,dx:x-r.left,dy:y-r.top,x,y,quad:null,pp:null};
+  // franja de personas: sólo para tarjetas tuyas (no de Atlas, no las que te asignaron) y si ya tienes a quién
+  const tk=byId(card.dataset.id);
+  drag.canPass=!!(sess&&tk&&!tk.atlas&&!tk.asg&&dests().length);
+  if(drag.canPass)showDock();
   document.body.classList.add('dragging');document.documentElement.classList.add('dragging');
   if(navigator.vibrate)navigator.vibrate(18);
   frame();
@@ -1213,7 +1258,16 @@ function frame(){
   raf=0;if(!drag)return;
   const x=drag.x,y=drag.y;
   drag.ghost.style.transform='translate3d('+(x-drag.dx)+'px,'+(y-drag.dy)+'px,0) rotate(2.5deg) scale(1.04)';
-  const sc=y<90?-9:y>innerHeight-120?9:0;
+  if(drag.canPass){
+    const el=document.elementFromPoint(x,y),pp=el&&el.closest('#pdock .pp');
+    if(pp!==drag.pp){
+      if(drag.pp)drag.pp.classList.remove('on');
+      if(pp){pp.classList.add('on');if(navigator.vibrate)navigator.vibrate(10)}
+      drag.pp=pp;
+    }
+    if(el&&el.closest('#pdock')){if(drag.quad){drag.quad.classList.remove('over');drag.quad=null}return}
+  }
+  const sc=y<90?-9:y>innerHeight-(drag.canPass?$('#pdock').offsetHeight+40:120)?9:0;
   if(sc){scrollBy(0,sc);raf=requestAnimationFrame(frame)}
   const pr=drag.ph.getBoundingClientRect();
   if(x>=pr.left-4&&x<=pr.right+4&&y>=pr.top-4&&y<=pr.bottom+4)return;
@@ -1234,6 +1288,17 @@ function frame(){
 }
 function dragEnd(){
   if(raf){cancelAnimationFrame(raf);raf=0}
+  const person=drag.pp&&drag.pp.dataset.pd;hideDock();
+  if(person){
+    // soltada sobre una persona: la tarjeta vuelve a su sitio y se abre la hoja para pasarla
+    const t0=byId(drag.card.dataset.id);
+    drag.ph.remove();drag.ghost.remove();drag.card.style.display='';
+    drag=null;document.body.classList.remove('dragging');document.documentElement.classList.remove('dragging');
+    $$('.quad').forEach(q=>q.classList.remove('over'));
+    render();justDragged=true;setTimeout(()=>justDragged=false,350);
+    if(t0)openPass(t0,person);
+    return;
+  }
   const {card,ph,ghost}=drag, from=byId(card.dataset.id).q;
   ph.parentNode.insertBefore(card,ph);ph.remove();ghost.remove();card.style.display='';
   drag=null;document.body.classList.remove('dragging');document.documentElement.classList.remove('dragging');
@@ -1482,7 +1547,7 @@ function enter(){
   S.owner=sess.uid;
   document.body.classList.remove('out');$('#acct-mail').textContent=sess.email;
   if(ASG.uid!==sess.uid){ASG={rec:[],env:[],uid:sess.uid};asgQ=[];lsSet('midia.asg.q',[])}
-  track();store();atlasStart();render();tick();syncNow();cloudSync();checkUpdate();asgLoad(true);
+  track();store();atlasStart();render();tick();syncNow();cloudSync();checkUpdate();asgLoad(true,true);
   if(pendingAdd){const a=pendingAdd;pendingAdd=null;openSheet(null,a)}
 }
 async function signOut(){
@@ -1492,7 +1557,7 @@ async function signOut(){
   const at=sess&&sess.at;
   await atlasOff(true); // otra persona en este celular no debe ver tu agenda de Atlas
   setSess(null);S={tasks:[],rules:[],extra:[]};known={};outbox={};cursor='';store();
-  ASG={rec:[],env:[]};lsSet('midia.asg.cache',null);asgQ=[];lsSet('midia.asg.q',[]);
+  ASG={rec:[],env:[]};lsSet('midia.asg.cache',null);asgQ=[];lsSet('midia.asg.q',[]);asgSeen={};asgSt=null;lsSet('midia.asg.seen',null);lsSet('midia.asg.st',null);
   syncNow(); // este dispositivo deja de recibir avisos de la cuenta
   if(at)authCall('logout',{},at).catch(()=>{});
   render();showAuth('in');
@@ -1671,7 +1736,7 @@ async function asgFlush(){
     }
   }finally{flushing=false}
 }
-async function asgLoad(force){
+async function asgLoad(force,nudge){
   if(!sess||asgBusy||drag)return;
   if(!force&&Date.now()-asgAt<45000)return;
   asgBusy=true;
@@ -1688,6 +1753,7 @@ async function asgLoad(force){
       }
       if(gone)save();
       if(!drag&&!document.body.classList.contains('sheet'))render();
+      asgNews();if(nudge)asgNudge();
     }
   }catch(e){}
   asgBusy=false;
@@ -1889,6 +1955,81 @@ async function sendAssign(title,due,end){
   finally{btn.disabled=false}
 }
 
+/* ---------- pasar una tarjeta arrastrándola a una persona ---------- */
+function showDock(){
+  const box=$('#pdock .people');box.textContent='';
+  dests().slice(0,4).forEach(d=>{
+    const b=document.createElement('div');b.className='pp';b.dataset.pd=d.correo;
+    const s=document.createElement('span');s.textContent=d.nombre.split(' ')[0];
+    b.append(avEl(d.nombre),s);box.appendChild(b);
+  });
+  $('#pdock').classList.add('show');
+}
+function hideDock(){$('#pdock').classList.remove('show')}
+let pCur=null,pTo=null,pKeep=false;
+function openPass(t,correo){
+  const d=dests().find(x=>x.correo===correo);if(!d)return;
+  pCur=t;pTo=d;pKeep=false;
+  const h=$('#p-title');h.textContent='';const sp=document.createElement('span');sp.textContent='Pasarle a '+d.nombre.split(' ')[0];h.append(avEl(d.nombre),sp);
+  const pv=$('#p-prev');pv.dataset.q=t.q;pv.style.setProperty('--qc','var(--q'+t.q+')');pv.textContent=t.title;
+  const sm=document.createElement('small');sm.textContent=QN[t.q]+' · '+(t.due?spanTxt(t):'Sin fecha');pv.appendChild(sm);
+  $('#p-nota-l').textContent='Nota para '+d.nombre.split(' ')[0]+' (opcional)';$('#p-nota').value='';$('#p-nota').placeholder='Ej.: usa la plantilla de noviembre';
+  $$('#p-keep button').forEach(b=>b.classList.toggle('on',b.dataset.keep==='0'));
+  $('#p-go').textContent='Enviar a '+d.nombre.split(' ')[0];$('#p-go').disabled=false;
+  document.body.classList.add('psheet');
+}
+function closePass(){document.body.classList.remove('psheet');$('#p-nota').blur();pCur=null}
+$$('#p-keep button').forEach(b=>b.onclick=()=>{pKeep=b.dataset.keep==='1';$$('#p-keep button').forEach(x=>x.classList.toggle('on',x===b))});
+$('#p-no').onclick=closePass;
+$('#p-go').onclick=async()=>{
+  const t=pCur,d=pTo;if(!t||!d)return;
+  const btn=$('#p-go');btn.disabled=true;
+  try{
+    const j=await asgCall('enviar',{correo:d.correo,titulo:t.title,nota:$('#p-nota').value.trim(),due:t.due||null,fin:t.due?(t.end||null):null,urgente:t.q===1||t.q===3,importante:t.q===1||t.q===2});
+    if(j.sinCuenta){toast(d.nombre+' ya no tiene cuenta en Mi día');return}
+    if(!j.ok){toast(j.error||'No se pudo enviar');return}
+    asgKeep(j.asignacion);addDest(d.correo,j.asignacion.para_nombre);
+    if(!pKeep)S.tasks=S.tasks.filter(x=>x!==t);
+    save();closePass();render();
+    toast((pKeep?'Enviada a ':'Se la pasaste a ')+j.asignacion.para_nombre+' · te aviso cuando la acepte');
+  }catch(e){toast('Sin conexión. Inténtalo de nuevo.')}
+  finally{btn.disabled=false}
+};
+/* ---------- que lo nuevo se note ---------- */
+// A quien le asignan: al abrir la app, lo pendiente de aceptar se sacude (y el celular vibra donde se puede).
+// A quien asignó: si aceptaron, rechazaron o terminaron algo suyo, se lo dice con el timbre aunque ya le haya
+// llegado el aviso con la app cerrada.
+let asgSeen=lsGet('midia.asg.seen',{}),asgSt=lsGet('midia.asg.st',null);
+function asgNudge(){
+  const L=ASG.rec.filter(a=>a.estado==='pendiente');if(!L.length)return;
+  const nuevas=L.filter(a=>!asgSeen[a.id]);
+  const box=$('#asg-in');box.classList.remove('nueva');
+  box.querySelectorAll('.inv').forEach(e=>e.classList.remove('nueva'));
+  void box.offsetWidth; // reinicia la animación
+  box.classList.add('nueva');box.querySelectorAll('.inv').forEach(e=>e.classList.add('nueva'));
+  setTimeout(()=>{box.classList.remove('nueva');box.querySelectorAll('.inv').forEach(e=>e.classList.remove('nueva'))},2400);
+  if($('#v-board').classList.contains('act'))scrollTo({top:0,behavior:'smooth'});
+  if(navigator.vibrate)navigator.vibrate([220,90,220]);
+  if(nuevas.length){
+    chime();toast(nuevas.length===1?nuevas[0].de_nombre+' te asignó «'+nuevas[0].titulo+'»':'Te asignaron '+nuevas.length+' tareas nuevas');
+    nuevas.forEach(a=>asgSeen[a.id]=1);lsSet('midia.asg.seen',asgSeen);
+  }
+}
+function asgNews(){
+  const now={};ASG.env.forEach(a=>now[a.id]=a.estado);
+  if(asgSt){
+    const msgs=[];
+    for(const a of ASG.env){
+      const was=asgSt[a.id];if(!was||was===a.estado)continue;
+      if(a.estado==='aceptada'&&was==='pendiente')msgs.push(a.para_nombre+' aceptó «'+a.titulo+'»');
+      else if(a.estado==='hecha')msgs.push('✓ '+a.para_nombre+' terminó «'+a.titulo+'»');
+      else if(a.estado==='rechazada')msgs.push(a.para_nombre+' no puede con «'+a.titulo+'»');
+    }
+    if(msgs.length){chime();if(navigator.vibrate)navigator.vibrate([120,60,120]);toast(msgs.length===1?msgs[0]:msgs[0]+' (y '+(msgs.length-1)+' más en «Asigné»)')}
+  }
+  asgSt=now;lsSet('midia.asg.st',now);
+}
+
 /* ---------- foto de perfil ---------- */
 // La foto se recorta en cuadro y se reduce a 112 px en el propio celular; así pesa unos
 // pocos KB y viaja con la cuenta a cualquier dispositivo.
@@ -1971,7 +2112,7 @@ function cloudSoon(){clearTimeout(cloudT);cloudT=setTimeout(cloudSync,1200)}
 let ticks=0;
 setInterval(()=>{if(sess&&!document.hidden&&++ticks%4===0)cloudSync()},15000);
 // al salir de la app se sube lo pendiente; al volver se baja lo nuevo y se busca versión nueva
-document.addEventListener('visibilitychange',()=>{cloudSync();if(!document.hidden){checkUpdate();atlasLoad();asgLoad(true)}});
+document.addEventListener('visibilitychange',()=>{cloudSync();if(!document.hidden){checkUpdate();atlasLoad();asgLoad(true,true)}});
 setInterval(()=>{if(sess&&!document.hidden)asgLoad()},60000);
 window.addEventListener('pagehide',()=>{cloudSync()});
 
