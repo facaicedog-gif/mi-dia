@@ -258,8 +258,12 @@ Deno.serve(async (req) => {
       const dev = r.midia_dispositivos as unknown as Dev;
       const code = await send(dev, { title: r.title, body: r.body ?? "", tag: r.id });
       if (code >= 200 && code < 300) sent++;
-      await db.from("midia_recordatorios").update({ sent_at: new Date().toISOString() })
-        .eq("device", r.device).eq("id", r.id);
+      // Los de Atlas traen datos de clientes (contacto, teléfono): no se guardan después de enviarlos.
+      if (String(r.id).startsWith("A:")) await db.from("midia_recordatorios").delete().eq("device", r.device).eq("id", r.id);
+      else {
+        await db.from("midia_recordatorios").update({ sent_at: new Date().toISOString() })
+          .eq("device", r.device).eq("id", r.id);
+      }
     }
     return json({ ok: true, sent });
   }

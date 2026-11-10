@@ -1,5 +1,5 @@
 // Mi día · service worker: funciona sin conexión y muestra los avisos.
-const CACHE = 'midia-v10';
+const CACHE = 'midia-v11';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-180.png'];
 
 self.addEventListener('install', e => {
@@ -44,12 +44,15 @@ self.addEventListener('push', e => {
   }));
 });
 
+// Tocar el aviso abre la app en ese pendiente.
 self.addEventListener('notificationclick', e => {
   e.notification.close();
+  const id = e.notification.tag || '';
+  const abrir = id && id !== 'prueba' && !id.startsWith('asg-');
   e.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-      for (const c of list) if ('focus' in c) return c.focus();
-      return self.clients.openWindow('./');
+      for (const c of list) if ('focus' in c) { if (abrir) c.postMessage({ open: id }); return c.focus(); }
+      return self.clients.openWindow(abrir ? './#open=' + encodeURIComponent(id) : './');
     })
   );
 });

@@ -665,7 +665,8 @@ function cardEl(t,o){
   if(t.atlas){
     const g=document.createElement('span');g.className='atl';g.textContent='ATLAS';
     c.querySelector('.ct').insertBefore(g,c.querySelector('.tt'));
-    if(t.empresa&&t.empresa.nombre){const e=document.createElement('div');e.className='co';e.textContent=t.empresa.nombre;c.querySelector('.ct').appendChild(e)}
+    const co=[t.empresa&&t.empresa.nombre,t.contacto&&t.contacto.nombre].filter(Boolean).join(' · ');
+    if(co){const e=document.createElement('div');e.className='co';e.textContent=co;c.querySelector('.ct').appendChild(e)}
   }
   if(o.note||t.due){
     const d=document.createElement('div'),dd=t.due&&new Date(t.due),cls=o.note?(o.noteCls||''):dueClass(t);
@@ -689,6 +690,32 @@ function dayInfo(k,todayK){
   return {done,missed,planned};
 }
 /* lo que no se hizo un día amanece primero en «Hacer ya» */
+/* lo que tiene fecha va subiendo de cuadrante a medida que se acerca:
+   más de 7 días → Después · 3 a 7 → Planear · 1 o 2 → Salir rápido · el día (o atrasada) → Hacer ya.
+   Sólo sube, nunca baja; si la mueves a mano se respeta hasta que le toque el siguiente paso.
+   Las repetitivas no suben: aparecen el día que les toca. */
+const RANK={4:0,2:1,3:2,1:3};
+function bandOf(due){
+  if(!due)return null;
+  const n=dayDiff(new Date(due));
+  return n<=0?1:n<=2?3:n<=7?2:4;
+}
+function climb(t){
+  if(t.done||!t.due||t.rule)return false;
+  const b=bandOf(t.due);
+  if(b===t.band)return false;
+  const up=RANK[b]>RANK[t.q];
+  t.band=b;if(up){t.q=b;t.order=-1}
+  return up;
+}
+function escalate(){
+  let n=0,touched=false;
+  for(const t of S.tasks){const was=t.band,up=climb(t);if(up)n++;if(up||was!==t.band)touched=true}
+  let na=0;for(const t of ATLAS){if(climb(t))na++}
+  if(na)atlasKeep();
+  if(touched){reorder();save()}
+  return n+na;
+}
 function rollover(){
   const todayK=ymd(new Date());
   const late=S.tasks.filter(t=>!t.done&&t.due&&dueK(t)<todayK&&t.rolledOn!==todayK).sort((a,b)=>new Date(a.due)-new Date(b.due));
@@ -710,7 +737,7 @@ function render(){
   if(late)pill(late,late===1?'atrasada':'atrasadas','late');
   pill(today,'para hoy');
   // el tablero muestra lo de hoy, lo atrasado y lo que no tiene fecha; lo futuro espera en el calendario
-  const kToday=ymd(now),board=open.filter(t=>!t.due||dueK(t)<=kToday),fut=open.length-board.length;
+  const kToday=ymd(now),board=open.filter(t=>!t.due||dueK(t)<=kToday||(!t.rule&&dayDiff(new Date(t.due))<=30)),fut=open.length-board.length;
   pill(board.filter(t=>t.q===1).length,'por hacer ya');
   if(fut){pill(fut,fut===1?'programada ›':'programadas ›');f.lastChild.dataset.go='agenda'}
   const ao=sess?ASG.env.filter(asgIsOpen).length:0;
@@ -883,8 +910,8 @@ function openSheet(t,pre){
 function closeSheet(){micOff();document.body.classList.remove('sheet');fT.blur()}
 function autoQ(){
   if(quadTouched)return;
-  const due=getDue(), soon=due&&(due-Date.now())<864e5;
-  setQ((parsed&&parsed.urgent)||soon?1:2);
+  const due=getDue();
+  setQ(parsed&&parsed.urgent?1:due?bandOf(due):2);
 }
 const REPN={d:'todos los días',wd:'de lunes a viernes',w:'cada semana',m:'cada mes',y:'cada año'};
 function onText(){
@@ -963,13 +990,14 @@ $('#sheet').addEventListener('submit',e=>{
     if(editing.asg&&(editing.due!==iso||editing.end!==eiso))asgSend({accion:'avance',id:editing.asg,due:iso,fin:eiso});
     if(editing.due!==iso)editing.notified=!!(due&&due<=now);
     if(editing.q!==pickQ)editing.order=-1;
+    if(editing.due!==iso)editing.band=iso?bandOf(iso):undefined;
     Object.assign(editing,{title,due:iso,end:eiso,q:pickQ});
   }else{
     newId=uid();
-    S.tasks.push({id:newId,title,q:pickQ,due:iso,end:eiso,done:false,notified:!!(due&&due<=now),order:-1,created:Date.now()});
+    S.tasks.push({id:newId,title,q:pickQ,due:iso,end:eiso,done:false,notified:!!(due&&due<=now),order:-1,created:Date.now(),band:due?bandOf(iso):undefined});
   }
   reorder();save();closeSheet();render();newId=null;
-  const later=due&&ymd(due)>ymd(now);
+  const later=due&&dayDiff(due)>30;
   toast(later?'Queda en el calendario · '+fmtDue(due).toLowerCase():due&&due>now?'Listo · te aviso '+fmtDue(due).toLowerCase():'Guardado en «'+QN[pickQ]+'»');
   if(due)ask();
 });
@@ -1387,8 +1415,11 @@ async function syncNow(){
     if(!canNotify||Notification.permission!=='granted')return false;
     const sub=await pushSub();if(!sub)return false;
     const now=Date.now();
-    const reminders=(sess?S.tasks:[]).filter(t=>!t.done&&t.due&&new Date(t.due).getTime()>now).slice(0,200)
-      .map(t=>({id:t.id,title:t.title,body:QN[t.q]+' · '+spanTxt(t).replace(/^[^·]*· /,''),due:t.due}));
+    const reminders=(sess?S.tasks:[]).filter(t=>!t.done&&t.due&&new Date(t.due).getTime()>now)
+      .map(t=>({id:t.id,title:t.title,body:QN[t.q]+' · '+spanTxt(t).replace(/^[^·]*· /,''),due:t.due}))
+      // los de Atlas llevan a quién llamar; el servidor borra cada uno apenas lo envía
+      .concat((sess?ATLAS:[]).filter(t=>t.due&&new Date(t.due).getTime()>now).map(atlasAviso))
+      .sort((a,b)=>new Date(a.due)-new Date(b.due)).slice(0,200);
     const r=await api('sync',{sub:sub.toJSON(),reminders});
     pushOn=!!(r&&r.ok);
   }catch(e){pushOn=false}
@@ -1444,7 +1475,9 @@ function tick(){
   if(drag)return;
   const moved=rollover();
   if(materialize()){reorder();save()}
+  const up=escalate();
   if(moved)toast(moved===1?'1 pendiente de ayer pasó a «Hacer ya»':moved+' pendientes de días anteriores pasaron a «Hacer ya»');
+  else if(up)toast(up===1?'1 tarea subió de cuadrante porque se acerca su fecha':up+' tareas subieron de cuadrante porque se acerca su fecha');
   if(!document.body.classList.contains('sheet'))render();
 }
 setInterval(tick,15000);
@@ -1584,8 +1617,7 @@ async function atlasCall(llamada,enlace){
 }
 function atlasMap(e){
   const id='A:'+e.id,p=atlasPrefs[id]||{},due=e.fecha||null;
-  const hoyOantes=due&&ymd(new Date(due))<=ymd(new Date());
-  return {id,aid:e.id,atlas:true,title:e.titulo||'Pendiente de Atlas',q:p.q||(hoyOantes?1:2),order:p.order!=null?p.order:-1,
+  return {id,aid:e.id,atlas:true,title:e.titulo||'Pendiente de Atlas',q:p.q||bandOf(due)||2,band:p.q?p.band:bandOf(due),order:p.order!=null?p.order:-1,
     due,end:due&&e.duracion_min?new Date(new Date(due).getTime()+e.duracion_min*6e4).toISOString():null,
     done:false,notified:true,notas:e.notas||'',tipo:e.tipo||'',clase:e.clase||null,empresa:e.empresa||null,contacto:e.contacto||null};
 }
@@ -1593,7 +1625,7 @@ function atlasSet(evs){ATLAS=(evs||[]).map(atlasMap);lsSet('midia.atlas.cache',e
 // El cuadrante y el orden que les des aquí son tuyos: se recuerdan en este celular, Atlas no los conoce.
 function atlasKeep(){
   if(!ATLAS.length)return;
-  const p={};ATLAS.forEach(t=>{p[t.id]={q:t.q,order:t.order}});atlasPrefs=p;lsSet('midia.atlas.prefs',p);
+  const p={};ATLAS.forEach(t=>{p[t.id]={q:t.q,order:t.order,band:t.band}});atlasPrefs=p;lsSet('midia.atlas.prefs',p);
 }
 function atlasStart(){
   if(atlasLink&&sess&&atlasLink.uid!==sess.uid){atlasLink=null;lsSet('midia.atlas',null);lsSet('midia.atlas.cache',null)}
@@ -1607,7 +1639,7 @@ async function atlasLoad(force){
   try{
     const j=await atlasCall({operacion:'listar'});
     if(j.status===401){atlasLink=null;lsSet('midia.atlas',null);atlasSet([]);toast('La conexión con Atlas ya no está activa');}
-    else if(j.ok&&Array.isArray(j.eventos)){atlasAt=Date.now();atlasSet(j.eventos);if(j.aviso)toast(j.aviso)}
+    else if(j.ok&&Array.isArray(j.eventos)){atlasAt=Date.now();atlasSet(j.eventos);escalate();syncSoon();if(j.aviso)toast(j.aviso)}
     else if(force&&j.error)toast('Atlas: '+j.error);
     if(!drag&&!document.body.classList.contains('sheet')&&!document.body.classList.contains('asheet'))render();
   }catch(e){if(force)toast('No hubo conexión con Atlas; se muestra lo último que se trajo')}
@@ -1616,7 +1648,7 @@ async function atlasLoad(force){
 async function atlasOff(quiet){
   if(!atlasLink)return;
   try{await atlasCall({operacion:'desvincular'})}catch(e){}
-  atlasLink=null;atlasPrefs={};lsSet('midia.atlas',null);lsSet('midia.atlas.prefs',null);atlasSet([]);
+  atlasLink=null;atlasPrefs={};lsSet('midia.atlas',null);lsSet('midia.atlas.prefs',null);atlasSet([]);syncSoon();
   if(!quiet){render();paintAtlas();toast('Atlas desconectado de este celular')}
 }
 function paintAtlas(){
@@ -1645,6 +1677,21 @@ async function atlasLinkNow(){
   }catch(e){msg.style.color='var(--q1)';msg.textContent='Sin conexión. Inténtalo de nuevo.'}
 }
 
+// «300 123 4567» para leerlo de un vistazo
+function telFmt(s){
+  const d=String(s||'').replace(/\D/g,'');
+  if(d.length===10)return d.slice(0,3)+' '+d.slice(3,6)+' '+d.slice(6);
+  if(d.length===7)return d.slice(0,3)+' '+d.slice(3);
+  return s||'';
+}
+const atlasTel=t=>{const c=t.contacto||{},e=t.empresa||{};return c.telefono||e.telefono||''};
+function atlasAviso(t){
+  const c=t.contacto||{},e=t.empresa||{},tel=atlasTel(t);
+  const quien=c.nombre?c.nombre+(c.cargo?' ('+c.cargo+')':''):'';
+  return {id:t.id,due:t.due,
+    title:(e.nombre?'📞 '+e.nombre:'📞 '+t.title).slice(0,200),
+    body:[quien,tel?telFmt(tel):'',fmtTime(new Date(t.due)),e.nombre?t.title:''].filter(Boolean).join(' · ').slice(0,200)};
+}
 /* ---------- la hoja de un pendiente de Atlas ---------- */
 let aCur=null,aComo='contesto';
 const soloDig=s=>String(s||'').replace(/\D/g,'');
@@ -1652,7 +1699,7 @@ function openAtlas(t){
   aCur=t;aComo='contesto';
   $('#a-title').textContent=t.title;
   const emp=t.empresa||{},con=t.contacto||{};
-  $('#a-who').textContent=[emp.nombre,con.nombre?(con.nombre+(con.cargo?', '+con.cargo:'')):'',t.due?spanTxt(t):'Sin fecha'].filter(Boolean).join(' · ');
+  $('#a-who').textContent=[emp.nombre,con.nombre?(con.nombre+(con.cargo?', '+con.cargo:'')):'',atlasTel(t)?'📞 '+telFmt(atlasTel(t)):'',t.due?spanTxt(t):'Sin fecha'].filter(Boolean).join(' · ');
   const n=$('#a-notas');n.textContent=t.notas||'';n.style.display=t.notas?'':'none';
   // Para actuar con un toque. El teléfono del contacto manda; si no hay, el de la empresa.
   const tel=soloDig(con.telefono||emp.telefono),mail=con.correo||emp.correo||'',acts=$('#a-acts');acts.textContent='';
@@ -2175,10 +2222,22 @@ let pendingAdd=null;
   }catch(e){}
   history.replaceState(null,'',location.pathname);
 })();
+// Tocar un aviso abre ese pendiente (el service worker manda su id).
+let openPend=null;
+function openById(id){
+  if(!id||!sess)return false;
+  const t=byId(id);if(!t)return false;
+  $('nav .tab[data-v=board]').click();
+  if(t.atlas)openAtlas(t);else if(!t.done)openSheet(t);
+  return true;
+}
+(()=>{const m=/^#open=(.+)$/.exec(location.hash);if(m){try{openPend=decodeURIComponent(m[1])}catch(e){}history.replaceState(null,'',location.pathname)}})();
+if('serviceWorker'in navigator)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.open&&!openById(d.open))openPend=d.open});
 bellState();
 (async()=>{
   await fromLink();
   if(recovering)showAuth('new');else if(sess)enter();else showAuth('in',linkMsg);
+  if(openPend&&sess){const id=openPend;openPend=null;setTimeout(()=>openById(id),400)}
 })();
 </script>
 </body>
