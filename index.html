@@ -267,6 +267,74 @@ body.asheet #asheet{transform:none}
 #a-sin,#a-rep{background:var(--q4b);color:var(--ink)}
 #a-repbox{display:none;margin-top:8px}
 #a-repbox.show{display:block}
+/* ---------- asignar tareas entre cuentas ---------- */
+.av{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;background:var(--av,var(--blue))}
+.av.s{width:28px;height:28px;font-size:11.5px}
+#as-box{display:none}
+#as-box.show{display:block}
+.who{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:3px 2px 2px}
+.who::-webkit-scrollbar{display:none}
+.who button{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11.5px;color:var(--mut);width:58px;overflow:hidden}
+.who button span{max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.who button.on .av{outline:3px solid var(--blue);outline-offset:2px}
+.who button.on{color:var(--blue);font-weight:700}
+.who .av.add{background:var(--blue-soft);color:var(--blue);font-size:20px}
+#as-more{display:none;margin-top:8px}
+#as-more.show{display:block}
+#as-more input,#qa textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;background:var(--q4b);color:var(--ink);font:inherit;font-size:16px;padding:10px;margin-bottom:8px}
+#as-mail{display:none}#as-mail.show{display:block}
+#hint.wa{color:#8a5300;background:var(--q3b);border-radius:12px;padding:10px 12px;cursor:pointer}
+#hint.ok{color:#15803d;background:#e8f7ee;border-radius:12px;padding:8px 12px}
+#f-save:disabled{opacity:.6}
+.card .from{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;margin-top:6px;margin-right:4px;padding:2px 8px;border-radius:99px;background:rgba(124,58,237,.12);color:#6d28d9;vertical-align:top}
+.card[data-q="1"] .from{background:rgba(255,255,255,.25);color:#fff}
+#asg-in{display:none;background:linear-gradient(135deg,var(--blue-soft),#fff);border:1px solid #dbe6fd;border-radius:18px;padding:12px;margin:2px 4px 14px}
+#asg-in.show{display:block}
+#asg-in h3{margin:0 0 10px;font-size:15px;display:flex;align-items:center;gap:8px}
+#asg-in h3 i{font-style:normal;background:var(--blue);color:#fff;border-radius:99px;font-size:12px;padding:1px 8px}
+.inv{background:var(--card);border-radius:14px;padding:11px;box-shadow:0 6px 16px -8px rgba(29,78,216,.45);margin-bottom:10px}
+.inv:last-child{margin-bottom:0}
+.inv .by{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--mut)}
+.inv .tt{font-weight:700;font-size:15px;margin:7px 0 5px;overflow-wrap:anywhere}
+.inv .msg{font-size:13px;background:var(--q4b);border-radius:10px;padding:7px 9px;margin:7px 0 0;overflow-wrap:anywhere}
+.tg{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:99px;margin:0 4px 3px 0;background:var(--blue-soft);color:var(--blue)}
+.tg.u{background:var(--q1b);color:var(--q1)}
+.inv .clash{font-size:12.5px;color:#8a5300;background:var(--q3b);border-radius:9px;padding:6px 8px;margin-top:7px}
+.inv .ia{display:flex;gap:8px;margin-top:10px}
+.inv .ia button{flex:1;border-radius:11px;padding:10px;font-weight:700;font-size:14px}
+.inv .ia .y{background:var(--blue);color:#fff}
+.inv .ia .n{background:var(--card);color:var(--mut);border:1px solid var(--line)}
+.pill[data-asg]{cursor:pointer}.pill[data-asg] b{color:#6d28d9}
+#v-asg .bk{display:inline-flex;align-items:center;gap:4px;color:var(--blue);font-weight:700;font-size:14px;margin:0 4px 6px;padding:6px 0}
+#v-asg h2.t{margin:0 4px 2px;font-size:22px;letter-spacing:-.02em}
+#v-asg p.s{margin:0 4px 12px;color:var(--mut);font-size:13px}
+#v-asg .seg{margin:0 4px 10px}
+.it{display:flex;gap:10px;padding:12px 4px;border-bottom:1px solid var(--line)}
+.it:last-child{border:0}
+.it .bd{flex:1;min-width:0}
+.it .tt{font-weight:700;font-size:14.5px;overflow-wrap:anywhere}
+.it .sub{font-size:12.5px;color:var(--mut);margin-top:1px}
+.st{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:99px;margin-top:6px}
+.st.wait{background:var(--q3b);color:#a35f00}.st.acc{background:var(--blue-soft);color:var(--blue)}
+.st.done{background:#e8f7ee;color:#15803d}.st.no{background:var(--q1b);color:var(--q1)}
+.st.late{background:var(--q1);color:#fff}.st.off{background:var(--q4b);color:var(--mut)}
+.why{font-size:12.5px;background:var(--q4b);border-radius:9px;padding:6px 8px;margin-top:6px;overflow-wrap:anywhere}
+.mini{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.mini button{font-size:12.5px;font-weight:700;color:var(--blue);border:1px solid var(--line);border-radius:99px;padding:5px 11px;background:var(--card)}
+.mini button.wa{color:#128c4a}.mini button.x{color:var(--q1)}
+.empty{color:var(--mut);font-size:14px;margin:18px 4px;text-align:center}
+#qa{position:fixed;inset:0;z-index:40;display:none;align-items:flex-end;justify-content:center;background:rgba(20,32,51,.35)}
+#qa.show{display:flex}
+#qa form{background:var(--card);width:100%;max-width:520px;border-radius:22px 22px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+#qa h4{margin:0 0 4px;font-size:17px}
+#qa p{margin:0 0 10px;color:var(--mut);font-size:13px}
+#qa textarea{min-height:70px;resize:vertical}
+#qa .ia{display:flex;gap:8px}
+#qa .ia button{flex:1;padding:13px;border-radius:13px;font-weight:700}
+#qa-ok{background:var(--blue);color:#fff}
+#qa-no{background:var(--q4b);color:var(--ink)}
+#pf-name{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:9px;font:inherit;font-size:16px;margin:0 0 10px;color:var(--ink);background:var(--card)}
+#acct-pop #acct-asg{background:var(--blue-soft);color:var(--blue);margin-bottom:8px}
 </style>
 </head>
 <body class="out">
@@ -283,7 +351,7 @@ body.asheet #asheet{transform:none}
     <button type="button" class="link" id="a-forgot">Olvidé mi contraseña</button>
   </form>
 </div>
-<div id="acct-pop"><div class="pf"><button type="button" id="pf-pic" aria-label="Cambiar foto de perfil"></button><div><small>Tu cuenta</small><b id="acct-mail"></b></div></div><div class="pfb"><button type="button" id="pf-set">Agregar foto</button><button type="button" id="pf-del">Quitar</button></div><input type="file" id="pf-file" accept="image/*" hidden><div id="atl-box"></div><p id="cloud"></p><button type="button" id="acct-upd">Buscar actualización</button><button type="button" id="acct-out">Cerrar sesión</button></div>
+<div id="acct-pop"><div class="pf"><button type="button" id="pf-pic" aria-label="Cambiar foto de perfil"></button><div><small>Tu cuenta</small><b id="acct-mail"></b></div></div><div class="pfb"><button type="button" id="pf-set">Agregar foto</button><button type="button" id="pf-del">Quitar</button></div><input type="file" id="pf-file" accept="image/*" hidden><small>Tu nombre (lo ven a quienes les asignas tareas)</small><input id="pf-name" maxlength="40" autocomplete="name" placeholder="Cómo te llamas"><button type="button" id="acct-asg">Tareas que asigné</button><div id="atl-box"></div><p id="cloud"></p><button type="button" id="acct-upd">Buscar actualización</button><button type="button" id="acct-out">Cerrar sesión</button></div>
 <div id="ptr">Desliza para actualizar</div>
 <header>
   <div><h1>Mi día</h1><p id="sub"></p></div>
@@ -295,6 +363,7 @@ body.asheet #asheet{transform:none}
 <main>
   <section class="view act" id="v-board">
     <div id="ios"><b>Instálala para recibir avisos.</b> En Safari toca <svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg> <b>Compartir</b> y elige <b>«Agregar a inicio»</b>. Después abre Mi día desde ese ícono y anota ahí tus pendientes.</div>
+    <div id="asg-in"></div>
     <div id="focus"></div>
     <div class="grid" id="grid">
       <div class="quad" data-q="1"><div class="qh"><div><strong>Hacer ya</strong><small>Urgente e importante</small></div><span></span></div><div class="list"></div></div>
@@ -305,6 +374,7 @@ body.asheet #asheet{transform:none}
     <p class="tip">Mantén presionada una tarjeta para moverla</p>
   </section>
   <section class="view" id="v-agenda"></section>
+  <section class="view" id="v-asg"></section>
 </main>
 
 <nav>
@@ -339,6 +409,8 @@ body.asheet #asheet{transform:none}
     <button type="button" data-q="3"><strong>Salir rápido</strong><small>Urgente, poco importante</small></button>
     <button type="button" data-q="4"><strong>Después</strong><small>Ni urgente ni importante</small></button>
   </div>
+  <div id="as-box"><div class="lbl">Asignar a</div><div class="who" id="as-who"></div>
+    <div id="as-more"><input id="as-mail" type="email" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="Correo de la persona"><input id="as-nota" maxlength="300" autocomplete="off" placeholder="Nota para la persona (opcional)"></div></div>
   <div class="acts"><button type="button" id="f-del">Eliminar</button><button type="button" id="f-share">WhatsApp</button><button type="submit" id="f-save">Guardar</button></div>
 </form>
 <div id="asheet">
@@ -365,6 +437,7 @@ body.asheet #asheet{transform:none}
 </div>
 <input type="file" id="xl-file" accept=".xlsx,.xls,.csv" hidden>
 <div id="toast"></div>
+<div id="qa"><form autocomplete="off"><h4 id="qa-t"></h4><p id="qa-p"></p><textarea id="qa-x" maxlength="300"></textarea><div class="ia"><button type="button" id="qa-no">Cancelar</button><button type="submit" id="qa-ok">Enviar</button></div></form></div>
 
 <script>
 'use strict';
@@ -555,6 +628,7 @@ function cardEl(t,o){
     d.textContent=(t.rule&&!o.note?'↻ ':'')+(o.note||(cls==='late'?(dayDiff(dd)<0?'Viene de '+fmtDay(dd).toLowerCase():'Atrasada · '+spanTxt(t)):spanTxt(t)));
     c.querySelector('.ct').appendChild(d);
   }
+  if(t.de){const g=document.createElement('span');g.className='from';g.textContent='de '+t.de;c.querySelector('.ct').appendChild(g)}
   if(o.tag&&!t.done){const g=document.createElement('span');g.className='tag';g.textContent=QN[t.q];(c.querySelector('.due')||c.querySelector('.ct')).appendChild(g)}
   return c;
 }
@@ -579,7 +653,7 @@ function rollover(){
 }
 function render(){
   if(drag)return;
-  paintProfile();
+  paintProfile();paintAsgIn();
   const now=new Date(), open=S.tasks.filter(t=>!t.done).concat(ATLAS);
   const sub=now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
   $('#sub').textContent=sub[0].toUpperCase()+sub.slice(1);
@@ -594,6 +668,8 @@ function render(){
   const kToday=ymd(now),board=open.filter(t=>!t.due||dueK(t)<=kToday),fut=open.length-board.length;
   pill(board.filter(t=>t.q===1).length,'por hacer ya');
   if(fut){pill(fut,fut===1?'programada ›':'programadas ›');f.lastChild.dataset.go='agenda'}
+  const ao=sess?ASG.env.filter(asgIsOpen).length:0;
+  if(ao){pill(ao,ao===1?'que asignaste ›':'que asignaste ›');f.lastChild.dataset.asg='1'}
   // tablero
   $$('.quad').forEach(q=>{
     const n=+q.dataset.q, list=q.querySelector('.list');
@@ -666,6 +742,7 @@ function render(){
   const bx=document.createElement('div');bx.className='xl';
   bx.innerHTML='<button type="button" id="xl-up">Cargar Excel</button><button type="button" id="xl-tpl">Descargar plantilla</button>';
   rs.appendChild(bx);A.appendChild(rs);
+  paintAsg();
 }
 
 /* ---------- toast ---------- */
@@ -693,7 +770,7 @@ function getEnd(due){
   if(!fE.value)return new Date(due.getTime()+DEF*6e4);
   const [hh,mm]=fE.value.split(':').map(Number),e=new Date(due);e.setHours(hh,mm,0,0);return e;
 }
-function clearHint(){const el=$('#hint');el.textContent='';el.className='';freeAt=null}
+function clearHint(){const el=$('#hint');el.textContent='';el.className='';freeAt=null;hintAct=null}
 /* ---------- que no se crucen dos actividades ---------- */
 const tStart=t=>new Date(t.due).getTime(),tEnd=t=>t.end?new Date(t.end).getTime():tStart(t)+DEF*6e4;
 function clash(s,e,skip){
@@ -751,6 +828,9 @@ function openSheet(t,pre){
   $('#f-del').style.display=t?'':'none';$('#f-share').style.display=t?'':'none';
   $('#rep-box').style.display=t?'none':'';
   $('#f-save').textContent=t?'Guardar cambios':'Guardar';
+  asTo=null;$('#as-mail').value='';$('#as-nota').value='';paintWho();
+  if(pre&&pre.assign){$('#hint').textContent='Elige a quién se la asignas';fixed=false}
+  if(t&&t.de)$('#hint').textContent='Te la asignó '+t.de+(t.nota?' · «'+t.nota+'»':'');
   document.body.classList.add('sheet');
   if(!t&&!pre)setTimeout(()=>fT.focus(),260);
 }
@@ -783,6 +863,7 @@ fT.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#she
 }));
 fE.addEventListener('change',()=>{endTouched=true;clearHint()});
 $('#hint').onclick=()=>{
+  if(hintAct){hintAct();return}
   if(!freeAt)return;
   const a=freeAt;endTouched=true;dateTouched=true;setDue(new Date(a.s),new Date(a.e));clearHint();
   toast('Ajusté la hora. Toca Guardar.');
@@ -811,6 +892,7 @@ $('#sheet').addEventListener('submit',e=>{
   let end=getEnd(due);
   if(due&&end<=due){toast('La hora final debe ser después de la inicial');return}
   const ask=()=>{if('Notification'in window&&Notification.permission==='default')askPerm()};
+  if(asTo&&!editing){sendAssign(title,due,end);return}
   if(rep){
     if(!due){due=day0(now);due.setHours(9);end=new Date(due.getTime()+DEF*6e4)}
     const r={id:uid(),kind:'rule',title,q:pickQ,freq:rep,time:hm(due),dur:Math.round((end-due)/6e4),start:ymd(due<day0(now)?now:due),until:null,gen:''};
@@ -829,6 +911,7 @@ $('#sheet').addEventListener('submit',e=>{
     if(c){blockMsg(c,due.getTime(),end-due,editing&&editing.id);return}
   }
   if(editing){
+    if(editing.asg&&(editing.due!==iso||editing.end!==eiso))asgSend({accion:'avance',id:editing.asg,due:iso,fin:eiso});
     if(editing.due!==iso)editing.notified=!!(due&&due<=now);
     if(editing.q!==pickQ)editing.order=-1;
     Object.assign(editing,{title,due:iso,end:eiso,q:pickQ});
@@ -841,17 +924,23 @@ $('#sheet').addEventListener('submit',e=>{
   toast(later?'Queda en el calendario · '+fmtDue(due).toLowerCase():due&&due>now?'Listo · te aviso '+fmtDue(due).toLowerCase():'Guardado en «'+QN[pickQ]+'»');
   if(due)ask();
 });
-$('#f-del').onclick=()=>{
+$('#f-del').onclick=async()=>{
   if(!editing)return;
+  if(editing.asg&&!editing.done){
+    const t=editing,m=await askText('¿Soltar esta tarea?','Se la devuelvo a '+(t.de||'quien te la asignó')+' como rechazada.','Soltarla','Motivo (opcional)');
+    if(m==null)return;
+    asgSend({accion:'responder',id:t.asg,acepta:false,motivo:m||'La quitó de su tablero'});
+    S.tasks=S.tasks.filter(x=>x!==t);save();closeSheet();render();toast('Le avisé a '+(t.de||'quien te la asignó'));return;
+  }
   S.tasks=S.tasks.filter(t=>t!==editing);save();closeSheet();render();toast('Eliminada');
 };
 // Enviar un pendiente por WhatsApp: el mensaje lleva un enlace que lo agrega al Mi día de quien lo recibe.
-$('#f-share').onclick=()=>{
-  const t=editing;if(!t)return;
+$('#f-share').onclick=()=>{if(editing)shareWa(editing)};
+function shareWa(t){
   const pack=btoa(unescape(encodeURIComponent(JSON.stringify({t:t.title,d:t.due,e:t.end||null,q:t.q})))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
   const txt='📌 '+t.title+(t.due?'\n🗓 '+spanTxt(t):'')+'\n\nAgrégalo a tu Mi día:\n'+location.origin+location.pathname+'#add='+pack;
   window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
-};
+}
 function reorder(){for(let q=1;q<=4;q++)S.tasks.filter(t=>t.q===q&&!t.done).sort((a,b)=>a.order-b.order).forEach((t,i)=>t.order=i)}
 
 /* ---------- tareas repetitivas ---------- */
@@ -1041,6 +1130,16 @@ $('#mic').onclick=()=>{
 let justDragged=false;
 document.addEventListener('click',e=>{
   if(e.target.closest('[data-go]')){$('nav .tab[data-v=agenda]').click();return}
+  if(e.target.closest('[data-asg]')){showAsg();return}
+  const ab=e.target.closest('[data-asg-ok],[data-asg-no],[data-asg-act],[data-asg-tab],[data-asg-back]');
+  if(ab){
+    if(ab.dataset.asgOk)asgAccept(ab.dataset.asgOk,ab);
+    else if(ab.dataset.asgNo)asgReject(ab.dataset.asgNo);
+    else if(ab.dataset.asgAct)asgAct(ab.dataset.asgAct,ab.dataset.id,ab);
+    else if(ab.dataset.asgTab){asgTab=ab.dataset.asgTab;paintAsg()}
+    else $('nav .tab[data-v=board]').click();
+    return;
+  }
   if(e.target.id==='xl-up'){$('#xl-file').click();return}
   if(e.target.id==='xl-tpl'){xlTemplate();return}
   const rb=e.target.closest('[data-rule]');if(rb){dropRule(rb.dataset.rule);return}
@@ -1055,7 +1154,7 @@ document.addEventListener('click',e=>{
     card.classList.toggle('done',t.done);reorder();save();
     if(navigator.vibrate)navigator.vibrate(12);
     setTimeout(render,t.done?380:0);
-    if(t.done)toast('Hecha · bien ahí');
+    if(t.asg)asgDone(t);else if(t.done)toast('Hecha · bien ahí');
     return;
   }
   if(!t.done)openSheet(t);
@@ -1171,7 +1270,12 @@ function deviceId(){
   if(!d){d=[...crypto.getRandomValues(new Uint8Array(24))].map(b=>b.toString(16).padStart(2,'0')).join('');try{localStorage.setItem('midia.device',d)}catch(e){}}
   return d;
 }
-const api=(op,extra)=>fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({op,device:deviceId()},extra))}).then(r=>r.json());
+const api=async(op,extra)=>{
+  const h={'Content-Type':'application/json'};
+  // al sincronizar va la sesión: así el servidor sabe de qué cuenta es este celular y le avisa lo que le asignen
+  if(op==='sync'&&sess){const tk=await token();if(tk)h.Authorization='Bearer '+tk}
+  return fetch(API,{method:'POST',headers:h,body:JSON.stringify(Object.assign({op,device:deviceId()},extra))}).then(r=>r.json());
+};
 const b64u=s=>Uint8Array.from(atob((s+'='.repeat((4-s.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
 async function pushSub(){
   if(!('serviceWorker'in navigator)||!('PushManager'in window))return null;
@@ -1345,7 +1449,8 @@ function enter(){
   if(S.owner&&S.owner!==sess.uid){S={tasks:[],rules:[],extra:[]};known={};outbox={};cursor=''}
   S.owner=sess.uid;
   document.body.classList.remove('out');$('#acct-mail').textContent=sess.email;
-  track();store();atlasStart();render();tick();syncNow();cloudSync();checkUpdate();
+  if(ASG.uid!==sess.uid){ASG={rec:[],env:[],uid:sess.uid};asgQ=[];lsSet('midia.asg.q',[])}
+  track();store();atlasStart();render();tick();syncNow();cloudSync();checkUpdate();asgLoad(true);
   if(pendingAdd){const a=pendingAdd;pendingAdd=null;openSheet(null,a)}
 }
 async function signOut(){
@@ -1355,6 +1460,7 @@ async function signOut(){
   const at=sess&&sess.at;
   await atlasOff(true); // otra persona en este celular no debe ver tu agenda de Atlas
   setSess(null);S={tasks:[],rules:[],extra:[]};known={};outbox={};cursor='';store();
+  ASG={rec:[],env:[]};lsSet('midia.asg.cache',null);asgQ=[];lsSet('midia.asg.q',[]);
   syncNow(); // este dispositivo deja de recibir avisos de la cuenta
   if(at)authCall('logout',{},at).catch(()=>{});
   render();showAuth('in');
@@ -1497,6 +1603,260 @@ $('#a-repok').onclick=()=>{
   atlasDo({operacion:'reprogramar',fecha:new Date(y,m-1,da,hh,mm).toISOString()},'Reprogramado en Atlas');
 };
 
+/* ---------- asignar tareas a otras cuentas de Mi día ---------- */
+// Lo asignado vive en el servidor de Mi día (no en Atlas). Nada entra al tablero de nadie sin que lo acepte:
+// mientras tanto espera en la franja «Te asignaron». Quien asigna sigue el estado en «Asigné».
+let ASG=lsGet('midia.asg.cache',{rec:[],env:[]}),asgAt=0,asgBusy=false,asgQ=lsGet('midia.asg.q',[]),asgTab='a',hintAct=null;
+const AVC=['#7c3aed','#0891b2','#db2777','#059669','#d97706','#4f46e5','#0d9488','#c026d3'];
+const avColor=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return AVC[Math.abs(h)%AVC.length]};
+function avEl(name,small){const a=document.createElement('div');a.className='av'+(small?' s':'');a.textContent=(String(name||'?').trim()[0]||'?').toUpperCase();a.style.setProperty('--av',avColor(name));return a}
+const asgQ4=a=>a.urgente&&a.importante?1:a.importante?2:a.urgente?3:4;
+const asgSpan=a=>{const d=a.due_final||a.due;return d?spanTxt({due:d,end:a.due_final?a.fin_final:a.fin}):'Sin fecha'};
+async function asgCall(accion,extra){
+  const tk=await token();if(!tk)throw new Error('Sin conexión.');
+  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify(Object.assign({},extra,{op:'asg',accion}))});
+  let j={};try{j=await r.json()}catch(e){j={ok:false,error:'Respuesta ilegible.'}}
+  j.status=r.status;return j;
+}
+function asgKeep(a){
+  if(!a)return;
+  const k=a.mio?'env':'rec',L=ASG[k],i=L.findIndex(x=>x.id===a.id);
+  if(i>=0)L[i]=a;else L.unshift(a);
+  lsSet('midia.asg.cache',ASG);
+}
+// Lo que hace quien recibió la tarea desde su tablero (marcarla hecha, moverla de hora) se manda en cuanto haya conexión.
+async function asgSend(body){asgQ.push(body);lsSet('midia.asg.q',asgQ);await asgFlush()}
+let flushing=false;
+async function asgFlush(){
+  if(flushing)return;flushing=true;
+  try{
+    while(asgQ.length){
+      const b=asgQ[0];let j;
+      try{j=await asgCall(b.accion,b)}catch(e){return}
+      if(j.status>=500||j.status===401||j.status===0)return;
+      asgQ.shift();lsSet('midia.asg.q',asgQ);
+      if(j.asignacion)asgKeep(j.asignacion);
+    }
+  }finally{flushing=false}
+}
+async function asgLoad(force){
+  if(!sess||asgBusy||drag)return;
+  if(!force&&Date.now()-asgAt<45000)return;
+  asgBusy=true;
+  try{
+    await asgFlush();
+    const j=await asgCall('listar');
+    if(j.ok){
+      asgAt=Date.now();ASG={rec:j.recibidas||[],env:j.enviadas||[],uid:sess.uid};lsSet('midia.asg.cache',ASG);
+      // si quien te la asignó la canceló, sale de tu tablero
+      let gone=0;
+      for(const a of ASG.rec)if(a.estado==='cancelada'){
+        const t=S.tasks.find(x=>x.asg===a.id&&!x.done);
+        if(t){S.tasks=S.tasks.filter(x=>x!==t);gone++;toast(a.de_nombre+' canceló «'+a.titulo+'»')}
+      }
+      if(gone)save();
+      if(!drag&&!document.body.classList.contains('sheet'))render();
+    }
+  }catch(e){}
+  asgBusy=false;
+}
+// Pregunta corta con texto opcional (motivo, nota). Devuelve el texto, o null si cancela.
+function askText(title,sub,okLabel,ph,noText){
+  return new Promise(res=>{
+    const q=$('#qa'),x=$('#qa-x');$('#qa-t').textContent=title;$('#qa-p').textContent=sub||'';$('#qa-ok').textContent=okLabel||'Enviar';
+    $('#qa-no').textContent=noText||'Cancelar';
+    x.style.display=ph===false?'none':'';x.value='';x.placeholder=ph||'Escribe aquí (opcional)';q.classList.add('show');
+    const f=$('#qa form');
+    const done=v=>{q.classList.remove('show');x.blur();f.onsubmit=null;$('#qa-no').onclick=null;q.onclick=null;res(v)};
+    f.onsubmit=e=>{e.preventDefault();done(x.value.trim())};
+    $('#qa-no').onclick=()=>done(null);
+    q.onclick=e=>{if(e.target===q)done(null)};
+  });
+}
+// a qué hora queda si la acepto: la pedida o, si choca con algo mío, el siguiente espacio libre
+function asgFit(a){
+  if(!a.due)return {due:null,end:null,moved:null};
+  let s=new Date(a.due).getTime(),e=a.fin?new Date(a.fin).getTime():s+DEF*6e4;
+  const c=s>Date.now()?clash(s,e):null;
+  if(!c)return {due:s,end:e,moved:null};
+  const nf=nextFree(s,e-s);
+  return nf==null?{due:s,end:e,moved:c,none:true}:{due:nf,end:nf+(e-s),moved:c};
+}
+function paintAsgIn(){
+  const box=$('#asg-in');if(!box)return;
+  const L=(sess?ASG.rec:[]).filter(a=>a.estado==='pendiente');
+  box.classList.toggle('show',!!L.length);box.textContent='';
+  if(!L.length)return;
+  const h=document.createElement('h3');h.innerHTML='Te asignaron <i></i>';h.querySelector('i').textContent=L.length;box.appendChild(h);
+  for(const a of L){
+    const c=document.createElement('div');c.className='inv';
+    const by=document.createElement('div');by.className='by';by.appendChild(avEl(a.de_nombre,true));
+    by.appendChild(document.createTextNode(a.de_nombre+' · '+fmtDay(new Date(a.creado)).toLowerCase()));c.appendChild(by);
+    const tt=document.createElement('div');tt.className='tt';tt.textContent=a.titulo;c.appendChild(tt);
+    if(a.urgente){const g=document.createElement('span');g.className='tg u';g.textContent='Urgente';c.appendChild(g)}
+    const w=document.createElement('span');w.className='tg';w.textContent=asgSpan(a);c.appendChild(w);
+    if(a.nota){const m=document.createElement('div');m.className='msg';m.textContent='«'+a.nota+'»';c.appendChild(m)}
+    const f=asgFit(a);let okTxt='Aceptar';
+    if(f.moved){
+      const k=document.createElement('div');k.className='clash';
+      k.textContent='⚠ A esa hora ya tienes «'+f.moved.title+'».'+(f.none?' Si la aceptas queda cruzada; muévela después.':' Al aceptar te la dejo '+fmtDue(new Date(f.due)).toLowerCase()+'.').replace(/\.\.$/,'.');
+      c.appendChild(k);if(!f.none)okTxt='Aceptar '+fmtTime(new Date(f.due));
+    }
+    const ia=document.createElement('div');ia.className='ia';
+    ia.innerHTML='<button type="button" class="y"></button><button type="button" class="n">Rechazar</button>';
+    ia.querySelector('.y').textContent=okTxt;ia.querySelector('.y').dataset.asgOk=a.id;ia.querySelector('.n').dataset.asgNo=a.id;
+    c.appendChild(ia);box.appendChild(c);
+  }
+}
+async function asgAccept(id,btn){
+  const a=ASG.rec.find(x=>x.id===id);if(!a)return;
+  const f=asgFit(a),due=f.due!=null?new Date(f.due).toISOString():null,end=f.end!=null?new Date(f.end).toISOString():null;
+  btn.disabled=true;
+  try{
+    const j=await asgCall('responder',{id,acepta:true,due,fin:end});
+    if(!j.ok){toast(j.error||'No se pudo aceptar');asgLoad(true);return}
+    asgKeep(j.asignacion);
+    const q=asgQ4(a),nid=uid();
+    S.tasks.push({id:nid,title:a.titulo,q,due,end,done:false,notified:!!(due&&new Date(due)<=new Date()),order:-1,created:Date.now(),asg:a.id,de:a.de_nombre,nota:a.nota||''});
+    newId=nid;reorder();save();render();newId=null;
+    toast(due&&ymd(new Date(due))>ymd(new Date())?'Aceptada · queda en el calendario '+fmtDue(new Date(due)).toLowerCase():'Aceptada · está en «'+QN[q]+'»');
+  }catch(e){toast('Sin conexión. Inténtalo de nuevo.')}
+  finally{btn.disabled=false}
+}
+async function asgReject(id){
+  const a=ASG.rec.find(x=>x.id===id);if(!a)return;
+  const m=await askText('Rechazar «'+a.titulo+'»','A '+a.de_nombre+' le llega lo que escribas.','Rechazar','Motivo (opcional), p. ej. «Ese día no estoy»');
+  if(m==null)return;
+  try{
+    const j=await asgCall('responder',{id,acepta:false,motivo:m});
+    if(!j.ok){toast(j.error||'No se pudo');asgLoad(true);return}
+    asgKeep(j.asignacion);render();toast('Le avisé a '+a.de_nombre);
+  }catch(e){toast('Sin conexión. Inténtalo de nuevo.')}
+}
+// marcar hecha o deshacer una tarea que te asignaron
+async function asgDone(t){
+  if(!t.done){asgSend({accion:'avance',id:t.asg,hecha:false});return}
+  const n=await askText('¡Hecha!','Le aviso a '+(t.de||'quien te la asignó')+' que la terminaste.','Avisar','Nota para '+(t.de||'la persona')+' (opcional)');
+  asgSend({accion:'avance',id:t.asg,hecha:true,nota:n||''});
+}
+/* «Asigné»: lo que le pediste a otros */
+function showAsg(){
+  $$('nav .tab').forEach(x=>x.classList.remove('act'));
+  $$('.view').forEach(v=>v.classList.toggle('act',v.id==='v-asg'));
+  scrollTo(0,0);paintAsg();asgLoad(true);
+}
+function asgState(a){
+  const d=a.due_final||a.due;
+  if(a.estado==='pendiente')return ['wait','Esperando que acepte'];
+  if(a.estado==='aceptada')return d&&new Date(d)<new Date()?['late','Sin hacer · era '+fmtDue(new Date(d)).toLowerCase()]:['acc','Aceptada · la tiene en su tablero'];
+  if(a.estado==='hecha')return ['done','✓ Hecha · '+fmtDue(new Date(a.actualizado)).toLowerCase()];
+  if(a.estado==='rechazada')return ['no','Rechazada'];
+  return ['off','Cancelada'];
+}
+function asgIsOpen(a){return a.estado==='pendiente'||a.estado==='aceptada'}
+function paintAsg(){
+  const V=$('#v-asg');if(!V||!V.classList.contains('act'))return;
+  V.textContent='';
+  const open=ASG.env.filter(asgIsOpen),closed=ASG.env.filter(a=>!asgIsOpen(a));
+  V.insertAdjacentHTML('beforeend','<button type="button" class="bk" data-asg-back>‹ Tablero</button><h2 class="t">Asigné</h2><p class="s">Lo que le pediste a otros. Te aviso cuando la acepten, la rechacen o la terminen.</p>');
+  const sg=document.createElement('div');sg.className='seg';
+  sg.innerHTML='<button type="button" data-asg-tab="a">Abiertas · '+open.length+'</button><button type="button" data-asg-tab="c">Cerradas · '+closed.length+'</button>';
+  sg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.asgTab===asgTab));V.appendChild(sg);
+  const L=asgTab==='a'?open:closed;
+  if(!L.length){const p=document.createElement('p');p.className='empty';p.textContent=asgTab==='a'?'No tienes tareas asignadas abiertas. Para asignar una, toca + y elige a la persona en «Asignar a».':'Aquí quedan las de los últimos 30 días.';V.appendChild(p)}
+  for(const a of L){
+    const it=document.createElement('div');it.className='it';it.appendChild(avEl(a.para_nombre,true));
+    const bd=document.createElement('div');bd.className='bd';
+    const tt=document.createElement('div');tt.className='tt';tt.textContent=a.titulo;bd.appendChild(tt);
+    const sb=document.createElement('div');sb.className='sub';sb.textContent=a.para_nombre+' · '+asgSpan(a);bd.appendChild(sb);
+    const [cls,txt]=asgState(a),st=document.createElement('span');st.className='st '+cls;st.textContent=txt;bd.appendChild(st);
+    const why=a.estado==='rechazada'?a.motivo:a.estado==='hecha'?a.nota_fin:null;
+    if(why){const w=document.createElement('div');w.className='why';w.textContent='«'+why+'»';bd.appendChild(w)}
+    const mini=document.createElement('div');mini.className='mini';
+    const B=(label,act,c)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.asgAct=act;b.dataset.id=a.id;if(c)b.className=c;mini.appendChild(b)};
+    if(asgIsOpen(a)){B('Recordarle','rec');B('WhatsApp','wa','wa');B('Cancelar','can','x')}
+    else if(a.estado==='rechazada'){B('Asignar a otra persona','re');B('Quedármela','mine')}
+    if(mini.children.length)bd.appendChild(mini);
+    it.appendChild(bd);V.appendChild(it);
+  }
+}
+async function asgAct(act,id,btn){
+  const a=ASG.env.find(x=>x.id===id);if(!a)return;
+  if(act==='wa'){
+    const txt='Hola '+a.para_nombre+', te asigné en Mi día: «'+a.titulo+'»'+(a.due?' · '+asgSpan(a):'')+'. Ábrela en la app para verla.';
+    window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');return;
+  }
+  if(act==='re'){openSheet(null,{t:a.titulo,d:a.due,e:a.fin,q:asgQ4(a),assign:true});return}
+  if(act==='mine'){
+    const nid=uid();S.tasks.push({id:nid,title:a.titulo,q:asgQ4(a),due:a.due,end:a.fin,done:false,notified:!!(a.due&&new Date(a.due)<=new Date()),order:-1,created:Date.now()});
+    reorder();save();render();toast('Te la quedaste · está en tu tablero');return;
+  }
+  if(act==='can'){
+    const ok=await askText('¿Cancelar «'+a.titulo+'»?','A '+a.para_nombre+' le desaparece de su tablero con un aviso.','Sí, cancelar',false,'No');
+    if(ok==null)return;
+  }
+  btn.disabled=true;
+  try{
+    const j=await asgCall(act==='rec'?'recordar':'cancelar',{id});
+    if(!j.ok){toast(j.error||'No se pudo');return}
+    if(j.asignacion)asgKeep(j.asignacion);
+    toast(act==='rec'?'Le recordé a '+a.para_nombre:'Cancelada');paintAsg();render();
+  }catch(e){toast('Sin conexión. Inténtalo de nuevo.')}
+  finally{btn.disabled=false}
+}
+/* la fila «Asignar a» de la hoja */
+let asTo=null; // null = para mí; {correo,nombre}; nombre '' = va a escribir el correo
+const dests=()=>{const d=S.extra.find(x=>x.id==='_dest');return d&&Array.isArray(d.list)?d.list:[]};
+function addDest(correo,nombre){
+  const L=dests().filter(x=>x.correo!==correo);L.unshift({correo,nombre});
+  S.extra=S.extra.filter(x=>x.id!=='_dest');S.extra.push({id:'_dest',kind:'dest',list:L.slice(0,8)});
+}
+function paintWho(){
+  const show=!editing&&!!sess;
+  $('#as-box').classList.toggle('show',show);
+  if(!show)asTo=null;
+  const w=$('#as-who');w.textContent='';
+  const B=(name,label,key,add)=>{
+    const b=document.createElement('button');b.type='button';b.dataset.who=key;
+    const av=avEl(name);if(add){av.className='av add';av.textContent='+'}else if(key==='me')av.style.setProperty('--av','var(--blue)');
+    const s=document.createElement('span');s.textContent=label;b.append(av,s);
+    const on=key==='me'?!asTo:key==='other'?(asTo&&!asTo.nombre):(asTo&&asTo.correo===key);
+    b.classList.toggle('on',!!on);w.appendChild(b);
+  };
+  B((sess&&sess.email)||'Yo','Yo','me');
+  dests().forEach(d=>B(d.nombre,d.nombre.split(' ')[0],d.correo));
+  B('','Otro','other',true);
+  $('#as-more').classList.toggle('show',!!asTo);
+  $('#as-mail').classList.toggle('show',!!(asTo&&!asTo.nombre));
+  $('#as-nota').placeholder=asTo&&asTo.nombre?'Nota para '+asTo.nombre.split(' ')[0]+' (opcional)':'Nota para la persona (opcional)';
+  $('#rep-box').style.display=asTo||editing?'none':'';
+  $('#f-save').textContent=editing?'Guardar cambios':asTo?(asTo.nombre?'Enviar a '+asTo.nombre.split(' ')[0]:'Enviar'):'Guardar';
+}
+$('#as-who').onclick=e=>{
+  const b=e.target.closest('[data-who]');if(!b)return;
+  const k=b.dataset.who;
+  if(k==='me')asTo=null;
+  else if(k==='other'){asTo={correo:'',nombre:''};setTimeout(()=>$('#as-mail').focus(),50)}
+  else asTo=dests().find(d=>d.correo===k)||null;
+  clearHint();paintWho();
+};
+async function sendAssign(title,due,end){
+  const correo=(asTo.correo||$('#as-mail').value).trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){toast('Escribe el correo de la persona');$('#as-mail').focus();return}
+  const btn=$('#f-save');btn.disabled=true;
+  try{
+    const j=await asgCall('enviar',{correo,titulo:title,nota:$('#as-nota').value.trim(),due:due?due.toISOString():null,fin:due?end.toISOString():null,urgente:pickQ===1||pickQ===3,importante:pickQ===1||pickQ===2});
+    if(j.sinCuenta){
+      const el=$('#hint');el.className='wa';el.textContent=correo+' no tiene cuenta en Mi día. Toca aquí para enviárselo por WhatsApp.';
+      hintAct=()=>shareWa({title,due:due?due.toISOString():null,end:due?end.toISOString():null,q:pickQ});return;
+    }
+    if(!j.ok){toast(j.error||'No se pudo enviar');return}
+    asgKeep(j.asignacion);addDest(correo,j.asignacion.para_nombre);save();closeSheet();render();
+    toast('Enviada a '+j.asignacion.para_nombre+' · te aviso cuando la acepte');
+  }catch(e){toast('Sin conexión. Inténtalo de nuevo.')}
+  finally{btn.disabled=false}
+}
+
 /* ---------- foto de perfil ---------- */
 // La foto se recorta en cuadro y se reduce a 112 px en el propio celular; así pesa unos
 // pocos KB y viaja con la cuenta a cualquier dispositivo.
@@ -1506,13 +1866,19 @@ function paintProfile(){
   const a=$('#acct'),pic=$('#pf-pic'),bg=src?'url("'+src+'")':'';
   a.classList.toggle('has',!!src);a.style.backgroundImage=bg;
   pic.style.backgroundImage=bg;pic.textContent=src?'':(((sess&&sess.email)||'?')[0]||'?').toUpperCase();
-  $('#pf-del').style.display=src?'':'none';$('#pf-set').textContent=src?'Cambiar foto':'Agregar foto';
+  $('#pf-del').style.display=src?'':'none';
+  const nm=$('#pf-name');if(document.activeElement!==nm)nm.value=(p&&p.nombre)||'';$('#pf-set').textContent=src?'Cambiar foto':'Agregar foto';
 }
-function setPhoto(url){
+function setPerfil(patch){
+  const p=Object.assign({},profile()||{},patch,{id:'_perfil',kind:'profile'});
+  if(!p.photo)delete p.photo;if(!p.nombre)delete p.nombre;
   S.extra=S.extra.filter(x=>x.id!=='_perfil');
-  if(url)S.extra.push({id:'_perfil',kind:'profile',photo:url});
+  if(p.photo||p.nombre)S.extra.push(p);
   save();paintProfile();
 }
+const setPhoto=url=>setPerfil({photo:url||null});
+$('#pf-name').addEventListener('change',e=>{setPerfil({nombre:e.target.value.replace(/\s+/g,' ').trim().slice(0,40)});toast('Nombre guardado')});
+$('#acct-asg').onclick=()=>{$('#acct-pop').classList.remove('show');showAsg()};
 async function pickPhoto(file){
   try{
     const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=URL.createObjectURL(file)});
@@ -1549,7 +1915,7 @@ async function cloudSync(){
         cursor=r.updated_at;
         let arr=S.tasks,i=arr.findIndex(t=>t.id===r.id);
         if(i<0){const j=S.rules.findIndex(t=>t.id===r.id);if(j>=0||(r.data&&r.data.kind==='rule')){arr=S.rules;i=j}}
-        if(i<0&&arr===S.tasks){const k=S.extra.findIndex(t=>t.id===r.id);if(k>=0||(r.data&&r.data.kind==='profile')){arr=S.extra;i=k}}
+        if(i<0&&arr===S.tasks){const k=S.extra.findIndex(t=>t.id===r.id);if(k>=0||(r.data&&(r.data.kind==='profile'||r.data.kind==='dest'))){arr=S.extra;i=k}}
         const loc=i>=0?arr[i]:null,ru=(r.data&&r.data.u)||0;
         if(outbox[r.id]==='del')continue;
         if(loc&&(loc.u||0)>=ru)continue;
@@ -1573,7 +1939,8 @@ function cloudSoon(){clearTimeout(cloudT);cloudT=setTimeout(cloudSync,1200)}
 let ticks=0;
 setInterval(()=>{if(sess&&!document.hidden&&++ticks%4===0)cloudSync()},15000);
 // al salir de la app se sube lo pendiente; al volver se baja lo nuevo y se busca versión nueva
-document.addEventListener('visibilitychange',()=>{cloudSync();if(!document.hidden){checkUpdate();atlasLoad()}});
+document.addEventListener('visibilitychange',()=>{cloudSync();if(!document.hidden){checkUpdate();atlasLoad();asgLoad(true)}});
+setInterval(()=>{if(sess&&!document.hidden)asgLoad()},60000);
 window.addEventListener('pagehide',()=>{cloudSync()});
 
 /* ---------- actualización de la app ---------- */
@@ -1603,7 +1970,7 @@ async function checkUpdate(){
 setInterval(()=>{if(!document.hidden)checkUpdate()},20*6e4);
 async function refreshAll(){
   toast('Actualizando…');
-  await cloudSync();await atlasLoad(true);
+  await cloudSync();await atlasLoad(true);await asgLoad(true);
   if(!(await checkUpdate()))toast(Object.keys(outbox).length?'Sin conexión: tus cambios se suben cuando vuelva':'Todo al día y guardado en tu cuenta');
 }
 $('#acct-upd').onclick=()=>{$('#acct-pop').classList.remove('show');refreshAll()};

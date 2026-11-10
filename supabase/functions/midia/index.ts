@@ -76,6 +76,170 @@ const clip = (v: unknown, n: number) => String(v ?? "").slice(0, n);
 const ATLAS_URL = "https://atlas.veltrion.com.co/.netlify/functions/midia-puente";
 const ATLAS_OPS = ["canjear", "listar", "cerrar", "reprogramar", "desvincular"];
 
+// Quién llama, según su sesión de Mi día. null si no trae sesión o si venció.
+type Quien = { id: string; email: string };
+async function quien(req: Request): Promise<Quien | null> {
+  const jwt = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
+  if (!jwt || jwt.split(".").length !== 3) return null;
+  const u = await fetch(Deno.env.get("SUPABASE_URL")! + "/auth/v1/user", {
+    headers: { apikey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, Authorization: "Bearer " + jwt },
+  });
+  if (!u.ok) return null;
+  const j = await u.json();
+  return j?.id ? { id: j.id, email: String(j.email || "") } : null;
+}
+
+/* ---------- asignar tareas entre cuentas ---------- */
+// El nombre que se muestra es el que la persona puso en su perfil; si no puso, la parte del correo antes de la @.
+async function nombreDe(id: string, email: string): Promise<string> {
+  const { data } = await db.from("midia_tareas").select("data").eq("user_id", id).eq("id", "_perfil").maybeSingle();
+  const n = String((data?.data as any)?.nombre || "").trim().slice(0, 40);
+  if (n) return n;
+  const p = (email.split("@")[0] || "Alguien").replace(/[._-]+/g, " ").trim();
+  return p.charAt(0).toUpperCase() + p.slice(1);
+}
+async function avisar(user: string, payload: Record<string, unknown>) {
+  const { data } = await db.from("midia_dispositivos").select("device,endpoint,p256dh,auth").eq("user_id", user);
+  for (const d of data ?? []) await send(d as Dev, payload);
+}
+const cuando = (iso: string | null) =>
+  iso
+    ? new Date(iso).toLocaleString("es-CO", {
+      timeZone: "America/Bogota", weekday: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+    })
+    : "sin fecha";
+const fecha = (v: unknown) => (typeof v === "string" && !isNaN(Date.parse(v)) ? new Date(v).toISOString() : null);
+const texto = (v: unknown, n: number) => String(v ?? "").replace(/\s+/g, " ").trim().slice(0, n);
+// Lo que ve cada lado: nunca el id de cuenta ni el correo del otro (el correo sólo lo ve quien lo escribió).
+function vista(a: any, yo: string) {
+  const mio = a.de === yo;
+  return {
+    id: a.id, mio, titulo: a.titulo, nota: a.nota, due: a.due, fin: a.fin, urgente: a.urgente, importante: a.importante,
+    estado: a.estado, motivo: a.motivo, nota_fin: a.nota_fin, due_final: a.due_final, fin_final: a.fin_final,
+    creado: a.creado, actualizado: a.actualizado,
+    de_nombre: a.de_nombre, para_nombre: a.para_nombre, ...(mio ? { para_correo: a.para_correo } : {}),
+  };
+}
+const TOPE_DIA = 40; // envíos por cuenta en 24 h: frena el abuso sin estorbar el uso normal
+
+async function asignar(yo: Quien, b: any) {
+  const accion = String(b.accion || "");
+  const ahora = new Date().toISOString();
+
+  if (accion === "enviar") {
+    const correo = texto(b.correo, 120).toLowerCase();
+    const titulo = texto(b.titulo, 200);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return json({ ok: false, error: "Revisa el correo." }, 400);
+    if (!titulo) return json({ ok: false, error: "Escribe la tarea." }, 400);
+    if (correo === yo.email.toLowerCase()) return json({ ok: false, error: "Ese correo es el tuyo." }, 400);
+    const desde = new Date(Date.now() - 864e5).toISOString();
+    const { count } = await db.from("midia_asignaciones").select("id", { count: "exact", head: true })
+      .eq("de", yo.id).gte("creado", desde);
+    if ((count ?? 0) >= TOPE_DIA) return json({ ok: false, error: "Llegaste al tope de envíos de hoy." }, 429);
+    const { data: para } = await db.rpc("midia_usuario_por_correo", { correo });
+    if (!para) return json({ ok: false, sinCuenta: true, error: "Ese correo no tiene cuenta en Mi día." });
+    const due = fecha(b.due);
+    let fin = fecha(b.fin);
+    if (due && (!fin || fin <= due)) fin = new Date(Date.parse(due) + 30 * 6e4).toISOString();
+    const fila = {
+      de: yo.id, de_nombre: await nombreDe(yo.id, yo.email),
+      para, para_nombre: await nombreDe(para as string, correo), para_correo: correo,
+      titulo, nota: texto(b.nota, 300) || null, due, fin: due ? fin : null,
+      urgente: !!b.urgente, importante: b.importante !== false,
+    };
+    const { data, error } = await db.from("midia_asignaciones").insert(fila).select().single();
+    if (error) return json({ ok: false, error: "No se pudo guardar." }, 500);
+    await avisar(para as string, {
+      title: fila.de_nombre + " te asignó una tarea", body: titulo + " · " + cuando(due), tag: "asg-" + data.id,
+    });
+    return json({ ok: true, asignacion: vista(data, yo.id) });
+  }
+
+  if (accion === "listar") {
+    const hace = new Date(Date.now() - 30 * 864e5).toISOString();
+    const [r, e] = await Promise.all([
+      db.from("midia_asignaciones").select("*").eq("para", yo.id).gte("actualizado", hace)
+        .order("actualizado", { ascending: false }).limit(150),
+      db.from("midia_asignaciones").select("*").eq("de", yo.id)
+        .or("estado.in.(pendiente,aceptada),actualizado.gte." + hace)
+        .order("actualizado", { ascending: false }).limit(150),
+    ]);
+    return json({
+      ok: true,
+      recibidas: (r.data ?? []).map((a) => vista(a, yo.id)),
+      enviadas: (e.data ?? []).map((a) => vista(a, yo.id)),
+    });
+  }
+
+  const id = String(b.id || "");
+  if (!/^[0-9a-f-]{36}$/.test(id)) return json({ ok: false, error: "Tarea no reconocida." }, 400);
+  const { data: a } = await db.from("midia_asignaciones").select("*").eq("id", id).maybeSingle();
+  if (!a || (a.de !== yo.id && a.para !== yo.id)) return json({ ok: false, error: "Esa tarea ya no existe." }, 404);
+  const guardar = async (cambio: Record<string, unknown>) => {
+    const { data, error } = await db.from("midia_asignaciones").update({ ...cambio, actualizado: ahora })
+      .eq("id", id).select().single();
+    if (error) throw new Error("guardar");
+    return data;
+  };
+
+  // Lo que hace quien la recibió.
+  if (a.para === yo.id && (accion === "responder" || accion === "avance")) {
+    if (a.estado === "cancelada") return json({ ok: false, cancelada: true, error: a.de_nombre + " la canceló." }, 409);
+    if (accion === "responder") {
+      if (b.acepta) {
+        if (a.estado !== "pendiente") return json({ ok: false, error: "Ya la habías respondido." }, 409);
+        const nueva = await guardar({ estado: "aceptada", due_final: fecha(b.due) ?? a.due, fin_final: fecha(b.fin) ?? a.fin });
+        await avisar(a.de, { title: a.para_nombre + " aceptó", body: a.titulo + " · " + cuando(nueva.due_final), tag: "asg-" + id });
+        return json({ ok: true, asignacion: vista(nueva, yo.id) });
+      }
+      // rechazar: antes de aceptarla o soltándola después
+      if (!["pendiente", "aceptada"].includes(a.estado)) return json({ ok: false, error: "Ya está cerrada." }, 409);
+      const motivo = texto(b.motivo, 300) || null;
+      const nueva = await guardar({ estado: "rechazada", motivo });
+      await avisar(a.de, {
+        title: a.para_nombre + " no puede con «" + a.titulo.slice(0, 60) + "»", body: motivo || "Sin motivo", tag: "asg-" + id,
+      });
+      return json({ ok: true, asignacion: vista(nueva, yo.id) });
+    }
+    // avance: la marcó hecha, la desmarcó o le cambió la hora
+    if (!["aceptada", "hecha"].includes(a.estado)) return json({ ok: false, error: "Primero acéptala." }, 409);
+    const cambio: Record<string, unknown> = {};
+    if (typeof b.hecha === "boolean") {
+      cambio.estado = b.hecha ? "hecha" : "aceptada";
+      if (b.hecha) cambio.nota_fin = texto(b.nota, 300) || null;
+    }
+    if ("due" in b) { cambio.due_final = fecha(b.due); cambio.fin_final = fecha(b.fin); }
+    if (!Object.keys(cambio).length) return json({ ok: true, asignacion: vista(a, yo.id) });
+    const nueva = await guardar(cambio);
+    if (b.hecha === true && a.estado !== "hecha") {
+      await avisar(a.de, { title: "✓ " + a.para_nombre + " terminó", body: a.titulo + (cambio.nota_fin ? " · " + cambio.nota_fin : ""), tag: "asg-" + id });
+    }
+    return json({ ok: true, asignacion: vista(nueva, yo.id) });
+  }
+
+  // Lo que hace quien la asignó.
+  if (a.de === yo.id && accion === "cancelar") {
+    if (!["pendiente", "aceptada"].includes(a.estado)) return json({ ok: false, error: "Ya está cerrada." }, 409);
+    const nueva = await guardar({ estado: "cancelada" });
+    await avisar(a.para, { title: a.de_nombre + " canceló una tarea", body: a.titulo, tag: "asg-" + id });
+    return json({ ok: true, asignacion: vista(nueva, yo.id) });
+  }
+  if (a.de === yo.id && accion === "recordar") {
+    if (!["pendiente", "aceptada"].includes(a.estado)) return json({ ok: false, error: "Ya está cerrada." }, 409);
+    if (a.recordado && Date.now() - Date.parse(a.recordado) < 36e5) {
+      return json({ ok: false, error: "Ya se lo recordaste hace menos de una hora." }, 429);
+    }
+    await db.from("midia_asignaciones").update({ recordado: ahora }).eq("id", id);
+    await avisar(a.para, {
+      title: a.de_nombre + " te recuerda",
+      body: a.titulo + (a.estado === "pendiente" ? " · falta que la aceptes" : " · " + cuando(a.due_final ?? a.due)),
+      tag: "asg-" + id,
+    });
+    return json({ ok: true });
+  }
+  return json({ ok: false, error: "Acción no reconocida." }, 400);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   if (req.method !== "POST") return json({ error: "método" }, 405);
@@ -133,6 +297,18 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Asignar tareas a otras cuentas de Mi día. Sólo con sesión iniciada.
+  if (b.op === "asg") {
+    const yo = await quien(req);
+    if (!yo) return json({ ok: false, error: "Tu sesión de Mi día venció. Entra de nuevo." }, 401);
+    try {
+      return await asignar(yo, b);
+    } catch (e) {
+      console.error("asg", String(e));
+      return json({ ok: false, error: "No se pudo completar. Intenta de nuevo." }, 500);
+    }
+  }
+
   const device = typeof b.device === "string" ? b.device : "";
   if (!/^[a-f0-9]{32,64}$/.test(device)) return json({ error: "dispositivo" }, 400);
 
@@ -145,9 +321,12 @@ Deno.serve(async (req) => {
         device, id: clip(r.id, 40), title: clip(r.title, 200) || "Pendiente",
         body: clip(r.body, 200), due: new Date(r.due).toISOString(),
       }));
+    // El celular queda a nombre de la cuenta con sesión abierta (para avisarle lo que le asignen);
+    // sin sesión, queda sin dueño y deja de recibir esos avisos.
+    const yo = await quien(req);
     const { error: e1 } = await db.from("midia_dispositivos").upsert({
       device, endpoint: b.sub.endpoint, p256dh: b.sub.keys.p256dh, auth: b.sub.keys.auth,
-      updated_at: new Date().toISOString(),
+      user_id: yo?.id ?? null, updated_at: new Date().toISOString(),
     });
     if (e1) return json({ error: "guardar" }, 500);
     const { data: old } = await db.from("midia_recordatorios").select("id,due,sent_at").eq("device", device);
