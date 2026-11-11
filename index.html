@@ -440,6 +440,10 @@ body.csheet #c-form{transform:none}
 #ppl .add .sq{background:var(--card);border:2px dashed #bcd0fb;color:var(--blue);font-size:26px;box-shadow:none}
 #ppl .all .sq{background:var(--q4b);color:var(--mut);font-size:13px;box-shadow:none}
 #ppl .hint{flex:1;min-width:160px;align-self:center;font-size:13px;color:var(--mut);padding-left:4px}
+#f-dows{display:none;gap:6px;margin-top:8px}
+#f-dows.show{display:flex}
+#f-dows button{flex:1;height:40px;border-radius:12px;background:var(--q4b);color:var(--mut);font-weight:800;font-size:14px}
+#f-dows button.on{background:var(--blue);color:#fff;box-shadow:0 4px 10px -4px rgba(29,78,216,.6)}
 </style>
 </head>
 <body class="out">
@@ -510,7 +514,8 @@ body.csheet #c-form{transform:none}
   </div>
   <div class="drow"><label class="w2">Día<input type="date" id="f-date"></label><label>Desde<input type="time" id="f-time"></label><label>Hasta<input type="time" id="f-end"></label></div>
   <div id="rep-box"><div class="lbl">¿Se repite?</div>
-  <select id="f-rep"><option value="">No se repite</option><option value="d">Todos los días</option><option value="wd">De lunes a viernes</option><option value="w">Cada semana, ese día</option><option value="m">Cada mes, ese día</option><option value="y">Cada año, esa fecha</option></select>
+  <select id="f-rep"><option value="">No se repite</option><option value="d">Todos los días</option><option value="wd">De lunes a viernes</option><option value="w">Cada semana, los días que elijas</option><option value="m">Cada mes, ese día</option><option value="y">Cada año, esa fecha</option></select>
+  <div id="f-dows" role="group" aria-label="Días de la semana"><button type="button" data-dow="1">L</button><button type="button" data-dow="2">M</button><button type="button" data-dow="3">X</button><button type="button" data-dow="4">J</button><button type="button" data-dow="5">V</button><button type="button" data-dow="6">S</button><button type="button" data-dow="0">D</button></div>
   <label id="f-wkl"><input type="checkbox" id="f-wk">Si cae sábado o domingo, pasarla al viernes antes</label></div>
   <div class="lbl">¿Dónde va?</div>
   <div class="qpick" id="qpick">
@@ -650,8 +655,10 @@ const DOWN=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'
 const MES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const plain=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const num=x=>{x=plain(x);return x in NUM?NUM[x]:parseInt(x,10)};
+const DIA_RE='(?:lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bados?|domingos?)';
+const dowDe=n=>DOW.indexOf(String(n).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/^(sabado|domingo)s$/,'$1'));
 function parseEs(text){
-  let s=String(text||'').normalize('NFC').replace(/[\u00a0\u202f\u2009]/g,' '),rel=null,h=null,mi=0,base=null,rep='',m;
+  let s=String(text||'').normalize('NFC').replace(/[\u00a0\u202f\u2009]/g,' '),rel=null,h=null,mi=0,base=null,rep='',m,dows=null;
   const cut=re=>{const r=re.exec(s);if(r)s=s.slice(0,r.index)+' '+s.slice(r.index+r[0].length);return r};
   const now=new Date(),t0=day0(now),plus=n=>new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+n);
   const PER='(a\\.?\\s?m\\.?|p\\.?\\s?m\\.?|de la mañana|de la tarde|de la noche|en la mañana|en la tarde|en la noche|por la mañana|por la tarde|por la noche)(?![a-záéíóúñ])';
@@ -667,8 +674,11 @@ function parseEs(text){
   else if(cut(/\b(?:cada\s+mes|todos\s+los\s+meses|mensualmente)\b/i))rep='m';
   else if(cut(/\b(?:cada\s+a[nñ]o|todos\s+los\s+a[nñ]os|anualmente)(?![a-záéíóúñ])/i))rep='y';
   else if(cut(/\b(?:cada\s+semana|todas\s+las\s+semanas|semanalmente)\b/i))rep='w';
-  else if(m=/\b(?:cada|todos\s+los)\s+(lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bados?|domingos?)\b/i.exec(s)){
-    rep='w';s=s.slice(0,m.index)+' el '+m[1].replace(/^(s[aá]bado|domingo)s$/i,'$1')+' '+s.slice(m.index+m[0].length);
+  else if(m=new RegExp('\\b(?:cada|todos\\s+los)\\s+('+DIA_RE+'(?:\\s*(?:,|y|e)\\s*(?:los\\s+|el\\s+)?'+DIA_RE+')*)\\b','i').exec(s)){
+    // uno o varios días: el primero sirve de fecha de arranque; todos quedan como días de la semana que se repite
+    const ds=m[1].match(new RegExp(DIA_RE,'gi'))||[];
+    dows=[...new Set(ds.map(dowDe).filter(x=>x>=0))];
+    rep='w';s=s.slice(0,m.index)+' el '+ds[0].replace(/^(s[aá]bado|domingo)s$/i,'$1')+' '+s.slice(m.index+m[0].length);
   }
   // de 3 a 4 pm · desde las 9 hasta las 10:30 · durante una hora
   let eh=null,em=0,durM=null;
@@ -749,7 +759,7 @@ function parseEs(text){
     if(eh!=null){end=new Date(due);end.setHours(eh,em,0,0);if(end<=due)end=null}
     else if(durM)end=new Date(due.getTime()+durM*6e4);
   }
-  return {title:s,due,end,urgent,important,rep};
+  return {title:s,due,end,urgent,important,rep,dows};
 }
 
 /* ---------- pintar ---------- */
@@ -951,7 +961,10 @@ function setDue(d,e){
 function getEnd(due){
   if(!due)return null;
   if(!fE.value)return new Date(due.getTime()+DEF*6e4);
-  const [hh,mm]=fE.value.split(':').map(Number),e=new Date(due);e.setHours(hh,mm,0,0);return e;
+  const [hh,mm]=fE.value.split(':').map(Number),e=new Date(due);e.setHours(hh,mm,0,0);
+  // de noche, una hora final de madrugada es del día siguiente (11:50 p. m. → 12:20 a. m.)
+  if(e<=due&&due.getHours()>=18&&hh<6)e.setDate(e.getDate()+1);
+  return e;
 }
 function clearHint(){const el=$('#hint');el.textContent='';el.className='';freeAt=null;hintAct=null}
 /* ---------- que no se crucen dos actividades ---------- */
@@ -1010,7 +1023,7 @@ function openSheet(t,pre){
   $('#hint').textContent=pre?'Te enviaron este pendiente · revísalo y guarda':'';
   $('#f-del').style.display=t?'':'none';$('#f-share').style.display=t?'':'none';
   $('#rep-box').style.display=t?'none':'';
-  $('#f-wk').checked=false;wkShow();
+  $('#f-wk').checked=false;dowSel=[];wkShow();
   $('#f-save').textContent=t?'Guardar cambios':'Guardar';
   asSel=[];asOther=false;$('#as-mail').value='';$('#as-nota').value='';paintWho();
   if(pre&&pre.assign){$('#hint').textContent='Elige a quién se la asignas';fixed=false}
@@ -1030,11 +1043,11 @@ function onText(){
   parsed=parseEs(fT.value);
   $('#hint').className='';freeAt=null;
   if(!dateTouched)setDue(parsed.due,parsed.end);
-  if(!repTouched)fR.value=parsed.rep||'';
+  if(!repTouched){fR.value=parsed.rep||'';if(parsed.dows&&parsed.dows.length)dowSel=parsed.dows.slice()}
   wkShow();
   const due=getDue(),bits=[];
   if(due)bits.push('Te aviso '+fmtDue(due).toLowerCase());
-  if(fR.value)bits.push('se repite '+REPN[fR.value]);
+  if(fR.value)bits.push('se repite '+(fR.value==='w'&&dowSel.length?'cada '+dowTxt(dowSel):REPN[fR.value]));
   $('#hint').textContent=(parsed.due||parsed.rep)?bits.join(' · '):'';
   autoQ();
 }
@@ -1053,7 +1066,23 @@ $('#hint').onclick=()=>{
   const a=freeAt;endTouched=true;dateTouched=true;setDue(new Date(a.s),new Date(a.e));clearHint();
   toast('Ajusté la hora. Toca Guardar.');
 };
-function wkShow(){$('#f-wkl').classList.toggle('show',fR.value==='m'||fR.value==='y')}
+let dowSel=[];
+const DOWC=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const dowTxt=a=>{const o=[1,2,3,4,5,6,0].filter(d=>a.includes(d)).map(d=>DOWC[d]);return o.length>1?o.slice(0,-1).join(', ')+' y '+o.at(-1):o[0]||''};
+function paintDows(){$$('#f-dows button').forEach(b=>b.classList.toggle('on',dowSel.includes(+b.dataset.dow)))}
+function wkShow(){
+  $('#f-wkl').classList.toggle('show',fR.value==='m'||fR.value==='y');
+  const w=fR.value==='w';$('#f-dows').classList.toggle('show',w);
+  if(w&&!dowSel.length){const d=getDue();dowSel=[(d||new Date()).getDay()]}
+  paintDows();
+}
+$('#f-dows').onclick=e=>{
+  const b=e.target.closest('[data-dow]');if(!b)return;
+  const d=+b.dataset.dow,i=dowSel.indexOf(d);
+  if(i>=0){if(dowSel.length===1){toast('Deja al menos un día');return}dowSel.splice(i,1)}else dowSel.push(d);
+  repTouched=true;paintDows();
+  const h=$('#hint');if(!h.classList.contains('bad'))h.textContent='Se repite cada '+dowTxt(dowSel);
+};
 fR.addEventListener('change',()=>{repTouched=true;wkShow()});
 $$('.chip').forEach(c=>c.onclick=()=>{
   const n=new Date(),w=c.dataset.when;let d=null;
@@ -1082,7 +1111,13 @@ $('#sheet').addEventListener('submit',e=>{
   if(rep){
     if(!due){due=day0(now);due.setHours(9);end=new Date(due.getTime()+DEF*6e4)}
     const r={id:uid(),kind:'rule',title,q:pickQ,freq:rep,time:hm(due),dur:Math.round((end-due)/6e4),start:ymd(due<day0(now)?now:due),until:null,gen:''};
-    if(rep==='w')r.dows=[due.getDay()];
+    if(rep==='w'){
+      r.dows=dowSel.length?dowSel.slice().sort((a,b)=>a-b):[due.getDay()];
+      // arranca en la primera de esas fechas que aún no pasó (hoy mismo si toca hoy y la hora no ha llegado)
+      const hoy=new Date(now);hoy.setHours(due.getHours(),due.getMinutes(),0,0);
+      const m0=hoy>now?day0(now):new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+      if(ymd(m0)<r.start)r.start=ymd(m0);
+    }
     if(rep==='m')r.doms=[due.getDate()];
     if((rep==='m'||rep==='y')&&$('#f-wk').checked)r.wk='antes';
     if(rep==='y')r.md=ymd(due).slice(5);

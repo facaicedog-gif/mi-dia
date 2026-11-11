@@ -1,5 +1,5 @@
 // Mi día · service worker: funciona sin conexión y muestra los avisos.
-const CACHE = 'midia-v20';
+const CACHE = 'midia-v21';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-180.png'];
 
 self.addEventListener('install', e => {
