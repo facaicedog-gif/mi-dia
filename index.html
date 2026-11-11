@@ -3,9 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#1D4ED8">
+<meta name="theme-color" content="#0b1f5c">
 <meta name="robots" content="noindex,nofollow">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -523,6 +525,56 @@ body.csheet #c-form{transform:none}
 #f-dows.show{display:flex}
 #f-dows button{flex:1;height:40px;border-radius:12px;background:var(--q4b);color:var(--mut);font-weight:800;font-size:14px}
 #f-dows button.on{background:var(--blue);color:#fff;box-shadow:0 4px 10px -4px rgba(29,78,216,.6)}
+
+/* ═══ 2026-11-11 · ESTÉTICA «ATLAS DE NOCHE» ═══
+   Fabián: «una nueva visual mucho más atractiva, con personalidad, agradable y profesional» → eligió la opción A de
+   maqueta-estetica.html («vamos por la A»): encabezado azul profundo con un destello dorado (el dorado del ícono), tarjetas
+   blancas que flotan sobre un fondo gris-azul muy claro, y el botón + en dorado. «Hacer ya» sigue siendo lo único que grita.
+   Es una CAPA: todo lo de arriba queda como estaba; para volver atrás basta con quitar este bloque. */
+:root{--bg:#f4f6fb;--ink:#0f1b33;--mut:#63708a;--line:#e6ebf5;--oro:#f6c445;--oro2:#e9a318;--noche:#0b1f5c;
+  --shadow:0 10px 24px -18px rgba(11,31,92,.55),0 1px 2px rgba(11,31,92,.05)}
+html,body{font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+/* El encabezado ya no se queda pegado arriba: es una portada que se va al deslizar (así el resumen puede montarse sobre él). */
+header{position:relative;background:linear-gradient(150deg,#0b1f5c 0%,#1D4ED8 62%,#3b82f6 100%);color:#fff;border-radius:0 0 28px 28px;
+  padding:calc(18px + env(safe-area-inset-top)) 18px 20px;overflow:hidden;z-index:1}
+header::after{content:"";position:absolute;right:-46px;top:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(246,196,69,.4),transparent 68%);pointer-events:none}
+header>*{position:relative;z-index:1}
+header .hdt{min-width:0}
+header h1{font-size:21px;font-weight:800;line-height:1.18;text-wrap:balance}
+header p{color:rgba(255,255,255,.82);margin:0 0 3px;font-size:12.5px}
+body:has(#v-board.act) header{padding-bottom:52px}
+.beta{background:rgba(246,196,69,.18);color:#ffe29a;border-color:rgba(246,196,69,.45)}
+#auth .beta{background:var(--q3b);color:#8a5300;border-color:#f3d9a4}
+#acct,#bell{background:rgba(255,255,255,.16);color:#fff;box-shadow:none}
+#acct.has{background-size:cover;background-position:center;box-shadow:0 0 0 2px rgba(255,255,255,.7)}
+#bell.on{color:var(--oro)}
+#bell:not(.on)::after{border-color:#2a59d6}
+main{padding-top:14px}
+body:has(#v-board.act) main{padding-top:0}
+/* resumen del día: monta sobre el encabezado */
+#res{position:relative;z-index:2;margin:-38px 2px 12px;background:var(--card);border-radius:22px;padding:13px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 14px 30px -18px rgba(11,31,92,.6)}
+#res:empty{display:none}
+#res .ring{--p:0;flex:none;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;color:var(--noche);
+  background:radial-gradient(closest-side,var(--card) 76%,transparent 78% 100%),conic-gradient(var(--oro) calc(var(--p)*1%),#e7ecf6 0)}
+#res b{display:block;font-size:15px;letter-spacing:-.01em}
+#res span{display:block;font-size:12.5px;color:var(--mut);margin-top:1px}
+@supports not selector(body:has(a)){#res{margin-top:12px}}
+.pill{box-shadow:0 6px 14px -12px rgba(11,31,92,.6),0 0 0 1px var(--line)}
+/* cuadrantes: tarjetas blancas con un punto del color; el color queda en las tareas */
+.quad{background:var(--card);border-radius:20px;padding:11px 9px 9px;box-shadow:var(--shadow)}
+.qh strong{color:var(--ink);font-size:14px;display:flex;align-items:center;gap:6px}
+.qh strong::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--qc)}
+.qh span{background:color-mix(in srgb,var(--qc) 14%,#fff);color:var(--qc)}
+.quad[data-q="1"] .qh span{background:var(--q1);color:#fff}
+.list:empty::after{border-color:#dfe6f3}
+.card{border:0;background:color-mix(in srgb,var(--qc,var(--blue)) 9%,#fff);box-shadow:none}
+.card[data-q="1"]{box-shadow:0 10px 18px -8px #e5484d}
+/* barra de abajo y botón + */
+nav{border-top:1px solid var(--line);box-shadow:0 -10px 24px -22px rgba(11,31,92,.7)}
+nav .tab{font-weight:700}
+#fab{background:linear-gradient(135deg,var(--oro),var(--oro2));box-shadow:0 12px 22px -8px var(--oro2)}
+.seg{background:#e9eef8}
+#auth{background:linear-gradient(180deg,#e6edff 0%,var(--bg) 42%)}
 </style>
 </head>
 <body class="out">
@@ -544,7 +596,7 @@ body.csheet #c-form{transform:none}
 <div id="acct-pop"><div class="pf"><button type="button" id="pf-pic" aria-label="Cambiar foto de perfil"></button><div><small>Tu cuenta</small><b id="acct-mail"></b></div></div><div class="pfb"><button type="button" id="pf-set">Agregar foto</button><button type="button" id="pf-del">Quitar</button></div><input type="file" id="pf-file" accept="image/*" hidden><small>Tu nombre (lo ven a quienes les asignas tareas)</small><input id="pf-name" maxlength="40" autocomplete="name" placeholder="Cómo te llamas"><button type="button" id="acct-ctc">Contactos</button><button type="button" id="acct-asg">Tareas que asigné</button><div id="atl-box"></div><p id="cloud"></p><button type="button" id="acct-perm">Permisos de este dispositivo</button><button type="button" id="acct-upd">Buscar actualización</button><button type="button" id="acct-out">Cerrar sesión</button></div>
 <div id="ptr">Desliza para actualizar</div>
 <header>
-  <div><h1>Mi día<span class="beta" title="App en desarrollo">Beta</span></h1><p id="sub"></p></div>
+  <div class="hdt"><p id="sub"></p><h1><span id="hola">Mi día</span><span class="beta" title="App en desarrollo">Beta</span></h1></div>
   <span class="sp"></span>
   <button id="acct" aria-label="Tu cuenta"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></button>
   <button id="bell" aria-label="Avisos"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button>
@@ -552,6 +604,7 @@ body.csheet #c-form{transform:none}
 
 <main>
   <section class="view act" id="v-board">
+    <div id="res"></div>
     <div id="ios"><b>Instálala para recibir avisos.</b> En Safari toca <svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg> <b>Compartir</b> y elige <b>«Agregar a inicio»</b>. Después abre Mi día desde ese ícono y anota ahí tus pendientes.</div>
     <div id="asg-in"></div>
     <div id="focus"></div>
@@ -917,9 +970,20 @@ function render(){
   const now=new Date(), open=S.tasks.filter(t=>!t.done).concat(ATLAS);
   const sub=now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
   $('#sub').textContent=sub[0].toUpperCase()+sub.slice(1);
+  // 2026-11-11 · Estética A: el encabezado saluda por el nombre del perfil (sin nombre, dice «Mi día» como antes).
+  {const pf=profile(),nm=pf&&pf.nombre?String(pf.nombre).trim().split(/\s+/)[0]:'',hr=now.getHours();
+   $('#hola').textContent=nm?(hr<12?'Buenos días':hr<19?'Buenas tardes':'Buenas noches')+', '+nm:'Mi día';}
   // resumen
   const late=open.filter(t=>t.due&&new Date(t.due)<now).length;
   const today=open.filter(t=>t.due&&dayDiff(new Date(t.due))===0&&new Date(t.due)>=now).length;
+  // 2026-11-11 · Estética A: resumen del día. Cuenta lo que tenía fecha para HOY: cuántas van hechas y cuántas faltan.
+  {const deHoy=S.tasks.filter(t=>t.due&&dayDiff(new Date(t.due))===0),hechas=deHoy.filter(t=>t.done).length,tot=deHoy.length,faltan=tot-hechas;
+   const R=$('#res');if(R){R.textContent='';
+    const ring=document.createElement('div');ring.className='ring';ring.style.setProperty('--p',tot?Math.round(hechas/tot*100):0);ring.textContent=tot?hechas+'/'+tot:'–';
+    const tx=document.createElement('div'),b=document.createElement('b'),s=document.createElement('span');
+    b.textContent=!tot?'Nada con fecha para hoy':hechas===tot?'¡Día completo! '+tot+' de '+tot+' hechas':hechas===0?(tot===1?'Tienes 1 para hoy':'Tienes '+tot+' para hoy'):'Vas bien: '+hechas+' de '+tot+' hechas';
+    s.textContent=(tot?(faltan?(faltan===1?'Falta 1':'Faltan '+faltan)+' por hacer':'Todo lo de hoy está hecho'):'Agrega una con el botón +')+' · '+(late?late+(late===1?' atrasada':' atrasadas'):'sin atrasos');
+    tx.append(b,s);R.append(ring,tx);}}
   const f=$('#focus');f.innerHTML='';
   const pill=(n,txt,cls)=>{const e=document.createElement('div');e.className='pill '+(cls||'');e.innerHTML='<b>'+n+'</b> '+txt;f.appendChild(e)};
   if(late)pill(late,late===1?'atrasada':'atrasadas','late');
