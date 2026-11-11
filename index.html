@@ -124,16 +124,69 @@ body.out header,body.out main,body.out nav{visibility:hidden}
 #ios svg{width:16px;height:16px;vertical-align:-3px;color:var(--blue)}
 .ghost{box-shadow:0 22px 34px -8px color-mix(in srgb,var(--qc,var(--blue)) 70%,transparent)}
 .tip{color:var(--mut);font-size:12px;text-align:center;margin:12px 0 0}
-/* 2026-11-11 · «Te respondieron»: la nota de quien terminó una tarea que asignaste, bajo los cuadros. */
-#asg-notes{display:none;margin:14px 2px 0}
-#asg-notes h3{margin:0 2px 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);font-weight:800}
-#asg-notes .nt{display:flex;gap:10px;align-items:flex-start;background:var(--blue-soft);border-radius:16px;padding:11px 12px;margin-bottom:8px}
-#asg-notes .nt .bd{flex:1;min-width:0}
-#asg-notes .nt .hd{font-size:13.5px;line-height:1.35;overflow-wrap:anywhere}
-#asg-notes .nt .tx{font-size:14.5px;line-height:1.4;font-weight:600;background:#fff;border-radius:11px;padding:8px 10px;margin-top:6px;overflow-wrap:anywhere;white-space:pre-wrap}
-#asg-notes .nt .ft{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;color:var(--mut);font-size:12px}
-#asg-notes .nt .ft button{font-weight:700;font-size:12.5px;color:var(--blue);padding:4px 2px}
-#asg-notes .more{display:block;width:100%;text-align:center;color:var(--blue);font-weight:700;font-size:13px;padding:6px}
+/* 2026-11-11 · BURBUJAS DE RESPUESTA (maqueta-burbujas.html, aprobada «Sí, constrúyelo»). Fabián sobre el listado «Te respondieron»:
+   «parece un listado, no tiene impacto… lo que queremos es que sea muy dinámico». Cada respuesta es una burbuja con la cara de
+   quien respondió, apiladas abajo a la derecha; al tocarla sale el globo con la nota y se cierra cuando la persona quiera. */
+#bubs{position:fixed;right:10px;bottom:calc(88px + env(safe-area-inset-bottom));z-index:9;display:flex;flex-direction:column-reverse;align-items:flex-end;pointer-events:none}
+body.sheet #bubs,body.out #bubs{display:none}
+.bub{pointer-events:auto;position:relative;width:54px;height:54px;border-radius:50%;color:#fff;font-weight:800;font-size:20px;display:grid;place-items:center;border:3px solid var(--card);
+  background:var(--av,var(--blue)) center/cover no-repeat;box-shadow:0 10px 20px -8px rgba(20,32,51,.55);margin-top:-16px;transition:transform .25s cubic-bezier(.3,1.6,.5,1),margin .25s,opacity .2s}
+.bub:last-child{margin-top:0}
+.bub.entra{animation:bubIn .55s cubic-bezier(.3,1.7,.5,1) backwards}
+.bub.nueva{animation:bubLate 2.2s ease-in-out .8s infinite}
+.bub.entra.nueva{animation:bubIn .55s cubic-bezier(.3,1.7,.5,1) backwards,bubLate 2.2s ease-in-out 1s infinite}
+.bub::after{content:"";position:absolute;right:-4px;top:-4px;width:20px;height:20px;border-radius:50%;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%231D4ED8' d='M4 5h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z'/%3E%3C/svg%3E") center/12px no-repeat;box-shadow:0 2px 5px rgba(20,32,51,.3)}
+.bub.no::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23e5484d' d='M4 5h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z'/%3E%3C/svg%3E")}
+#bubs.abre .bub{margin-top:8px}#bubs.abre .bub:not(.on){opacity:.45}
+.bub.on{transform:scale(1.12)}
+.bub.sale{transform:scale(0);opacity:0;margin-top:-54px!important}
+.bub.mas{background:var(--q4b);color:var(--mut);font-size:14px}.bub.mas::after{display:none}
+@keyframes bubIn{from{transform:translateX(90px) scale(.4);opacity:0}}
+@keyframes bubLate{0%,100%{box-shadow:0 10px 20px -8px rgba(20,32,51,.55),0 0 0 0 rgba(29,78,216,.45)}50%{box-shadow:0 10px 20px -8px rgba(20,32,51,.55),0 0 0 10px rgba(29,78,216,0)}}
+#bvelo{position:fixed;inset:0;z-index:8;background:rgba(20,32,51,.16);animation:bFd .2s}@keyframes bFd{from{opacity:0}}
+#globo{position:fixed;right:76px;z-index:9;width:min(270px,calc(100vw - 92px));background:var(--card);border-radius:20px 20px 6px 20px;padding:13px 14px 11px;
+  box-shadow:0 22px 44px -16px rgba(20,32,51,.5),0 0 0 1px var(--line);transform-origin:100% 100%;animation:gloIn .28s cubic-bezier(.3,1.5,.5,1)}
+#globo.cierra{animation:gloOut .18s ease-in forwards}
+@keyframes gloIn{from{transform:scale(.3);opacity:0}}@keyframes gloOut{to{transform:scale(.3);opacity:0}}
+#globo .x{position:absolute;right:6px;top:4px;width:34px;height:34px;border-radius:50%;color:var(--mut);font-size:20px;line-height:1}
+#globo .q{font-size:12.5px;color:var(--mut);padding-right:30px;line-height:1.35;overflow-wrap:anywhere}#globo .q b{color:var(--ink)}
+#globo .n{font-size:17px;font-weight:700;line-height:1.3;margin:8px 0 10px;letter-spacing:-.01em;overflow-wrap:anywhere;white-space:pre-wrap;max-height:38vh;overflow-y:auto}
+#globo .f{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--mut)}
+#globo .f div{display:flex;gap:6px;align-items:center}
+#globo .ver{font-weight:700;font-size:12.5px;color:var(--blue);padding:7px 4px}
+#globo .ok{background:var(--blue);color:#fff;font-weight:700;font-size:12.5px;border-radius:999px;padding:8px 13px}
+@media (prefers-reduced-motion:reduce){.bub,.bub.entra,.bub.nueva,.bub.entra.nueva,#globo,#bvelo{animation:none}}
+
+/* 2026-11-11 · PESTAÑA «GESTIÓN»: lo asignado y lo recibido en columnas por estado (tablero en la estructura; no se arrastra). */
+nav .tab{position:relative}
+#ges-n{position:absolute;top:0;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:9px;background:var(--q1);color:#fff;font-size:10.5px;font-weight:800;font-style:normal;display:none;place-items:center;padding:0 4px;border:2px solid var(--card)}
+#ges-n.on{display:grid}
+#v-asg h2.t{margin:0 4px 2px;font-size:22px;letter-spacing:-.02em}
+#v-asg p.s{margin:0 4px 12px;color:var(--mut);font-size:13px}
+#v-asg .seg{margin:0 4px 10px}
+.kb{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -12px;padding:0 12px 4px;scrollbar-width:none;align-items:flex-start;-webkit-overflow-scrolling:touch}
+.kb::-webkit-scrollbar{display:none}
+.kc{flex:0 0 min(78vw,300px);scroll-snap-align:center;border-radius:20px;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:180px;background:var(--kb)}
+.kc h5{margin:0 2px 2px;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;color:var(--kc)}
+.kc h5 span{min-width:22px;height:22px;border-radius:11px;color:#fff;font-size:11.5px;display:grid;place-items:center;padding:0 6px;background:var(--kc)}
+.kc.w{--kb:var(--q3b);--kc:var(--q3)}.kc.c{--kb:var(--q2b);--kc:var(--blue)}.kc.l{--kb:var(--q1b);--kc:var(--q1)}.kc.d{--kb:#e8f7ee;--kc:#15803d}
+.kc .kv{color:var(--mut);font-size:12.5px;text-align:center;padding:26px 8px;opacity:.8}
+.kt{background:var(--card);border-radius:15px;padding:10px;box-shadow:0 6px 14px -9px rgba(20,32,51,.4);animation:ktIn .3s ease backwards}
+.kt.off{opacity:.6;box-shadow:none}
+@keyframes ktIn{from{transform:translateY(8px);opacity:0}}
+.kt .t{font-size:14px;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+.kt .p{display:flex;align-items:center;gap:7px;margin-top:7px;font-size:12px;color:var(--mut);overflow-wrap:anywhere}
+.kt .p .av{width:24px;height:24px;font-size:10.5px;background:var(--av,var(--blue)) center/cover no-repeat}
+.kt .st{margin-top:7px}
+.kt .r{margin-top:9px;background:var(--blue-soft);border-radius:4px 13px 13px 13px;padding:8px 10px;font-size:13px;font-weight:600;line-height:1.35;overflow-wrap:anywhere;white-space:pre-wrap}
+.kt .r.no{background:var(--q1b)}.kt .r.mia{background:var(--q4b);border-radius:13px 4px 13px 13px}
+.kt .r small{display:block;font-weight:700;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);margin-bottom:2px}
+.kt .gmem{margin-top:8px}
+.kt .mini{margin-top:9px}
+.kt .ia{display:flex;gap:8px;margin-top:10px}
+.kt .ia button{flex:1;border-radius:11px;padding:9px;font-weight:700;font-size:13.5px}
+.kt .ia .y{background:var(--blue);color:#fff}.kt .ia .n{background:var(--card);color:var(--mut);border:1px solid var(--line)}
+.kpts{display:flex;justify-content:center;gap:6px;padding:10px 0 2px}.kpts i{width:6px;height:6px;border-radius:50%;background:var(--line);transition:width .2s}.kpts i.on{background:var(--blue);width:16px;border-radius:3px}
 
 /* agenda */
 .grp{margin:0 4px 16px}
@@ -493,7 +546,7 @@ body.csheet #c-form{transform:none}
       <div class="quad" data-q="3"><div class="qh"><div><strong>Salir rápido</strong><small>Urgente, poco importante</small></div><span></span></div><div class="list"></div></div>
       <div class="quad" data-q="4"><div class="qh"><div><strong>Después</strong><small>Ni urgente ni importante</small></div><span></span></div><div class="list"></div></div>
     </div>
-    <div id="asg-notes"></div>
+    <div id="bubs"></div>
     <p class="tip">Mantén presionada una tarjeta para moverla</p>
   </section>
   <section class="view" id="v-agenda"></section>
@@ -503,8 +556,9 @@ body.csheet #c-form{transform:none}
 
 <nav>
   <button class="tab act" data-v="board"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>Tablero</button>
-  <button id="fab" aria-label="Nuevo pendiente"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
   <button class="tab" data-v="agenda"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendario</button>
+  <button id="fab" aria-label="Nuevo pendiente"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button class="tab" data-v="asg" id="tab-ges"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/></svg>Gestión<i id="ges-n"></i></button>
 </nav>
 
 <div id="scrim"></div>
@@ -843,7 +897,7 @@ function rollover(){
 }
 function render(){
   if(drag)return;
-  paintProfile();paintAsgIn();paintPpl();paintNotas();
+  paintProfile();paintAsgIn();paintPpl();paintBubs();
   const now=new Date(), open=S.tasks.filter(t=>!t.done).concat(ATLAS);
   const sub=now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
   $('#sub').textContent=sub[0].toUpperCase()+sub.slice(1);
@@ -958,6 +1012,9 @@ $$('nav .tab').forEach(b=>b.onclick=()=>{
   $$('nav .tab').forEach(x=>x.classList.toggle('act',x===b));
   $$('.view').forEach(v=>v.classList.toggle('act',v.id==='v-'+b.dataset.v));
   scrollTo(0,0);
+  // 2026-11-11 · «Gestión» es una pestaña más: al entrar se pinta y se trae lo último. Las burbujas son del tablero.
+  if(b.dataset.v==='asg'){paintAsg();asgLoad(true)}
+  if(b.dataset.v!=='board')bubCierra();
 });
 
 /* ---------- hoja: crear y editar ---------- */
@@ -2077,11 +2134,7 @@ async function asgDone(t){
   asgSend({accion:'avance',id:t.asg,hecha:true,nota:n||''});
 }
 /* «Asigné»: lo que le pediste a otros */
-function showAsg(){
-  $$('nav .tab').forEach(x=>x.classList.remove('act'));
-  $$('.view').forEach(v=>v.classList.toggle('act',v.id==='v-asg'));
-  scrollTo(0,0);paintAsg();asgLoad(true);
-}
+function showAsg(){$('#tab-ges').click()}
 function asgState(a){
   const d=a.due_final||a.due;
   if(a.estado==='pendiente')return ['wait','Esperando que acepte'];
@@ -2091,29 +2144,67 @@ function asgState(a){
   return ['off','Cancelada'];
 }
 function asgIsOpen(a){return a.estado==='pendiente'||a.estado==='aceptada'}
-/* 2026-11-11 · «TE RESPONDIERON», bajo los cuadros. Fabián: Geraldine cumplió una reunión y escribió «ya tiene 17 personas y busca
-   llegar a 30», y él no lo leía en ningún lado: la nota sólo salía en Asigné → Cerradas. Aquí van las tareas que asignaste y que
-   terminaron CON nota, de los últimos 7 días, hasta que las marques como leídas (se guarda en este dispositivo). */
-let notasLeidas=lsGet('midia.notas.leidas',{});
+/* 2026-11-11 · RESPUESTAS QUE AÚN NO HAS LEÍDO. Fabián: Geraldine cumplió una reunión y escribió «ya tiene 17 personas y busca
+   llegar a 30», y él no lo leía en ningún lado (sólo salía en Asigné → Cerradas). Una respuesta es una tarea que asignaste y
+   que terminaron CON nota, o que rechazaron con motivo, en los últimos 7 días, hasta que la marques como leída.
+   «Leída» y «ya la abrí» se guardan en este dispositivo (midia.notas.leidas / midia.notas.vistas). */
+let notasLeidas=lsGet('midia.notas.leidas',{}),notasVistas=lsGet('midia.notas.vistas',{});
+const notaDe=a=>String((a.estado==='hecha'?a.nota_fin:a.estado==='rechazada'?a.motivo:'')||'').trim();
 function notasPendientes(){
   if(!sess)return [];const desde=Date.now()-7*864e5;
-  return ASG.env.filter(a=>a.estado==='hecha'&&String(a.nota_fin||'').trim()&&!notasLeidas[a.id]&&new Date(a.actualizado).getTime()>=desde)
+  return ASG.env.filter(a=>notaDe(a)&&!notasLeidas[a.id]&&new Date(a.actualizado).getTime()>=desde)
     .sort((x,y)=>new Date(y.actualizado)-new Date(x.actualizado));
 }
-function paintNotas(){
-  const V=$('#asg-notes');if(!V)return;const L=notasPendientes();V.textContent='';V.style.display=L.length?'block':'none';if(!L.length)return;
-  const h=document.createElement('h3');h.textContent='Te respondieron · '+L.length;V.appendChild(h);
-  for(const a of L.slice(0,5)){
-    const it=document.createElement('div');it.className='nt';it.appendChild(avEl(a.para_nombre,true));
-    const bd=document.createElement('div');bd.className='bd';
-    const hd=document.createElement('div');hd.className='hd';const b=document.createElement('b');b.textContent=a.para_nombre;hd.appendChild(b);hd.appendChild(document.createTextNode(' terminó «'+a.titulo+'»'));bd.appendChild(hd);
-    const tx=document.createElement('div');tx.className='tx';tx.textContent=String(a.nota_fin).trim();bd.appendChild(tx);
-    const ft=document.createElement('div');ft.className='ft';const cu=document.createElement('span');cu.textContent=fmtDue(new Date(a.actualizado));ft.appendChild(cu);
-    const ok=document.createElement('button');ok.type='button';ok.textContent='✓ Leída';ok.addEventListener('click',()=>{notasLeidas[a.id]=Date.now();lsSet('midia.notas.leidas',notasLeidas);paintNotas()});ft.appendChild(ok);
-    bd.appendChild(ft);it.appendChild(bd);V.appendChild(it);
-  }
-  if(L.length>5){const m=document.createElement('button');m.type='button';m.className='more';m.textContent='Ver las '+L.length+' en «Asigné»';m.addEventListener('click',()=>{asgTab='c';showAsg()});V.appendChild(m)}
+// La cara de la persona: su foto si ya la tenemos (misma caché de la franja de contactos); si no, su inicial sobre su color.
+function caraEn(el,nombre,correo){
+  const f=correo&&FOTOS[correo]&&FOTOS[correo].f;
+  if(f&&/^(data:image\/|https:\/\/)/.test(f)){el.style.backgroundImage='url("'+String(f).replace(/["\\\n]/g,'')+'")';el.textContent=''}
+  else{el.style.backgroundImage='';el.style.setProperty('--av',avColor(nombre));el.textContent=(String(nombre||'?').trim()[0]||'?').toUpperCase()}
 }
+const BUB_MAX=4;let bubKey='',bubAbierta=null;
+function paintBubs(){
+  const S=$('#bubs');if(!S)return;
+  const L=notasPendientes(),key=L.map(a=>a.id+(notasVistas[a.id]?'v':'n')).join('|');
+  const n=$('#ges-n');if(n){n.textContent=L.length>9?'9+':L.length;n.classList.toggle('on',L.length>0)}
+  if(key===bubKey&&S.children.length===Math.min(L.length,BUB_MAX)+(L.length>BUB_MAX?1:0))return;   // nada cambió: no se reinicia la animación
+  const antes=new Set(bubKey.split('|').map(k=>k.slice(0,-1)));bubKey=key;
+  if(bubAbierta&&!L.some(a=>a.id===bubAbierta))bubCierra();
+  S.textContent='';
+  L.slice(0,BUB_MAX).forEach(a=>{
+    const b=document.createElement('button');b.type='button';
+    b.className='bub'+(a.estado==='rechazada'?' no':'')+(notasVistas[a.id]?'':' nueva')+(antes.has(a.id)?'':' entra')+(bubAbierta===a.id?' on':'');
+    b.dataset.bub=a.id;b.setAttribute('aria-label','Respuesta de '+a.para_nombre);caraEn(b,a.para_nombre,a.para_correo);
+    b.addEventListener('click',()=>bubAbre(a.id));S.appendChild(b);
+  });
+  if(L.length>BUB_MAX){const m=document.createElement('button');m.type='button';m.className='bub mas';m.textContent='+'+(L.length-BUB_MAX);m.setAttribute('aria-label','Ver todas las respuestas');m.addEventListener('click',()=>{bubCierra();showAsg()});S.appendChild(m)}
+}
+function bubCierra(luego){
+  const g=$('#globo'),v=$('#bvelo'),S=$('#bubs');bubAbierta=null;
+  if(S){S.classList.remove('abre');S.querySelectorAll('.on').forEach(e=>e.classList.remove('on'))}
+  if(v)v.remove();
+  if(g){g.id='';g.classList.add('cierra');g.style.pointerEvents='none';g.style.position='fixed';g.style.zIndex=9;setTimeout(()=>{g.remove();luego&&luego()},180)}else luego&&luego();
+}
+function bubAbre(id){
+  if(bubAbierta===id){bubCierra();return}
+  bubCierra(()=>{
+    const a=ASG.env.find(x=>x.id===id),b=$('#bubs [data-bub="'+id+'"]');if(!a||!b)return;
+    bubAbierta=id;if(!notasVistas[id]){notasVistas[id]=Date.now();lsSet('midia.notas.vistas',notasVistas);bubKey=bubKey.replace(id+'n',id+'v')}
+    b.classList.remove('nueva','entra');b.classList.add('on');$('#bubs').classList.add('abre');
+    const v=document.createElement('div');v.id='bvelo';v.addEventListener('click',()=>bubCierra());document.body.appendChild(v);
+    const g=document.createElement('div');g.id='globo';g.setAttribute('role','dialog');
+    g.innerHTML='<button type="button" class="x" aria-label="Cerrar">×</button><div class="q"><b></b><span></span></div><div class="n"></div><div class="f"><span></span><div><button type="button" class="ver">Ver tarea</button><button type="button" class="ok">✓ Leída</button></div></div>';
+    g.querySelector('.q b').textContent=a.para_nombre;
+    g.querySelector('.q span').textContent=(a.estado==='rechazada'?' no puede con «':' terminó «')+a.titulo+'»';
+    g.querySelector('.n').textContent=notaDe(a);g.querySelector('.f span').textContent=fmtDue(new Date(a.actualizado));
+    document.body.appendChild(g);
+    const coloca=()=>{const r=b.getBoundingClientRect();g.style.bottom=Math.max(96,innerHeight-r.bottom-4)+'px'};
+    coloca();setTimeout(coloca,280);   // las burbujas se separan al abrir: se vuelve a medir cuando terminan de moverse
+    g.querySelector('.x').addEventListener('click',()=>bubCierra());
+    g.querySelector('.ver').addEventListener('click',()=>{bubCierra();asgTab='a';kIr=kColDe({miembros:ASG.env.filter(x=>a.grupo?x.grupo===a.grupo:x.id===a.id)});showAsg()});
+    g.querySelector('.ok').addEventListener('click',()=>{b.classList.add('sale');bubCierra(()=>setTimeout(()=>notaLeida(id),160))});
+  });
+}
+function notaLeida(id){notasLeidas[id]=Date.now();lsSet('midia.notas.leidas',notasLeidas);paintBubs();paintAsg()}
 /* lo que enviaste, por día de su fecha (la que quedó al aceptar, o la que pusiste) */
 const asgFecha=e=>{const a=e.miembros[0];return a.due_final||a.due};
 function asgVivas(){return sess?asgEntradas().filter(e=>asgFecha(e)&&e.miembros.some(m=>m.estado!=='cancelada')):[]}
@@ -2146,52 +2237,102 @@ function asgEntradas(){
   return out;
 }
 const entAbierta=e=>e.miembros.some(asgIsOpen);
+/* 2026-11-11 · «GESTIÓN»: tablero por columnas (maqueta-burbujas.html). Reemplaza la lista «Asigné» (Abiertas / Cerradas).
+   Columnas: Por aceptar · En curso · Atrasadas · Terminadas. Las rechazadas y canceladas quedan al final de «Terminadas» con su
+   etiqueta. No se arrastra: cada tarjeta conserva sus botones (Recordarle, WhatsApp, Cancelar…), que siguen yendo a asgAct. */
+const KCOLS=[['w','Por aceptar'],['c','En curso'],['l','Atrasadas'],['d','Terminadas']];let kIr=null;   // columna a la que hay que llegar («Ver tarea» desde una burbuja)
+const asgTarde=a=>{const d=a.due_final||a.due;return a.estado==='aceptada'&&d&&new Date(d)<new Date()};
+function kColDe(e){
+  const ab=e.miembros.filter(asgIsOpen);
+  if(!ab.length)return 'd';
+  if(ab.some(asgTarde))return 'l';
+  return ab.every(m=>m.estado==='pendiente')?'w':'c';
+}
+function kNota(txt,cls,rotulo){const r=document.createElement('div');r.className='r'+(cls?' '+cls:'');if(rotulo){const s=document.createElement('small');s.textContent=rotulo;r.appendChild(s)}r.appendChild(document.createTextNode(txt));return r}
+function kPersona(nombre,correo,texto){const p=document.createElement('div');p.className='p';const av=document.createElement('span');av.className='av';caraEn(av,nombre,correo);p.appendChild(av);p.appendChild(document.createTextNode(texto));return p}
+function kAsigne(e){
+  const a=e.miembros[0],k=document.createElement('div');k.className='kt';
+  const tt=document.createElement('div');tt.className='t';tt.textContent=a.titulo;k.appendChild(tt);
+  const mini=document.createElement('div');mini.className='mini';
+  const B=(label,act,c,id,g)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.asgAct=act;b.dataset.id=id||a.id;if(g)b.dataset.g=g;if(c)b.className=c;mini.appendChild(b)};
+  if(!e.grupo){
+    k.appendChild(kPersona(a.para_nombre,a.para_correo,a.para_nombre+' · '+asgSpan(a)));
+    if(a.estado==='cancelada')k.classList.add('off');
+    if(a.estado!=='pendiente'&&a.estado!=='hecha'||asgTarde(a)){const [cls,txt]=asgState(a),st=document.createElement('span');st.className='st '+cls;st.textContent=txt;k.appendChild(st)}
+    if(a.estado==='hecha'){const st=document.createElement('span');st.className='st done';st.textContent=asgState(a)[1];k.appendChild(st)}
+    if(notaDe(a))k.appendChild(kNota(notaDe(a),a.estado==='rechazada'?'no':''));
+    if(asgIsOpen(a)){B('Recordarle','rec');B('WhatsApp','wa','wa');B('Cancelar','can','x')}
+    else if(a.estado==='rechazada'){B('Asignar a otra persona','re');B('Quedármela','mine')}
+  }else{
+    const vivos=e.miembros.filter(m=>m.estado!=='rechazada'&&m.estado!=='cancelada'),hechas=vivos.filter(m=>m.estado==='hecha').length;
+    const p=document.createElement('div');p.className='p';p.textContent='👥 Compartida · '+asgSpan(a);k.appendChild(p);
+    if(vivos.length){
+      const bar=document.createElement('div');bar.className='gbar';bar.innerHTML='<i></i>';bar.firstChild.style.width=Math.round(hechas/vivos.length*100)+'%';k.appendChild(bar);
+      const pr=document.createElement('div');pr.className='p';pr.style.cssText='font-weight:700;color:#15803d;margin-top:2px';pr.textContent=hechas===vivos.length?'✓ Todos terminaron':hechas+' de '+vivos.length+(hechas===1?' la terminó':' la terminaron');k.appendChild(pr);
+    }else k.classList.add('off');
+    for(const m of e.miembros){
+      const row=document.createElement('div');row.className='gmem';
+      const pm=kPersona(m.para_nombre,m.para_correo,m.para_nombre+' ');const [cls,txt]=asgState(m),st=document.createElement('span');st.className='st '+cls;st.style.marginTop='0';st.textContent=txt;pm.appendChild(st);row.appendChild(pm);
+      if(notaDe(m))row.appendChild(kNota(notaDe(m),m.estado==='rechazada'?'no':''));
+      if(m.estado==='rechazada'){const mm=document.createElement('div');mm.className='mini';const b=document.createElement('button');b.type='button';b.textContent='Pasársela a otra persona';b.dataset.asgAct='re';b.dataset.id=m.id;mm.appendChild(b);row.appendChild(mm)}
+      k.appendChild(row);
+    }
+    if(entAbierta(e)){B('Recordarles','grec',null,null,e.grupo);B('Cancelar','gcan','x',null,e.grupo)}
+  }
+  if(mini.children.length)k.appendChild(mini);
+  return k;
+}
+function kRecibida(a){
+  const k=document.createElement('div');k.className='kt';if(a.estado==='cancelada')k.classList.add('off');
+  const tt=document.createElement('div');tt.className='t';tt.textContent=a.titulo;k.appendChild(tt);
+  k.appendChild(kPersona(a.de_nombre,a.de_correo,'De '+a.de_nombre+' · '+asgSpan(a)));
+  if(a.estado==='pendiente'){
+    if(a.nota)k.appendChild(kNota(a.nota));
+    const ia=document.createElement('div');ia.className='ia';ia.innerHTML='<button type="button" class="y">Aceptar</button><button type="button" class="n">Rechazar</button>';
+    ia.querySelector('.y').dataset.asgOk=a.id;ia.querySelector('.n').dataset.asgNo=a.id;k.appendChild(ia);
+  }else{
+    const cls=a.estado==='hecha'?'done':a.estado==='rechazada'?'no':a.estado==='cancelada'?'off':asgTarde(a)?'late':'acc';
+    const txt=a.estado==='hecha'?'✓ La terminaste':a.estado==='rechazada'?'La rechazaste':a.estado==='cancelada'?'La cancelaron':asgTarde(a)?'Atrasada':'En tu tablero';
+    const st=document.createElement('span');st.className='st '+cls;st.textContent=txt;k.appendChild(st);
+    if(notaDe(a))k.appendChild(kNota(notaDe(a),'mia','Tu nota'));
+  }
+  return k;
+}
 function paintAsg(){
   const V=$('#v-asg');if(!V||!V.classList.contains('act'))return;
+  // Se conserva la columna a la vista sólo si se repinta la MISMA lista (al cambiar de Asigné a Me asignaron se empieza de nuevo).
+  const viejo=V.querySelector('.kb'),sx=viejo&&V.dataset.tab===asgTab&&!kIr?viejo.scrollLeft:null;
   V.textContent='';
-  const E=asgEntradas(),open=E.filter(entAbierta),closed=E.filter(e=>!entAbierta(e));
-  V.insertAdjacentHTML('beforeend','<button type="button" class="bk" data-asg-back>‹ Tablero</button><h2 class="t">Asigné</h2><p class="s">Lo que le pediste a otros. Te aviso cuando la acepten, la rechacen o la terminen.</p>');
+  if(asgTab!=='a'&&asgTab!=='r')asgTab='a';V.dataset.tab=asgTab;
+  const E=asgEntradas(),Rc=sess?ASG.rec:[];
+  V.insertAdjacentHTML('beforeend','<h2 class="t">Gestión</h2><p class="s">Lo que pediste a otros, lo que te pidieron y lo que te respondieron.</p>');
   const sg=document.createElement('div');sg.className='seg';
-  sg.innerHTML='<button type="button" data-asg-tab="a">Abiertas · '+open.length+'</button><button type="button" data-asg-tab="c">Cerradas · '+closed.length+'</button>';
+  sg.innerHTML='<button type="button" data-asg-tab="a">Asigné · '+E.length+'</button><button type="button" data-asg-tab="r">Me asignaron · '+Rc.length+'</button>';
   sg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.asgTab===asgTab));V.appendChild(sg);
-  const L=asgTab==='a'?open:closed;
-  if(!L.length){const p=document.createElement('p');p.className='empty';p.textContent=asgTab==='a'?'No tienes tareas asignadas abiertas. Para asignar una, toca + y elige a la persona en «Asignar a».':'Aquí quedan las de los últimos 30 días.';V.appendChild(p)}
-  for(const e of L){
-    const a=e.miembros[0],it=document.createElement('div');it.className='it';
-    const bd=document.createElement('div');bd.className='bd';
-    const tt=document.createElement('div');tt.className='tt';tt.textContent=a.titulo;bd.appendChild(tt);
-    const mini=document.createElement('div');mini.className='mini';
-    const B=(label,act,c,id,g)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.asgAct=act;b.dataset.id=id||a.id;if(g)b.dataset.g=g;if(c)b.className=c;mini.appendChild(b)};
-    if(!e.grupo){
-      it.appendChild(avEl(a.para_nombre,true));
-      const sb=document.createElement('div');sb.className='sub';sb.textContent=a.para_nombre+' · '+asgSpan(a);bd.appendChild(sb);
-      const [cls,txt]=asgState(a),st=document.createElement('span');st.className='st '+cls;st.textContent=txt;bd.appendChild(st);
-      const why=a.estado==='rechazada'?a.motivo:a.estado==='hecha'?a.nota_fin:null;
-      if(why){const w=document.createElement('div');w.className='why';w.textContent='«'+why+'»';bd.appendChild(w)}
-      if(asgIsOpen(a)){B('Recordarle','rec');B('WhatsApp','wa','wa');B('Cancelar','can','x')}
-      else if(a.estado==='rechazada'){B('Asignar a otra persona','re');B('Quedármela','mine')}
-    }else{
-      {const g=avEl('G',true);g.textContent='👥';g.style.setProperty('--av','var(--blue-soft)');it.appendChild(g)}
-      const vivos=e.miembros.filter(m=>m.estado!=='rechazada'&&m.estado!=='cancelada'),hechas=vivos.filter(m=>m.estado==='hecha').length;
-      const sb=document.createElement('div');sb.className='sub';sb.textContent='Compartida · '+asgSpan(a);bd.appendChild(sb);
-      if(vivos.length){
-        const bar=document.createElement('div');bar.className='gbar';bar.innerHTML='<i></i>';bar.firstChild.style.width=Math.round(hechas/vivos.length*100)+'%';bd.appendChild(bar);
-        const pr=document.createElement('div');pr.className='sub';pr.style.cssText='font-weight:700;color:#15803d';pr.textContent=hechas===vivos.length?'✓ Todos terminaron':hechas+' de '+vivos.length+(hechas===1?' la terminó':' la terminaron');bd.appendChild(pr);
-      }
-      for(const m of e.miembros){
-        const row=document.createElement('div');row.className='gmem';row.appendChild(avEl(m.para_nombre,true));
-        const col=document.createElement('div');
-        const nm=document.createElement('div');nm.textContent=m.para_nombre+' ';const [cls,txt]=asgState(m),st=document.createElement('span');st.className='st '+cls;st.textContent=txt;nm.appendChild(st);col.appendChild(nm);
-        const why=m.estado==='rechazada'?m.motivo:m.estado==='hecha'?m.nota_fin:null;
-        if(why){const w=document.createElement('div');w.className='why';w.textContent='«'+why+'»';col.appendChild(w)}
-        if(m.estado==='rechazada'){const mm=document.createElement('div');mm.className='mini';const b=document.createElement('button');b.type='button';b.textContent='Pasársela a otra persona';b.dataset.asgAct='re';b.dataset.id=m.id;mm.appendChild(b);col.appendChild(mm)}
-        row.appendChild(col);bd.appendChild(row);
-      }
-      if(entAbierta(e)){B('Recordarles','grec',null,null,e.grupo);B('Cancelar','gcan','x',null,e.grupo)}
-    }
-    if(mini.children.length)bd.appendChild(mini);
-    it.appendChild(bd);V.appendChild(it);
-  }
+  const cols={w:[],c:[],l:[],d:[]};
+  // En «Terminadas»: primero lo hecho (lo más reciente arriba), al final lo rechazado y lo cancelado.
+  const peso=x=>{const m=x.miembros?x.miembros:[x];return m.some(y=>y.estado==='hecha')?0:m.some(y=>y.estado==='rechazada')?1:2};
+  const fecha=x=>new Date((x.miembros?x.miembros[0]:x).actualizado||(x.miembros?x.miembros[0]:x).creado).getTime();
+  if(asgTab==='a')for(const e of E)cols[kColDe(e)].push(e);
+  else for(const a of Rc)cols[kColDe({miembros:[a]})].push(a);
+  cols.d.sort((x,y)=>peso(x)-peso(y)||fecha(y)-fecha(x));
+  const total=cols.w.length+cols.c.length+cols.l.length+cols.d.length;
+  if(!total){const p=document.createElement('p');p.className='empty';p.textContent=asgTab==='a'?'Todavía no le has pedido nada a nadie. Para asignar una tarea, toca + y elige a la persona en «Asignar a».':'Nadie te ha asignado tareas. Cuando te llegue una, la verás aquí y en tu tablero.';V.appendChild(p);return}
+  const kb=document.createElement('div');kb.className='kb';
+  KCOLS.forEach(([k,nombre],i)=>{
+    const c=document.createElement('div');c.className='kc '+k;
+    const h=document.createElement('h5');h.textContent=nombre+' ';const n=document.createElement('span');n.textContent=cols[k].length;h.appendChild(n);c.appendChild(h);
+    if(!cols[k].length){const v=document.createElement('div');v.className='kv';v.textContent=k==='l'?'Nada atrasado':'Nada aquí';c.appendChild(v)}
+    cols[k].forEach((x,j)=>{const el=asgTab==='a'?kAsigne(x):kRecibida(x);el.style.animationDelay=Math.min(j,6)*40+'ms';c.appendChild(el)});
+    kb.appendChild(c);
+  });
+  V.appendChild(kb);
+  const pts=document.createElement('div');pts.className='kpts';pts.innerHTML=KCOLS.map(()=>'<i></i>').join('');V.appendChild(pts);
+  const marca=()=>{const w=kb.firstChild.getBoundingClientRect().width+10,i=Math.max(0,Math.min(KCOLS.length-1,Math.round(kb.scrollLeft/w)));[...pts.children].forEach((p,j)=>p.classList.toggle('on',j===i))};
+  kb.addEventListener('scroll',marca,{passive:true});
+  // Al repintar se queda donde estaba; al entrar, se abre en la primera columna que tenga algo.
+  if(sx!=null)kb.scrollLeft=sx;else{const i=kIr?KCOLS.findIndex(([k])=>k===kIr):KCOLS.findIndex(([k])=>cols[k].length);kIr=null;if(i>0)kb.scrollLeft=i*(kb.firstChild.getBoundingClientRect().width+10)}
+  marca();
 }
 async function asgAct(act,id,btn,grupo){
   if(act==='grec'||act==='gcan'){
