@@ -124,6 +124,16 @@ body.out header,body.out main,body.out nav{visibility:hidden}
 #ios svg{width:16px;height:16px;vertical-align:-3px;color:var(--blue)}
 .ghost{box-shadow:0 22px 34px -8px color-mix(in srgb,var(--qc,var(--blue)) 70%,transparent)}
 .tip{color:var(--mut);font-size:12px;text-align:center;margin:12px 0 0}
+/* 2026-11-11 · «Te respondieron»: la nota de quien terminó una tarea que asignaste, bajo los cuadros. */
+#asg-notes{display:none;margin:14px 2px 0}
+#asg-notes h3{margin:0 2px 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);font-weight:800}
+#asg-notes .nt{display:flex;gap:10px;align-items:flex-start;background:var(--blue-soft);border-radius:16px;padding:11px 12px;margin-bottom:8px}
+#asg-notes .nt .bd{flex:1;min-width:0}
+#asg-notes .nt .hd{font-size:13.5px;line-height:1.35;overflow-wrap:anywhere}
+#asg-notes .nt .tx{font-size:14.5px;line-height:1.4;font-weight:600;background:#fff;border-radius:11px;padding:8px 10px;margin-top:6px;overflow-wrap:anywhere;white-space:pre-wrap}
+#asg-notes .nt .ft{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;color:var(--mut);font-size:12px}
+#asg-notes .nt .ft button{font-weight:700;font-size:12.5px;color:var(--blue);padding:4px 2px}
+#asg-notes .more{display:block;width:100%;text-align:center;color:var(--blue);font-weight:700;font-size:13px;padding:6px}
 
 /* agenda */
 .grp{margin:0 4px 16px}
@@ -483,6 +493,7 @@ body.csheet #c-form{transform:none}
       <div class="quad" data-q="3"><div class="qh"><div><strong>Salir rápido</strong><small>Urgente, poco importante</small></div><span></span></div><div class="list"></div></div>
       <div class="quad" data-q="4"><div class="qh"><div><strong>Después</strong><small>Ni urgente ni importante</small></div><span></span></div><div class="list"></div></div>
     </div>
+    <div id="asg-notes"></div>
     <p class="tip">Mantén presionada una tarjeta para moverla</p>
   </section>
   <section class="view" id="v-agenda"></section>
@@ -832,7 +843,7 @@ function rollover(){
 }
 function render(){
   if(drag)return;
-  paintProfile();paintAsgIn();paintPpl();
+  paintProfile();paintAsgIn();paintPpl();paintNotas();
   const now=new Date(), open=S.tasks.filter(t=>!t.done).concat(ATLAS);
   const sub=now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
   $('#sub').textContent=sub[0].toUpperCase()+sub.slice(1);
@@ -2080,6 +2091,29 @@ function asgState(a){
   return ['off','Cancelada'];
 }
 function asgIsOpen(a){return a.estado==='pendiente'||a.estado==='aceptada'}
+/* 2026-11-11 · «TE RESPONDIERON», bajo los cuadros. Fabián: Geraldine cumplió una reunión y escribió «ya tiene 17 personas y busca
+   llegar a 30», y él no lo leía en ningún lado: la nota sólo salía en Asigné → Cerradas. Aquí van las tareas que asignaste y que
+   terminaron CON nota, de los últimos 7 días, hasta que las marques como leídas (se guarda en este dispositivo). */
+let notasLeidas=lsGet('midia.notas.leidas',{});
+function notasPendientes(){
+  if(!sess)return [];const desde=Date.now()-7*864e5;
+  return ASG.env.filter(a=>a.estado==='hecha'&&String(a.nota_fin||'').trim()&&!notasLeidas[a.id]&&new Date(a.actualizado).getTime()>=desde)
+    .sort((x,y)=>new Date(y.actualizado)-new Date(x.actualizado));
+}
+function paintNotas(){
+  const V=$('#asg-notes');if(!V)return;const L=notasPendientes();V.textContent='';V.style.display=L.length?'block':'none';if(!L.length)return;
+  const h=document.createElement('h3');h.textContent='Te respondieron · '+L.length;V.appendChild(h);
+  for(const a of L.slice(0,5)){
+    const it=document.createElement('div');it.className='nt';it.appendChild(avEl(a.para_nombre,true));
+    const bd=document.createElement('div');bd.className='bd';
+    const hd=document.createElement('div');hd.className='hd';const b=document.createElement('b');b.textContent=a.para_nombre;hd.appendChild(b);hd.appendChild(document.createTextNode(' terminó «'+a.titulo+'»'));bd.appendChild(hd);
+    const tx=document.createElement('div');tx.className='tx';tx.textContent=String(a.nota_fin).trim();bd.appendChild(tx);
+    const ft=document.createElement('div');ft.className='ft';const cu=document.createElement('span');cu.textContent=fmtDue(new Date(a.actualizado));ft.appendChild(cu);
+    const ok=document.createElement('button');ok.type='button';ok.textContent='✓ Leída';ok.addEventListener('click',()=>{notasLeidas[a.id]=Date.now();lsSet('midia.notas.leidas',notasLeidas);paintNotas()});ft.appendChild(ok);
+    bd.appendChild(ft);it.appendChild(bd);V.appendChild(it);
+  }
+  if(L.length>5){const m=document.createElement('button');m.type='button';m.className='more';m.textContent='Ver las '+L.length+' en «Asigné»';m.addEventListener('click',()=>{asgTab='c';showAsg()});V.appendChild(m)}
+}
 /* lo que enviaste, por día de su fecha (la que quedó al aceptar, o la que pusiste) */
 const asgFecha=e=>{const a=e.miembros[0];return a.due_final||a.due};
 function asgVivas(){return sess?asgEntradas().filter(e=>asgFecha(e)&&e.miembros.some(m=>m.estado!=='cancelada')):[]}
