@@ -127,24 +127,40 @@ body.out header,body.out main,body.out nav{visibility:hidden}
 /* 2026-11-11 · BURBUJAS DE RESPUESTA (maqueta-burbujas.html, aprobada «Sí, constrúyelo»). Fabián sobre el listado «Te respondieron»:
    «parece un listado, no tiene impacto… lo que queremos es que sea muy dinámico». Cada respuesta es una burbuja con la cara de
    quien respondió, apiladas abajo a la derecha; al tocarla sale el globo con la nota y se cierra cuando la persona quiera. */
-#bubs{position:fixed;right:10px;bottom:calc(88px + env(safe-area-inset-bottom));z-index:9;display:flex;flex-direction:column-reverse;align-items:flex-end;pointer-events:none}
+/* 2026-11-11 · SE MUEVEN. Fabián: «quedan todas apiladas en la parte inferior; yo debería poder moverlas, estirarlas a lo largo de la
+   pantalla, subirlas o cambiarlas de lado». La pila se arrastra y se pega al borde más cercano (derecha, izquierda, arriba o
+   abajo); el botoncito del final las estira o las vuelve a apilar. La posición la pone colocaBubs() y se recuerda por dispositivo. */
+#bubs{position:fixed;left:0;top:0;z-index:9;display:flex;flex-direction:column;align-items:center;pointer-events:none;will-change:transform}
+#bubs[data-lado="a"],#bubs[data-lado="b"]{flex-direction:row}
+#bubs.asienta{transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
+#bubs.mov .bub{box-shadow:0 18px 30px -10px rgba(20,32,51,.6)}
 body.sheet #bubs,body.out #bubs{display:none}
 .bub{pointer-events:auto;position:relative;width:54px;height:54px;border-radius:50%;color:#fff;font-weight:800;font-size:20px;display:grid;place-items:center;border:3px solid var(--card);
   background:var(--av,var(--blue)) center/cover no-repeat;box-shadow:0 10px 20px -8px rgba(20,32,51,.55);margin-top:-16px;transition:transform .25s cubic-bezier(.3,1.6,.5,1),margin .25s,opacity .2s}
-.bub:last-child{margin-top:0}
+.bub{touch-action:none;-webkit-user-select:none;user-select:none}
+.bub:first-child{margin-top:0}
+#bubs[data-lado="a"] .bub,#bubs[data-lado="b"] .bub{margin-top:0;margin-left:-16px}
+#bubs[data-lado="a"] .bub:first-child,#bubs[data-lado="b"] .bub:first-child{margin-left:0}
 .bub.entra{animation:bubIn .55s cubic-bezier(.3,1.7,.5,1) backwards}
 .bub.nueva{animation:bubLate 2.2s ease-in-out .8s infinite}
 .bub.entra.nueva{animation:bubIn .55s cubic-bezier(.3,1.7,.5,1) backwards,bubLate 2.2s ease-in-out 1s infinite}
 .bub::after{content:"";position:absolute;right:-4px;top:-4px;width:20px;height:20px;border-radius:50%;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%231D4ED8' d='M4 5h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z'/%3E%3C/svg%3E") center/12px no-repeat;box-shadow:0 2px 5px rgba(20,32,51,.3)}
 .bub.no::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23e5484d' d='M4 5h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z'/%3E%3C/svg%3E")}
-#bubs.abre .bub{margin-top:8px}#bubs.abre .bub:not(.on){opacity:.45}
+#bubs.abre .bub,#bubs.est .bub{margin-top:8px}#bubs.abre .bub:not(.on){opacity:.45}
+#bubs.abre .bub:first-child,#bubs.est .bub:first-child{margin-top:0}
+#bubs[data-lado="a"].abre .bub,#bubs[data-lado="b"].abre .bub,#bubs[data-lado="a"].est .bub,#bubs[data-lado="b"].est .bub{margin-top:0;margin-left:8px}
+#bubs[data-lado="a"].abre .bub:first-child,#bubs[data-lado="b"].abre .bub:first-child,#bubs[data-lado="a"].est .bub:first-child,#bubs[data-lado="b"].est .bub:first-child{margin-left:0}
+.bgrip{pointer-events:auto;touch-action:none;flex:none;width:34px;height:20px;margin-top:6px;border-radius:10px;background:var(--card);color:var(--mut);font-size:12px;font-weight:800;line-height:1;display:grid;place-items:center;box-shadow:0 4px 10px -4px rgba(20,32,51,.45),0 0 0 1px var(--line)}
+#bubs[data-lado="a"] .bgrip,#bubs[data-lado="b"] .bgrip{width:20px;height:34px;margin:0 0 0 6px}
+#bubs.abre .bgrip{opacity:0;pointer-events:none}
 .bub.on{transform:scale(1.12)}
 .bub.sale{transform:scale(0);opacity:0;margin-top:-54px!important}
+#bubs[data-lado="a"] .bub.sale,#bubs[data-lado="b"] .bub.sale{margin-top:0!important;margin-left:-54px!important}
 .bub.mas{background:var(--q4b);color:var(--mut);font-size:14px}.bub.mas::after{display:none}
-@keyframes bubIn{from{transform:translateX(90px) scale(.4);opacity:0}}
+@keyframes bubIn{from{transform:scale(.3);opacity:0}}
 @keyframes bubLate{0%,100%{box-shadow:0 10px 20px -8px rgba(20,32,51,.55),0 0 0 0 rgba(29,78,216,.45)}50%{box-shadow:0 10px 20px -8px rgba(20,32,51,.55),0 0 0 10px rgba(29,78,216,0)}}
 #bvelo{position:fixed;inset:0;z-index:8;background:rgba(20,32,51,.16);animation:bFd .2s}@keyframes bFd{from{opacity:0}}
-#globo{position:fixed;right:76px;z-index:9;width:min(270px,calc(100vw - 92px));background:var(--card);border-radius:20px 20px 6px 20px;padding:13px 14px 11px;
+#globo{position:fixed;left:0;top:0;z-index:9;width:min(270px,calc(100vw - 92px));background:var(--card);border-radius:20px;padding:13px 14px 11px;
   box-shadow:0 22px 44px -16px rgba(20,32,51,.5),0 0 0 1px var(--line);transform-origin:100% 100%;animation:gloIn .28s cubic-bezier(.3,1.5,.5,1)}
 #globo.cierra{animation:gloOut .18s ease-in forwards}
 @keyframes gloIn{from{transform:scale(.3);opacity:0}}@keyframes gloOut{to{transform:scale(.3);opacity:0}}
@@ -2162,11 +2178,77 @@ function caraEn(el,nombre,correo){
   else{el.style.backgroundImage='';el.style.setProperty('--av',avColor(nombre));el.textContent=(String(nombre||'?').trim()[0]||'?').toUpperCase()}
 }
 const BUB_MAX=4;let bubKey='',bubAbierta=null;
+/* 2026-11-11 · DÓNDE ESTÁ LA PILA. lado: d(erecha) · i(zquierda) · a(rriba) · b(abajo, sobre la barra); f: de 0 a 1, qué tan lejos a lo
+   largo de ese borde; est: estiradas (sin montarse) o apiladas. Por defecto, abajo a la derecha, como salió la primera vez. */
+let bubPos=Object.assign({lado:'d',f:1,est:false},lsGet('midia.bubs.pos',{})),bubArr=0;
+if(['d','i','a','b'].indexOf(bubPos.lado)<0)bubPos.lado='d';
+function bubLimites(){
+  const h=document.querySelector('header'),n=document.querySelector('nav');
+  const y0=(h?h.getBoundingClientRect().bottom:0)+8,y1=(n?n.getBoundingClientRect().top:innerHeight)-10;
+  return {x0:10,x1:innerWidth-10,y0:Math.max(8,y0),y1:Math.max(y0+60,y1)};
+}
+function colocaBubs(anima){
+  const S=$('#bubs');if(!S)return;
+  S.dataset.lado=bubPos.lado;S.classList.toggle('est',!!bubPos.est);
+  const L=bubLimites(),w=S.offsetWidth,h=S.offsetHeight,f=Math.max(0,Math.min(1,+bubPos.f||0));
+  const rx=Math.max(0,L.x1-L.x0-w),ry=Math.max(0,L.y1-L.y0-h);
+  const x=bubPos.lado==='d'?L.x1-w:bubPos.lado==='i'?L.x0:L.x0+f*rx;
+  const y=bubPos.lado==='a'?L.y0:bubPos.lado==='b'?L.y1-h:L.y0+f*ry;
+  S.classList.toggle('asienta',!!anima);
+  S.style.transform='translate('+Math.round(x)+'px,'+Math.round(y)+'px)';S._x=x;S._y=y;
+}
+// Arrastrar: se mueve toda la pila; al soltar se pega al borde más cercano. Un toque corto sigue abriendo la burbuja.
+function bubArrastre(){
+  const S=$('#bubs');if(!S||S._arr)return;S._arr=true;
+  let p=null;
+  S.addEventListener('pointerdown',e=>{
+    if(!e.target.closest('.bub,.bgrip'))return;
+    p={id:e.pointerId,x:e.clientX,y:e.clientY,sx:S._x||0,sy:S._y||0,mov:false};
+  });
+  S.addEventListener('pointermove',e=>{
+    if(!p||e.pointerId!==p.id)return;
+    const dx=e.clientX-p.x,dy=e.clientY-p.y;
+    if(!p.mov){if(Math.hypot(dx,dy)<9)return;p.mov=true;bubCierra();S.classList.remove('asienta');S.classList.add('mov');try{S.setPointerCapture(p.id)}catch(_){}}
+    const L=bubLimites(),w=S.offsetWidth,h=S.offsetHeight;
+    const x=Math.max(L.x0,Math.min(L.x1-w,p.sx+dx)),y=Math.max(L.y0,Math.min(L.y1-h,p.sy+dy));
+    S.style.transform='translate('+Math.round(x)+'px,'+Math.round(y)+'px)';S._x=x;S._y=y;e.preventDefault();
+  });
+  const suelta=e=>{
+    if(!p||e.pointerId!==p.id)return;const fue=p.mov;p=null;S.classList.remove('mov');
+    if(!fue)return;
+    bubArr=Date.now();
+    const L=bubLimites(),w=S.offsetWidth,h=S.offsetHeight,cx=S._x+w/2,cy=S._y+h/2;
+    const d={i:cx-L.x0,d:L.x1-cx,a:cy-L.y0,b:L.y1-cy};
+    const lado=Object.keys(d).sort((m,n)=>d[m]-d[n])[0];
+    // A lo largo del borde se guarda dónde quedó el CENTRO, para que al cambiar de vertical a horizontal no salte.
+    const f=(lado==='d'||lado==='i')?(cy-L.y0)/Math.max(1,L.y1-L.y0):(cx-L.x0)/Math.max(1,L.x1-L.x0);
+    bubPos.lado=lado;bubPos.f=Math.max(0,Math.min(1,f));lsSet('midia.bubs.pos',bubPos);
+    S.dataset.lado=lado;
+    requestAnimationFrame(()=>{   // con el lado nuevo cambia el tamaño: se recalcula para que el centro quede donde se soltó
+      const w2=S.offsetWidth,h2=S.offsetHeight,L2=bubLimites();
+      const libre=(lado==='d'||lado==='i')?Math.max(1,L2.y1-L2.y0-h2):Math.max(1,L2.x1-L2.x0-w2);
+      const centro=(lado==='d'||lado==='i')?bubPos.f*(L2.y1-L2.y0)-h2/2:bubPos.f*(L2.x1-L2.x0)-w2/2;
+      bubPos.f=Math.max(0,Math.min(1,centro/libre));lsSet('midia.bubs.pos',bubPos);colocaBubs(true);
+    });
+  };
+  S.addEventListener('pointerup',suelta);S.addEventListener('pointercancel',suelta);
+  addEventListener('resize',()=>colocaBubs());
+  // Al estirarse, apilarse o abrirse una burbuja cambia el tamaño de la pila: cuando termina de moverse se vuelve a acomodar,
+  // para que nunca quede un trozo fuera de la pantalla.
+  S.addEventListener('transitionend',e=>{if(e.target!==S&&String(e.propertyName).indexOf('margin')===0&&!S.classList.contains('mov'))colocaBubs(true)});
+}
+function bubEstira(){
+  if(Date.now()-bubArr<350)return;
+  bubCierra();bubPos.est=!bubPos.est;lsSet('midia.bubs.pos',bubPos);
+  const S=$('#bubs'),g=S&&S.querySelector('.bgrip');if(g){g.textContent=bubPos.est?'–':'+';g.setAttribute('aria-label',bubPos.est?'Apilar las burbujas':'Estirar las burbujas')}
+  colocaBubs(true);setTimeout(()=>colocaBubs(true),270);   // el tamaño cambia mientras se separan
+}
 function paintBubs(){
   const S=$('#bubs');if(!S)return;
   const L=notasPendientes(),key=L.map(a=>a.id+(notasVistas[a.id]?'v':'n')).join('|');
   const n=$('#ges-n');if(n){n.textContent=L.length>9?'9+':L.length;n.classList.toggle('on',L.length>0)}
-  if(key===bubKey&&S.children.length===Math.min(L.length,BUB_MAX)+(L.length>BUB_MAX?1:0))return;   // nada cambió: no se reinicia la animación
+  bubArrastre();
+  if(key===bubKey&&S.children.length===Math.min(L.length,BUB_MAX)+(L.length>BUB_MAX?1:0)+(L.length>1?1:0)){colocaBubs();return}   // nada cambió: no se reinicia la animación
   const antes=new Set(bubKey.split('|').map(k=>k.slice(0,-1)));bubKey=key;
   if(bubAbierta&&!L.some(a=>a.id===bubAbierta))bubCierra();
   S.textContent='';
@@ -2176,7 +2258,9 @@ function paintBubs(){
     b.dataset.bub=a.id;b.setAttribute('aria-label','Respuesta de '+a.para_nombre);caraEn(b,a.para_nombre,a.para_correo);
     b.addEventListener('click',()=>bubAbre(a.id));S.appendChild(b);
   });
-  if(L.length>BUB_MAX){const m=document.createElement('button');m.type='button';m.className='bub mas';m.textContent='+'+(L.length-BUB_MAX);m.setAttribute('aria-label','Ver todas las respuestas');m.addEventListener('click',()=>{bubCierra();showAsg()});S.appendChild(m)}
+  if(L.length>BUB_MAX){const m=document.createElement('button');m.type='button';m.className='bub mas';m.textContent='+'+(L.length-BUB_MAX);m.setAttribute('aria-label','Ver todas las respuestas');m.addEventListener('click',()=>{if(Date.now()-bubArr<350)return;bubCierra();showAsg()});S.appendChild(m)}
+  if(L.length>1){const g=document.createElement('button');g.type='button';g.className='bgrip';g.textContent=bubPos.est?'–':'+';g.setAttribute('aria-label',bubPos.est?'Apilar las burbujas':'Estirar las burbujas');g.addEventListener('click',bubEstira);S.appendChild(g)}
+  colocaBubs();
 }
 function bubCierra(luego){
   const g=$('#globo'),v=$('#bvelo'),S=$('#bubs');bubAbierta=null;
@@ -2185,6 +2269,7 @@ function bubCierra(luego){
   if(g){g.id='';g.classList.add('cierra');g.style.pointerEvents='none';g.style.position='fixed';g.style.zIndex=9;setTimeout(()=>{g.remove();luego&&luego()},180)}else luego&&luego();
 }
 function bubAbre(id){
+  if(Date.now()-bubArr<350)return;   // acaba de soltar un arrastre: no es un toque
   if(bubAbierta===id){bubCierra();return}
   bubCierra(()=>{
     const a=ASG.env.find(x=>x.id===id),b=$('#bubs [data-bub="'+id+'"]');if(!a||!b)return;
@@ -2197,7 +2282,15 @@ function bubAbre(id){
     g.querySelector('.q span').textContent=(a.estado==='rechazada'?' no puede con «':' terminó «')+a.titulo+'»';
     g.querySelector('.n').textContent=notaDe(a);g.querySelector('.f span').textContent=fmtDue(new Date(a.actualizado));
     document.body.appendChild(g);
-    const coloca=()=>{const r=b.getBoundingClientRect();g.style.bottom=Math.max(96,innerHeight-r.bottom-4)+'px'};
+    // El globo sale hacia el lado libre según dónde esté la pila, y nunca se sale de la pantalla.
+    const coloca=()=>{
+      const r=b.getBoundingClientRect(),gw=g.offsetWidth,gh=g.offsetHeight,L=bubLimites(),lado=bubPos.lado;
+      let x=lado==='d'?r.left-gw-12:lado==='i'?r.right+12:r.left+r.width/2-gw/2;
+      let y=lado==='a'?r.bottom+12:lado==='b'?r.top-gh-12:r.top+r.height/2-gh/2;
+      x=Math.max(8,Math.min(innerWidth-gw-8,x));y=Math.max(L.y0,Math.min(L.y1-gh,y));
+      g.style.left=Math.round(x)+'px';g.style.top=Math.round(y)+'px';   // con left/top y no con transform: la animación de entrada usa transform
+      g.style.transformOrigin=lado==='d'?'100% 50%':lado==='i'?'0 50%':lado==='a'?'50% 0':'50% 100%';
+    };
     coloca();setTimeout(coloca,280);   // las burbujas se separan al abrir: se vuelve a medir cuando terminan de moverse
     g.querySelector('.x').addEventListener('click',()=>bubCierra());
     g.querySelector('.ver').addEventListener('click',()=>{bubCierra();asgTab='a';kIr=kColDe({miembros:ASG.env.filter(x=>a.grupo?x.grupo===a.grupo:x.id===a.id)});showAsg()});
