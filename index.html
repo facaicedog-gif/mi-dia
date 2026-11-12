@@ -2,6 +2,15 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<script>
+/* 2026-11-12 · MUDANZA: Mi día vive en atlas.veltrion.com.co/midia (Fabián eligió la ruta). Atlas la sirve por proxy
+   desde este mismo GitHub Pages, así que este archivo se abre en las DOS direcciones: en la vieja (github.io) manda a
+   la nueva conservando ?… y #… (invitaciones #inv=, tareas #add=, sesión del correo de confirmación). En la nueva no
+   hace nada. Se publica DESPUÉS de que Atlas sirva /midia (si no, mandaría a una página que no existe). */
+if(location.hostname==='facaicedog-gif.github.io')location.replace('https://atlas.veltrion.com.co/midia/'+location.search+location.hash);
+// Sin la barra final, «./sw.js» y el manifiesto apuntarían a la raíz de Atlas (Netlify no puede agregarla: hace bucle).
+else if(location.pathname==='/midia')location.replace('/midia/'+location.search+location.hash);
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b1f5c">
 <meta name="robots" content="noindex,nofollow">
@@ -2084,18 +2093,26 @@ function paintAtlas(){
     // y pegarlo. «Ya tengo un código» salta al segundo. Atlas responde igual exista o no el correo: por eso el aviso dice «si».
     if(atlCon.paso==='codigo'){
       b.innerHTML='<b style="margin:0">Conectar con Atlas</b><small class="atl-ok"></small><div class="row"><input id="atl-code" maxlength="9" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX"><button type="button" id="atl-go">Conectar</button></div><small id="atl-msg" style="color:var(--q1)"></small><button type="button" id="atl-again"></button><button type="button" class="atl-lnk" id="atl-back">Cambiar el correo</button>';
-      b.querySelector('.atl-ok').textContent=atlCon.enviado
-        ?'Si '+atlCon.correo+' es tu correo de Atlas, ya te llegó un código. Revisa también «Spam». Vence en '+(atlCon.min||15)+' minutos y sirve sólo el último que pidas.'
-        :'Pega el código de 8 caracteres que te llegó al correo con el que entras a Atlas.';
+      b.querySelector('.atl-ok').textContent=!atlCon.enviado
+        ?'Pega el código de 8 caracteres que te llegó al correo registrado en Atlas.'
+        :atlCon.a?'Te enviamos el código a '+atlCon.a+'. Revisa también «Spam». Vence en '+(atlCon.min||15)+' minutos y sirve sólo el último que pidas.'
+        :'Si '+atlCon.correo+' es el correo registrado en Atlas, ya te llegó un código. Si en dos minutos no llega, revisa que sea el correo con el que entras a Atlas (no el de Mi día) o pídelo de nuevo.';
       b.querySelector('#atl-go').onclick=atlasLinkNow;
-      b.querySelector('#atl-back').onclick=e=>{e.stopPropagation();atlCon.paso='pedir';paintAtlas()};
+      b.querySelector('#atl-back').onclick=e=>{e.stopPropagation();atlCon.paso='pedir';atlCon.pedirCorreo=true;atlCon.aviso='';paintAtlas()};
       atlAgainPaint();
       b.querySelector('#atl-again').onclick=e=>{e.stopPropagation();atlasPedir(true)};
     }else{
-      b.innerHTML='<b style="margin:0">Conectar con Atlas</b><small>Te mandamos un código al correo con el que entras a Atlas (puede ser distinto al de Mi día).</small><div class="row col"><input id="atl-mail" type="email" inputmode="email" autocomplete="email" maxlength="120" placeholder="tu correo de Atlas"><button type="button" id="atl-send">Enviarme el código</button></div><small id="atl-msg" style="color:var(--q1)"></small><button type="button" class="atl-lnk" id="atl-have">Ya tengo un código</button>';
-      b.querySelector('#atl-mail').value=atlCon.correo||(sess&&sess.email)||'';
+      // 12-nov (tarde) · Fabián: «que quede sólo con el correo registrado en Atlas». Ya NO se propone el correo de Mi día
+      // (no era el de Atlas y el código nunca salió). Si esta cuenta ya estuvo conectada, Atlas sabe a qué usuario volver
+      // y basta el botón; el campo es para la primera vez y aparece vacío.
+      b.innerHTML='<b style="margin:0">Conectar con Atlas</b><small>El código llega al correo registrado en tu usuario de Atlas.</small><div class="row col"><input id="atl-mail" type="email" inputmode="email" autocomplete="off" maxlength="120" placeholder="Tu correo registrado en Atlas"><button type="button" id="atl-send">Enviarme el código</button></div><small id="atl-msg" style="color:var(--q1)"></small><button type="button" class="atl-lnk" id="atl-first">¿Primera vez? Escribe tu correo de Atlas</button><button type="button" class="atl-lnk" id="atl-have">Ya tengo un código</button>';
+      const mail=b.querySelector('#atl-mail');mail.value=atlCon.correo||'';mail.style.display=atlCon.pedirCorreo?'':'none';
+      b.querySelector('#atl-first').style.display=atlCon.pedirCorreo?'none':'';
+      b.querySelector('#atl-send').textContent=atlCon.pedirCorreo?'Enviarme el código':'Enviarme el código a mi correo de Atlas';
       b.querySelector('#atl-send').onclick=e=>{e.stopPropagation();atlasPedir(false)};
+      b.querySelector('#atl-first').onclick=e=>{e.stopPropagation();atlCon.pedirCorreo=true;paintAtlas();const m=$('#atl-mail');if(m)m.focus()};
       b.querySelector('#atl-have').onclick=e=>{e.stopPropagation();atlCon.paso='codigo';atlCon.enviado=false;paintAtlas()};
+      if(atlCon.aviso){const m=b.querySelector('#atl-msg');m.style.color='var(--mut)';m.textContent=atlCon.aviso}
     }
   }else{
     b.innerHTML='<button type="button" id="atl-open">¿Usas Atlas? Conéctalo</button>';
@@ -2103,7 +2120,7 @@ function paintAtlas(){
   }
 }
 // Estado del «Conectar con Atlas»: en qué paso va, a qué correo se pidió y cuándo (para «Reenviar» al minuto).
-let atlCon={paso:'pedir',correo:'',enviado:false,min:15,desde:0},atlT=null;
+let atlCon={paso:'pedir',correo:'',enviado:false,min:15,desde:0,a:'',pedirCorreo:false,aviso:''},atlT=null;
 function atlAgainPaint(){
   const g=$('#atl-again');if(!g)return;clearTimeout(atlT);
   const falta=Math.ceil((atlCon.desde+60000-Date.now())/1000);
@@ -2114,14 +2131,17 @@ function atlAgainPaint(){
 }
 async function atlasPedir(reenvio){
   const msg=$('#atl-msg'),inp=$('#atl-mail');
-  const correo=reenvio?atlCon.correo:String((inp&&inp.value)||'').trim();
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)&&!/^[\p{L}\p{N} ._+-]{2,60}$/u.test(correo)){if(msg){msg.style.color='var(--q1)';msg.textContent='Escribe el correo (o el usuario) con el que entras a Atlas.'}return}
+  // Sin campo a la vista se pide sin correo: el servidor de Mi día pone el vínculo anterior de esta cuenta, si lo hay.
+  const correo=reenvio?atlCon.correo:(atlCon.pedirCorreo?String((inp&&inp.value)||'').trim():'');
+  if(atlCon.pedirCorreo&&!reenvio&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)&&!/^[\p{L}\p{N} ._+-]{2,60}$/u.test(correo)){if(msg){msg.style.color='var(--q1)';msg.textContent='Escribe el correo (o el usuario) con el que entras a Atlas.'}return}
   const btn=$(reenvio?'#atl-again':'#atl-send');if(btn)btn.disabled=true;
   if(msg){msg.style.color='var(--mut)';msg.textContent='Pidiendo el código…'}
   try{
     const j=await atlasCall({operacion:'pedir_codigo',correo},'-');
+    // Primera vez (esta cuenta nunca se conectó): se abre el campo, vacío, para el correo de Atlas.
+    if(j.sin_previo){atlCon.pedirCorreo=true;atlCon.aviso='Es la primera vez en este celular: escribe el correo con el que entras a Atlas.';atlCon.paso='pedir';paintAtlas();const m=$('#atl-mail');if(m)m.focus();return}
     if(!j.ok){if(btn)btn.disabled=false;const m=$('#atl-msg');if(m){m.style.color='var(--q1)';m.textContent=j.error||'No se pudo pedir el código. Inténtalo de nuevo.'}return}
-    atlCon={paso:'codigo',correo,enviado:true,min:j.vence_min||15,desde:Date.now()};
+    atlCon={paso:'codigo',correo,enviado:true,min:j.vence_min||15,desde:Date.now(),a:j.a||'',pedirCorreo:atlCon.pedirCorreo,aviso:''};
     paintAtlas();const c=$('#atl-code');if(c)c.focus();
     if(reenvio)toast('Te enviamos otro código');
   }catch(e){if(btn)btn.disabled=false;const m=$('#atl-msg');if(m){m.style.color='var(--q1)';m.textContent='Sin conexión. Inténtalo de nuevo.'}}
@@ -2134,7 +2154,7 @@ async function atlasLinkNow(){
     const j=await atlasCall({operacion:'canjear',codigo},'-');
     if(!j.ok||!j.token){msg.style.color='var(--q1)';msg.textContent=j.error||'No se pudo conectar. Inténtalo de nuevo.';return}
     atlasLink={token:j.token,nombre:j.nombre||'',uid:sess.uid};lsSet('midia.atlas',atlasLink);
-    atlCon={paso:'pedir',correo:'',enviado:false,min:15,desde:0};clearTimeout(atlT);
+    atlCon={paso:'pedir',correo:'',enviado:false,min:15,desde:0,a:'',pedirCorreo:false,aviso:''};clearTimeout(atlT);
     delete $('#atl-box').dataset.open;paintAtlas();toast('Atlas conectado');await atlasLoad(true);
   }catch(e){msg.style.color='var(--q1)';msg.textContent='Sin conexión. Inténtalo de nuevo.'}
 }

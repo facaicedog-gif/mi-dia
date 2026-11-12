@@ -405,7 +405,9 @@ async function atlasDespues(uid: string, op: string, j: any) {
   }
   const devs = await dispositivosDe(uid);
   if (op === "desvincular" && j.ok) {
-    await db.from("midia_atlas_enlaces").delete().eq("uid", uid);
+    // 12-nov (tarde) · El vínculo NO se olvida: con él, «Enviarme el código» sabe a qué usuario de Atlas volver sin que la
+    // persona tenga que acordarse de su correo de Atlas (Fabián cerró sesión y el correo de Mi día no era el de Atlas).
+    // No da acceso a nada: Atlas sólo avisa a vínculos activos, y el código va al correo de Atlas.
     if (devs.length) {
       await db.from("midia_recordatorios").delete().in("device", devs).like("id", "A:%");
       await db.from("midia_recordatorios").delete().in("device", devs).like("id", "N:%");
@@ -551,6 +553,16 @@ Deno.serve(async (req) => {
     const usuarioMd = await u.json().catch(() => null);
     const ll = b.llamada && typeof b.llamada === "object" ? b.llamada : {};
     if (!ATLAS_OPS.includes(String(ll.operacion))) return json({ ok: false, error: "Operación no reconocida." }, 400);
+    // 12-nov (tarde) · Al pedir el código, el vínculo anterior de ESTA cuenta lo pone el servidor (nunca el celular):
+    // Atlas manda el código al correo de ese usuario y dice a dónde, enmascarado.
+    if (ll.operacion === "pedir_codigo") {
+      delete ll.previo;
+      if (usuarioMd?.id) {
+        const { data: prev } = await db.from("midia_atlas_enlaces").select("vinculo_id").eq("uid", usuarioMd.id)
+          .order("actualizado", { ascending: false }).limit(1);
+        if (prev?.length) ll.previo = prev[0].vinculo_id;
+      }
+    }
     const cuerpo = JSON.stringify(ll);
     // «ocupado» lleva hasta 400 franjas y «tareas» hasta 200 tareas (12-nov): necesitan más espacio que las demás.
     if (cuerpo.length > ((ll.operacion === "ocupado" || ll.operacion === "tareas") ? 48000 : 6000)) return json({ ok: false, error: "Petición demasiado grande." }, 400);
