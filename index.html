@@ -575,6 +575,78 @@ nav .tab{font-weight:700}
 #fab{background:linear-gradient(135deg,var(--oro),var(--oro2));box-shadow:0 12px 22px -8px var(--oro2)}
 .seg{background:#e9eef8}
 #auth{background:linear-gradient(180deg,#e6edff 0%,var(--bg) 42%)}
+
+/* ═══ 2026-11-11 · WORKSPACE DE BOLSILLO (maqueta-workspace.html, aprobada «sí, así») ═══
+   Fabián: «desde la app poder gestionar el Workspace de los clientes en Atlas, no todo, pero sí poder ver lo necesario y
+   anotar lo necesario para que quede registrada la información en Atlas». Tres piezas: «Atlas te sugiere» bajo los cuadros,
+   la ficha de la empresa a pantalla completa y «¿Cómo te fue?». Sólo aparece para quien conectó Atlas. */
+#atl-sug{display:none;margin:16px 2px 0}
+#atl-sug.show{display:block}
+.wtt{font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--blue);margin:14px 2px 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.wtt span{color:var(--mut);font-weight:600;letter-spacing:0;text-transform:none;font-size:12px}
+.sug{display:flex;gap:11px;align-items:center;width:100%;text-align:left;background:var(--card);border-radius:18px;padding:11px 12px;box-shadow:var(--shadow);margin-bottom:9px}
+.sug:active{transform:scale(.985)}
+.sug .lg{flex:none;width:42px;height:42px;border-radius:13px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:16px;background:linear-gradient(135deg,var(--av,var(--blue)),color-mix(in srgb,var(--av,var(--blue)) 55%,#fff))}
+.sug .n{flex:1;min-width:0}
+.sug .n b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sug .n small{display:block;color:var(--mut);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wch{flex:none;font-size:11px;font-weight:800;border-radius:99px;padding:3px 9px;background:var(--blue-soft);color:var(--blue)}
+.wch.t{background:#e8f7ee;color:#15803d}
+.wch.nu{background:#fff4d6;color:#8a5a00}
+.sugmsg{background:var(--card);border-radius:16px;padding:12px 14px;color:var(--mut);font-size:13.5px;line-height:1.45;box-shadow:var(--shadow);margin-bottom:9px}
+.sugmsg button{color:var(--blue);font-weight:700;margin-top:6px;display:block}
+#wsheet{position:fixed;inset:0;z-index:24;background:var(--bg);transform:translateX(100%);transition:transform .28s cubic-bezier(.3,1,.4,1),visibility 0s .28s;overflow-y:auto;-webkit-overflow-scrolling:touch;visibility:hidden}
+body.ws #wsheet{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.3,1,.4,1)}
+body.ws{overflow:hidden}
+body.ws #bubs{display:none}
+.whd{background:linear-gradient(150deg,#0b1f5c 0%,#1D4ED8 62%,#3b82f6 100%);color:#fff;padding:calc(16px + env(safe-area-inset-top)) 18px 20px;border-radius:0 0 26px 26px;position:relative;overflow:hidden}
+.whd::after{content:"";position:absolute;right:-46px;top:-60px;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle,rgba(246,196,69,.4),transparent 68%);pointer-events:none}
+.whd>*{position:relative;z-index:1}
+.wbk{display:inline-block;font-size:13.5px;font-weight:700;opacity:.92;margin-bottom:8px;padding:6px 10px 6px 0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.whd small{display:block;opacity:.82;font-size:12.5px;min-height:1px}
+.whd b{display:block;font-size:21px;letter-spacing:-.02em;line-height:1.2;overflow-wrap:anywhere}
+.wbd{padding:12px 14px calc(28px + env(safe-area-inset-bottom));max-width:760px;margin:0 auto}
+.wcard{background:var(--card);border-radius:18px;padding:12px 13px;box-shadow:var(--shadow);margin-bottom:9px}
+.wkv{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.wkv.fin{border:0}
+.wkv span{flex:none;width:74px;color:var(--mut);font-size:12.5px}
+.wkv b{font-weight:600;min-width:0;overflow-wrap:anywhere}
+.wacts{display:flex;gap:8px;margin-top:10px}
+.wacts a,.wacts button{flex:1;text-align:center;border-radius:13px;padding:11px 4px;font-weight:700;font-size:13px;background:var(--blue-soft);color:var(--blue);text-decoration:none}
+.wacts .wa{background:#e7f8ee;color:#128c4a}
+.wacts .pri{background:var(--blue);color:#fff}
+.wmot{background:linear-gradient(135deg,#fff8e1,#fff);border:1px solid #f6e3a6}
+.wmot b{font-size:14px;overflow-wrap:anywhere}
+.wmot small{display:block;color:var(--mut);font-size:12px;margin-top:4px;overflow-wrap:anywhere}
+.wmsg{background:var(--blue-soft);border-radius:4px 16px 16px 16px;padding:10px 12px;font-size:13.5px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.whist{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.whist:last-child{border:0}
+.whist i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--blue);margin-top:6px}
+.whist i.g{background:#c3cbdb}
+.whist b{display:block;font-weight:600;overflow-wrap:anywhere}
+.whist small{color:var(--mut);font-size:12px}
+.wsig{background:var(--noche);color:#fff}
+.wsig small{color:rgba(255,255,255,.75);font-size:12px;display:block}
+.wsig b{font-size:14.5px}
+.wsig em{display:block;font-style:normal;font-size:12.5px;color:rgba(255,255,255,.82);margin-top:3px}
+.wres{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.wres button{border-radius:14px;padding:12px 9px;font-weight:700;font-size:13px;background:var(--card);box-shadow:0 0 0 1.5px var(--line);text-align:left;line-height:1.2}
+.wres button.on{background:var(--blue-soft);box-shadow:0 0 0 2px var(--blue);color:var(--blue)}
+.wres button.al{grid-column:1/-1;color:var(--q1)}
+.wres button.al.on{background:var(--q1b);box-shadow:0 0 0 2px var(--q1);color:var(--q1)}
+#w-nota{width:100%;min-height:84px;border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;font:inherit;font-size:16px;color:var(--ink);background:var(--card);resize:vertical;outline:0}
+#w-nota:focus{border-color:var(--blue)}
+.wdias{display:flex;gap:7px;flex-wrap:wrap}
+.wdias button{border-radius:99px;padding:8px 13px;font-weight:700;font-size:13px;background:var(--card);box-shadow:0 0 0 1.5px var(--line)}
+.wdias button.on{background:var(--blue);color:#fff;box-shadow:none}
+#w-otra{display:none;gap:8px;margin-top:8px}
+#w-otra.show{display:flex}
+#w-otra input{flex:1;min-width:0;font-size:16px;border:1.5px solid var(--line);border-radius:12px;padding:9px 10px;background:var(--card);color:var(--ink);font-family:inherit}
+.wgo{display:block;width:100%;margin-top:14px;border-radius:16px;padding:15px;font-weight:800;font-size:15px;color:#fff;background:linear-gradient(135deg,var(--oro),var(--oro2));box-shadow:0 12px 22px -10px var(--oro2)}
+.wgo:disabled{opacity:.6}
+.werr{font-size:13px;margin-top:10px;min-height:18px;text-align:center;color:var(--mut);line-height:1.4}
+.waviso{font-size:12px;color:var(--mut);text-align:center;margin:8px 0 0;line-height:1.4}
+#a-emp{background:var(--blue-soft);color:var(--blue)}
 </style>
 </head>
 <body class="out">
@@ -616,6 +688,7 @@ nav .tab{font-weight:700}
       <div class="quad" data-q="4"><div class="qh"><div><strong>Después</strong><small>Ni urgente ni importante</small></div><span></span></div><div class="list"></div></div>
     </div>
     <div id="bubs"></div>
+    <div id="atl-sug"></div>
     <p class="tip">Mantén presionada una tarjeta para moverla</p>
   </section>
   <section class="view" id="v-agenda"></section>
@@ -669,6 +742,7 @@ nav .tab{font-weight:700}
   <div id="a-who"></div>
   <div id="a-notas"></div>
   <div id="a-acts"></div>
+  <button type="button" class="big" id="a-emp">Ver la empresa y anotar cómo me fue</button>
   <div id="a-ask">
     <div class="lbl" id="a-como-l">¿Cómo salió?</div>
     <div id="a-como"><button type="button" data-como="contesto" class="on">Contestó</button><button type="button" data-como="no_contesta">No contestó</button></div>
@@ -683,6 +757,10 @@ nav .tab{font-weight:700}
     <div class="drow"><label>Día<input type="date" id="a-date"></label><label>Hora<input type="time" id="a-time"></label></div>
     <button type="button" class="big" id="a-repok" style="background:var(--blue);color:#fff">Guardar la nueva fecha en Atlas</button>
   </div>
+</div>
+<div id="wsheet" aria-hidden="true">
+  <div class="whd"><button type="button" class="wbk" id="w-back">‹ Tablero</button><small id="w-sub"></small><b id="w-name"></b></div>
+  <div class="wbd" id="w-body"></div>
 </div>
 <input type="file" id="xl-file" accept=".xlsx,.xls,.csv" hidden>
 <div id="toast"></div>
@@ -966,7 +1044,7 @@ function rollover(){
 }
 function render(){
   if(drag)return;
-  paintProfile();paintAsgIn();paintPpl();paintBubs();
+  paintProfile();paintAsgIn();paintPpl();paintBubs();paintSug();
   const now=new Date(), open=S.tasks.filter(t=>!t.done).concat(ATLAS);
   const sub=now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
   $('#sub').textContent=sub[0].toUpperCase()+sub.slice(1);
@@ -1923,7 +2001,7 @@ function atlasMap(e){
   const id='A:'+e.id,p=atlasPrefs[id]||{},due=e.fecha||null;
   return {id,aid:e.id,atlas:true,title:e.titulo||'Pendiente de Atlas',q:p.q||bandOf(due)||2,band:p.q?p.band:bandOf(due),order:p.order!=null?p.order:-1,
     due,end:due&&e.duracion_min?new Date(new Date(due).getTime()+e.duracion_min*6e4).toISOString():null,
-    done:false,notified:true,notas:e.notas||'',tipo:e.tipo||'',clase:e.clase||null,empresa:e.empresa||null,contacto:e.contacto||null};
+    done:false,notified:true,notas:e.notas||'',tipo:e.tipo||'',clase:e.clase||null,empresa:e.empresa||null,contacto:e.contacto||null,cid:e.company_id||null};
 }
 function atlasSet(evs){ATLAS=(evs||[]).map(atlasMap);lsSet('midia.atlas.cache',evs||[])}
 // El cuadrante y el orden que les des aquí son tuyos: se recuerdan en este celular, Atlas no los conoce.
@@ -1948,6 +2026,7 @@ async function atlasLoad(force){
     if(!drag&&!document.body.classList.contains('sheet')&&!document.body.classList.contains('asheet'))render();
   }catch(e){if(force)toast('No hubo conexión con Atlas; se muestra lo último que se trajo')}
   atlasBusy=false;paintAtlas();
+  sugLoad(force);   // 2026-11-11 · «Atlas te sugiere» va al ritmo de los pendientes
 }
 async function atlasOff(quiet){
   if(!atlasLink)return;
@@ -2045,10 +2124,201 @@ function openAtlas(t){
   $('#a-ok').textContent=t.clase?'Ya lo hice · guardar en Atlas':'Ya lo hice';
   $('#a-sin').style.display=t.clase?'':'none';
   $('#a-repbox').classList.remove('show');
+  $('#a-emp').style.display=t.cid?'':'none';   // 2026-11-11 · con empresa, se puede abrir su ficha y anotar el resultado completo
   const d=t.due?new Date(t.due):new Date();$('#a-date').value=ymd(d);$('#a-time').value=hm(d);
   document.body.classList.add('asheet');
 }
 function closeAtlas(){document.body.classList.remove('asheet');aCur=null}
+$('#a-emp').onclick=()=>{const p=aCur;if(!p||!p.cid)return;closeAtlas();wsOpen(p.cid,{nombre:(p.empresa&&p.empresa.nombre)||p.title,ev:p.aid,clase:p.clase})};
+
+/* ---------- 2026-11-11 · WORKSPACE DE BOLSILLO ----------
+   Lo que la persona ve y anota de una empresa de Atlas desde el celular (maqueta-workspace.html). Todo pasa por el relevo
+   de siempre (atlasCall → función midia → midia-puente de Atlas): aquí no se guarda nada de Atlas salvo la última lista de
+   sugeridas, para pintarla sin esperar. Lo que NO está aquí a propósito: descartar, cambiar de etapa, calificar, cotizar. */
+let SUG=lsGet('midia.atlas.sug',null),sugAt=0,sugBusy=false,sugErr='';
+const sugMia=()=>SUG&&sess&&atlasLink&&SUG.uid===sess.uid?SUG:null;
+async function sugLoad(force){
+  if(!atlasLink||!sess||sugBusy)return;
+  if(!force&&Date.now()-sugAt<120000)return;
+  sugBusy=true;
+  try{
+    const j=await atlasCall({operacion:'sugeridas'});
+    if(j.ok&&Array.isArray(j.sugeridas)){sugAt=Date.now();sugErr='';SUG={items:j.sugeridas,total:j.total||0,sin:j.sin_canal||0,uid:sess.uid};lsSet('midia.atlas.sug',SUG)}
+    else if(j.status!==401)sugErr=j.error||'Atlas no respondió';   // el 401 ya lo atiende atlasLoad (la conexión se cayó)
+  }catch(e){sugErr='sin conexión'}
+  sugBusy=false;paintSug();
+}
+const W_CANAL={telefono:['Teléfono','t'],correo:['Correo',''],linkedin:['LinkedIn',''],web:['Web','']};
+function paintSug(){
+  const B=$('#atl-sug');if(!B)return;
+  const on=!!(atlasLink&&sess);B.classList.toggle('show',on);B.textContent='';
+  if(!on)return;
+  const m=sugMia();
+  const h=document.createElement('div');h.className='wtt';h.textContent='Atlas te sugiere';const s=document.createElement('span');h.appendChild(s);B.appendChild(h);
+  const msg=(txt,btn)=>{const d=document.createElement('div');d.className='sugmsg';d.textContent=txt;
+    if(btn){const b=document.createElement('button');b.type='button';b.textContent=btn;b.addEventListener('click',()=>{sugErr='';paintSug();sugLoad(true)});d.appendChild(b)}B.appendChild(d)};
+  // Nunca una lista vacía que parezca «no hay nada»: si no se pudo traer, se dice y se ofrece reintentar.
+  if(!m){msg(sugErr?'No se pudo traer lo que Atlas te sugiere ('+sugErr+'). Tus pendientes de Atlas sí están en el tablero.':'Buscando lo que Atlas te sugiere…',sugErr?'Reintentar':null);return}
+  if(!m.items.length){msg('Hoy no hay empresas nuevas por contactar: ya gestionaste las que tienen cómo contactarlas.'+(m.sin?' Atlas sigue buscando el contacto de '+m.sin+' más.':''));return}
+  s.textContent=m.total>m.items.length?m.items.length+' de '+m.total:m.items.length===1?'1 para hoy':m.items.length+' para hoy';
+  for(const x of m.items){
+    const b=document.createElement('button');b.type='button';b.className='sug';
+    const lg=document.createElement('span');lg.className='lg';lg.textContent=(String(x.nombre||'?').trim()[0]||'?').toUpperCase();lg.style.setProperty('--av',avColor(x.nombre||''));
+    const n=document.createElement('span');n.className='n';const nb=document.createElement('b');nb.textContent=x.nombre||'Empresa';const ns=document.createElement('small');
+    const c=x.contacto||{};ns.textContent=[x.ciudad,c.nombre?c.nombre+(c.cargo?', '+c.cargo.toLowerCase():''):''].filter(Boolean).join(' · ')||'Sin contacto con nombre';
+    n.append(nb,ns);
+    const k=W_CANAL[x.canal]||['Contacto',''],ch=document.createElement('span');ch.className='wch '+(x.recien_llego?'nu':k[1]);ch.textContent=(x.recien_llego?'✨ ':'')+k[0];
+    b.append(lg,n,ch);b.addEventListener('click',()=>wsOpen(x.company_id,{nombre:x.nombre}));B.appendChild(b);
+  }
+  if(sugErr){const p=document.createElement('p');p.className='waviso';p.textContent='No se pudo actualizar ('+sugErr+'): esta es la última lista que se trajo.';B.appendChild(p)}
+}
+
+// La ficha y el registro comparten la pantalla #wsheet. wCur = {cid, ev (pendiente que se cierra, si vino de uno), nombre, d (lo que respondió Atlas), paso}
+let wCur=null;
+const wEl=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined&&txt!==null)e.textContent=txt;return e};
+const wTit=(txt,sub)=>{const h=wEl('div','wtt',txt);if(sub)h.appendChild(wEl('span','',sub));return h};
+const wPrimero=s=>String(s||'').split(/[\/,;|]| y /)[0];   // «300… / 602…» → el primero
+function wsOpen(cid,ctx){
+  const c=ctx||{};
+  wCur={cid,ev:c.ev||null,clase:c.clase||null,nombre:c.nombre||'',d:null,paso:'ficha',err:''};
+  document.body.classList.add('ws');$('#wsheet').setAttribute('aria-hidden','false');$('#wsheet').scrollTop=0;
+  wsFicha();wsLoad();
+}
+function wsClose(){document.body.classList.remove('ws');$('#wsheet').setAttribute('aria-hidden','true');wCur=null}
+$('#w-back').onclick=()=>{if(wCur&&wCur.paso==='registro'){wsFicha();$('#wsheet').scrollTop=0}else wsClose()};
+async function wsLoad(){
+  const c=wCur;if(!c)return;c.err='';
+  try{
+    const j=await atlasCall({operacion:'empresa',company_id:c.cid});
+    if(wCur!==c)return;   // la persona ya cerró o abrió otra
+    if(!j.ok||!j.empresa){c.err=j.error||'Atlas no respondió.';if(c.paso==='ficha')wsFicha();return}
+    c.d=j;if(j.empresa.nombre)c.nombre=j.empresa.nombre;
+  }catch(e){if(wCur!==c)return;c.err='No hubo conexión con Atlas.'}
+  if(c.paso==='ficha')wsFicha();
+}
+function wsFicha(){
+  const c=wCur;if(!c)return;c.paso='ficha';
+  const B=$('#w-body');B.textContent='';
+  $('#w-back').textContent='‹ Tablero';$('#w-name').textContent=c.nombre||'Empresa';
+  const d=c.d;
+  if(!d){
+    $('#w-sub').textContent='';
+    const m=wEl('div','sugmsg',c.err?c.err+' No se pudo abrir la empresa; tus pendientes siguen en el tablero.':'Abriendo la empresa en Atlas…');
+    if(c.err){const b=wEl('button','', 'Reintentar');b.type='button';b.addEventListener('click',()=>{c.err='';wsFicha();wsLoad()});m.appendChild(b)}
+    B.appendChild(m);return;
+  }
+  const e=d.empresa||{},k=d.contacto||{};
+  $('#w-sub').textContent=[e.ciudad,e.sector].filter(Boolean).join(' · ');
+  // quién
+  const q=wEl('div','wcard');
+  const kv=(l,v)=>{if(!v)return;const r=wEl('div','wkv');r.append(wEl('span','',l),wEl('b','',v));q.appendChild(r)};
+  kv('Contacto',k.nombre?k.nombre+(k.cargo?' · '+k.cargo.toLowerCase():''):'');
+  const telCrudo=k.telefono||e.telefono||'',tel=soloDig(wPrimero(telCrudo)),mail=k.correo||e.correo||'';
+  kv('Teléfono',telCrudo?telFmt(wPrimero(telCrudo))+(wPrimero(telCrudo)!==String(telCrudo)?'  (hay más en Atlas)':''):'');
+  kv('Correo',mail);kv('Web',e.web);
+  if(q.lastChild)q.lastChild.classList.add('fin');
+  const cel=tel.length===10&&tel[0]==='3',acts=wEl('div','wacts');
+  const link=(txt,href,cls)=>{const a=wEl('a',cls||'',txt);a.href=href;a.target='_blank';a.rel='noopener';acts.appendChild(a)};
+  if(tel.length>=7)link('Llamar','tel:'+tel,'pri');
+  if(cel)link('WhatsApp','https://wa.me/57'+tel,'wa');
+  if(/^[^\s@]+@[^\s@]+$/.test(mail))link('Correo','mailto:'+mail);
+  if(acts.children.length)q.appendChild(acts);
+  if(!q.children.length)q.appendChild(wEl('div','wkv fin','Atlas todavía no tiene un contacto de esta empresa.'));
+  B.appendChild(q);
+  // por qué
+  if(d.motivo||d.servicio){
+    B.appendChild(wTit('Por qué te la trae Atlas'));
+    const m=wEl('div','wcard wmot');
+    m.appendChild(wEl('b','',d.motivo&&d.motivo.hecho?d.motivo.hecho:'Encaja con lo que ofreces'));
+    const serv=(d.motivo&&d.motivo.servicio)||d.servicio;
+    if(serv)m.appendChild(wEl('small','','Servicio sugerido: '+serv));
+    B.appendChild(m);
+  }
+  // qué decirle
+  if(d.texto){
+    B.appendChild(wTit('Qué decirle'));
+    B.appendChild(wEl('div','wmsg',d.texto));
+    const a2=wEl('div','wacts');a2.style.marginBottom='4px';
+    if(cel){const a=wEl('a','wa','Abrir en WhatsApp con este texto');a.href='https://wa.me/57'+tel+'?text='+encodeURIComponent(d.texto);a.target='_blank';a.rel='noopener';a2.appendChild(a)}
+    else{const b=wEl('button','','Copiar este texto');b.type='button';b.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(d.texto);toast('Texto copiado')}catch(x){toast('No se pudo copiar: mantén presionado el texto para copiarlo')}});a2.appendChild(b)}
+    B.appendChild(a2);
+  }
+  // qué ha pasado
+  B.appendChild(wTit('Qué ha pasado'));
+  const hc=wEl('div','wcard');
+  if(Array.isArray(d.historia)&&d.historia.length){
+    for(const x of d.historia){const r=wEl('div','whist');r.appendChild(wEl('i',x.de==='Atlas'?'g':''));const tx=wEl('div');tx.append(wEl('b','',x.texto||''),wEl('small','',[x.de==='Atlas'?'Atlas':'',x.fecha?fmtDue(new Date(x.fecha)):''].filter(Boolean).join(' · ')));r.appendChild(tx);hc.appendChild(r)}
+  }else hc.appendChild(wEl('div','wkv fin','Todavía no hay gestiones: serías la primera persona en contactarla.'));
+  B.appendChild(hc);
+  if(d.sigue&&d.sigue.accion){
+    const sg=wEl('div','wcard wsig');sg.append(wEl('small','','Lo que sigue según Atlas'+(d.sigue.intento&&d.sigue.de?' · intento '+d.sigue.intento+' de '+d.sigue.de:'')),wEl('b','',d.sigue.accion));
+    if(d.sigue.pista)sg.appendChild(wEl('em','',d.sigue.pista));
+    B.appendChild(sg);
+  }
+  if(d.aviso)B.appendChild(wEl('p','waviso',d.aviso));
+  const go=wEl('button','wgo','Anotar cómo me fue');go.type='button';go.addEventListener('click',wsRegistro);B.appendChild(go);
+}
+const W_RES=[['contesto','📞 Contestaron'],['no_contesta','📵 No contestaron'],['ocupado','⏳ Estaba ocupado'],['escribi_whatsapp','💬 Le escribí por WhatsApp'],
+  ['escribi_correo','✉️ Le escribí por correo'],['reunion_hecha','🤝 Se hizo la reunión'],['equivocado','🚫 El número no es de esta empresa']];
+const a9=d=>{d.setHours(9,0,0,0);return d};
+function wsDias(){
+  const hoy=new Date(),man=a9(new Date(hoy.getTime()+864e5)),lun=a9(new Date(hoy.getTime()+(((8-hoy.getDay())%7)||7)*864e5)),sem=a9(new Date(hoy.getTime()+7*864e5));
+  const L=[['no','Ninguno',null],['man','Mañana',man]];
+  if(ymd(lun)!==ymd(man))L.push(['lun','Lunes '+lun.getDate(),lun]);   // un domingo, «mañana» ya es el lunes
+  L.push(['sem','En una semana',sem],['otra','Otra fecha',null]);
+  return L;
+}
+function wsRegistro(){
+  const c=wCur;if(!c)return;c.paso='registro';
+  const B=$('#w-body');B.textContent='';$('#wsheet').scrollTop=0;
+  $('#w-back').textContent='‹ '+(c.nombre||'Empresa');$('#w-sub').textContent='';$('#w-name').textContent='¿Cómo te fue?';
+  let accion=c.clase==='reunion'?'reunion_hecha':'contesto',dia='no';
+  B.appendChild(wTit('Resultado'));
+  const R=wEl('div','wres');
+  // Sin teléfono en la ficha no hay número que quitar: no se ofrece «no es de esta empresa».
+  const hayTel=!!(c.d&&((c.d.contacto&&c.d.contacto.telefono)||(c.d.empresa&&c.d.empresa.telefono)));
+  for(const [id,txt] of W_RES){if(id==='equivocado'&&!hayTel)continue;const b=wEl('button',id==='equivocado'?'al':'',txt);b.type='button';b.classList.toggle('on',id===accion);
+    b.addEventListener('click',()=>{accion=id;R.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});R.appendChild(b)}
+  B.appendChild(R);
+  B.appendChild(wTit('Nota','opcional'));
+  const ta=document.createElement('textarea');ta.id='w-nota';ta.maxLength=2000;ta.placeholder='Qué te dijeron, con quién hablaste, qué quedó pendiente…';B.appendChild(ta);
+  // Por defecto NO se agenda nada (Fabián, 8-oct: «sólo si le pido que me recuerde me genera el recordatorio»).
+  B.appendChild(wTit('Siguiente paso','queda en tu agenda de Atlas'));
+  const D=wEl('div','wdias'),dias=wsDias();
+  const otra=wEl('div','');otra.id='w-otra';const fd=document.createElement('input');fd.type='date';fd.id='w-date';fd.min=ymd(new Date());const fh=document.createElement('input');fh.type='time';fh.id='w-time';fh.value='09:00';otra.append(fd,fh);
+  for(const [id,txt] of dias){const b=wEl('button','',txt);b.type='button';b.classList.toggle('on',id===dia);
+    b.addEventListener('click',()=>{dia=id;D.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));otra.classList.toggle('show',id==='otra')});D.appendChild(b)}
+  B.append(D,otra);
+  const go=wEl('button','wgo','Guardar en Atlas');go.type='button';B.appendChild(go);
+  const err=wEl('div','werr','');B.appendChild(err);
+  B.appendChild(wEl('p','waviso','Lo demás (descartar, cambiar de etapa, cotizar) se hace en Atlas.'));
+  const fechaDe=()=>{
+    if(dia==='no')return null;
+    if(dia==='otra'){if(!fd.value)return false;const [y,m,da]=fd.value.split('-').map(Number),[hh,mm]=(fh.value||'09:00').split(':').map(Number);return new Date(y,m-1,da,hh,mm)}
+    return dias.find(x=>x[0]===dia)[2];
+  };
+  go.addEventListener('click',async()=>{
+    const f=fechaDe();
+    const mal=m=>{err.style.color='var(--q1)';err.textContent=m};
+    if(f===false){mal('Elige el día del siguiente paso, o marca «Ninguno».');return}
+    if(f&&f.getTime()<Date.now()-6e4){mal('Esa fecha ya pasó. Elige una que venga.');return}
+    let confirmado=false;
+    if(accion==='equivocado'){
+      // Esto QUITA el teléfono de la ficha en Atlas y lo bloquea: en el celular un toque de más no puede costar un teléfono bueno.
+      const ok=await askText('¿El número no es de esta empresa?','Atlas va a quitar ese teléfono de la ficha y no lo volverá a usar. Si sólo no contestaron o estaba apagado, elige «No contestaron».','Sí, quitarlo',false,'No, volver');
+      if(ok==null)return;confirmado=true;
+    }
+    go.disabled=true;err.style.color='var(--mut)';err.textContent='Guardando en Atlas…';
+    try{
+      const j=await atlasCall({operacion:'gestion',company_id:c.cid,accion,nota:ta.value.trim(),siguiente:f?{fecha:f.toISOString()}:null,evento_id:c.ev||undefined,confirmado});
+      if(!j.ok){go.disabled=false;mal((j.error||'Atlas no lo guardó.')+' Lo que escribiste sigue aquí.');return}
+      const m=sugMia();if(m){const n0=m.items.length;m.items=m.items.filter(x=>x.company_id!==c.cid);if(m.items.length<n0)m.total=Math.max(0,(m.total||1)-1);lsSet('midia.atlas.sug',SUG)}
+      if(c.ev&&j.cerrado)ATLAS=ATLAS.filter(x=>x.aid!==c.ev);
+      wsClose();render();toast(j.aviso||'Guardado en Atlas');
+      atlasAt=0;sugAt=0;atlasLoad(true);
+    }catch(x){go.disabled=false;mal('Sin conexión. Lo que escribiste sigue aquí; inténtalo de nuevo.')}
+  });
+}
 $$('#a-como button').forEach(b=>b.onclick=()=>{aComo=b.dataset.como;$$('#a-como button').forEach(x=>x.classList.toggle('on',x===b))});
 async function atlasDo(llamada,okMsg){
   const t=aCur,err=$('#a-err');if(!t)return;
