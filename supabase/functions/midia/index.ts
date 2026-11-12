@@ -75,7 +75,8 @@ const clip = (v: unknown, n: number) => String(v ?? "").slice(0, n);
 // A dónde se releva y qué se puede pedir: fijo aquí, la app no elige ni la dirección ni la operación.
 const ATLAS_URL = "https://atlas.veltrion.com.co/.netlify/functions/midia-puente";
 // 2026-11-11 · + sugeridas, empresa y gestion: el Workspace de bolsillo (maqueta-workspace.html). La lista sigue cerrada.
-const ATLAS_OPS = ["canjear", "listar", "cerrar", "reprogramar", "desvincular", "ocupado", "sugeridas", "empresa", "gestion"];
+// 2026-11-12 · + pedir_codigo: el código para conectar llega solo al correo de Atlas (maqueta-conectar.html).
+const ATLAS_OPS = ["canjear", "pedir_codigo", "listar", "cerrar", "reprogramar", "desvincular", "ocupado", "sugeridas", "empresa", "gestion"];
 
 // Quién llama, según su sesión de Mi día. null si no trae sesión o si venció.
 type Quien = { id: string; email: string };
