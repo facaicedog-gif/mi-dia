@@ -4,6 +4,7 @@
 // función (con la llave de servicio) las lee y escribe.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import webpush from "npm:web-push@3.6.7";
+import { enHorario, siguienteHabil } from "./horario.ts";
 
 const db = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -76,7 +77,8 @@ const clip = (v: unknown, n: number) => String(v ?? "").slice(0, n);
 const ATLAS_URL = "https://atlas.veltrion.com.co/.netlify/functions/midia-puente";
 // 2026-11-11 · + sugeridas, empresa y gestion: el Workspace de bolsillo (maqueta-workspace.html). La lista sigue cerrada.
 // 2026-11-12 · + pedir_codigo: el código para conectar llega solo al correo de Atlas (maqueta-conectar.html).
-const ATLAS_OPS = ["canjear", "pedir_codigo", "listar", "cerrar", "reprogramar", "desvincular", "ocupado", "sugeridas", "empresa", "gestion"];
+// 2026-11-12 · + tareas: lo que se crea en Mi día con «Ponerla en Atlas» aparece en la agenda de Atlas.
+const ATLAS_OPS = ["canjear", "pedir_codigo", "listar", "cerrar", "reprogramar", "desvincular", "ocupado", "sugeridas", "empresa", "gestion", "tareas"];
 
 // Quién llama, según su sesión de Mi día. null si no trae sesión o si venció.
 type Quien = { id: string; email: string };
@@ -368,6 +370,143 @@ async function asignar(yo: Quien, b: any) {
   return json({ ok: false, error: "Acción no reconocida." }, 400);
 }
 
+/* ---------- la agenda de Atlas, avisada desde aquí (12-nov, maqueta-agenda-compartida.html) ---------- */
+// Fabián: «me llegó notificación en Telegram más no en Mi día… con eso nos quitamos Telegram como puente». Antes, este
+// servidor sólo conocía los pendientes de Atlas que el celular le pasaba al abrir la app. Ahora los pone él mismo:
+//   · con cada «listar» que pasa por el relevo (la foto completa, con contacto y teléfono, como la arma la app);
+//   · con cada aviso de la base de Atlas (`atlas_evento`), en el momento en que algo se crea, cambia o se cierra.
+// Los de Atlas siguen la regla de horario de Atlas (lun-vie 8-17, sin festivos: horario.ts). Los propios, como siempre.
+const ID_ATLAS = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+async function mismaFirma(a: string, b: string) {
+  return (await huella("f:" + a)) === (await huella("f:" + b));   // compara huellas: el tiempo no delata la firma
+}
+const horaCo = (t: number) => new Date(t).toLocaleTimeString("es-CO", { timeZone: "America/Bogota", hour: "numeric", minute: "2-digit" });
+/** El aviso de un pendiente de Atlas, en la forma de `atlasAviso` de la app (título 📞 empresa; quién, teléfono, hora). */
+function avisoAtlas(ev: any) {
+  const e = ev.empresa && typeof ev.empresa === "object" ? ev.empresa : { nombre: ev.empresa || null };
+  const c = ev.contacto || {};
+  const tel = String(c.telefono || e.telefono || "").split(/[\/,;|]| y /)[0].trim();
+  const quien = c.nombre ? c.nombre + (c.cargo ? " (" + c.cargo + ")" : "") : "";
+  const t = Date.parse(ev.fecha);
+  return {
+    title: clip(e.nombre ? "📞 " + e.nombre : "📞 " + (ev.titulo || "Pendiente de Atlas"), 200),
+    body: clip([quien, tel, isNaN(t) ? "" : horaCo(t), e.nombre ? ev.titulo : ""].filter(Boolean).join(" · "), 200),
+  };
+}
+async function dispositivosDe(uid: string): Promise<string[]> {
+  const { data } = await db.from("midia_dispositivos").select("device").eq("user_id", uid);
+  return (data ?? []).map((d) => d.device);
+}
+/** Después de un relevo que salió bien: recordar el vínculo, tomar la foto de la agenda o soltar todo al desconectar. */
+async function atlasDespues(uid: string, op: string, j: any) {
+  const vin = typeof j.vinculo_id === "string" ? j.vinculo_id.slice(0, 64) : "";
+  if ((op === "canjear" || op === "listar") && vin) {
+    await db.from("midia_atlas_enlaces").upsert({ vinculo_id: vin, uid, actualizado: new Date().toISOString() });
+  }
+  const devs = await dispositivosDe(uid);
+  if (op === "desvincular" && j.ok) {
+    await db.from("midia_atlas_enlaces").delete().eq("uid", uid);
+    if (devs.length) {
+      await db.from("midia_recordatorios").delete().in("device", devs).like("id", "A:%");
+      await db.from("midia_recordatorios").delete().in("device", devs).like("id", "N:%");
+    }
+    return;
+  }
+  if (op !== "listar" || !Array.isArray(j.eventos) || !devs.length) return;
+  // La foto manda: se reemplazan TODOS los «A:» de esta persona. Los «N:» (aviso de nuevo, en espera) se quedan.
+  const ahora = Date.now();
+  const filas: any[] = [];
+  for (const ev of j.eventos.slice(0, 100)) {
+    const t = Date.parse(ev && ev.fecha);
+    if (!ev || !ID_ATLAS.test(String(ev.id)) || isNaN(t)) continue;
+    const due = siguienteHabil(t);
+    if (due <= ahora) continue;
+    const a = avisoAtlas(ev);
+    for (const device of devs) filas.push({ device, id: "A:" + ev.id, title: a.title, body: a.body, due: new Date(due).toISOString(), sent_at: null });
+  }
+  await db.from("midia_recordatorios").delete().in("device", devs).like("id", "A:%");
+  if (filas.length) {
+    const { error } = await db.from("midia_recordatorios").upsert(filas);
+    if (error) throw new Error("foto: " + error.message);
+  }
+}
+/**
+ * Una tarea que nació en Mi día y la cambiaron EN ATLAS (12-nov, segunda entrega): se corrige la tarea en la nube de Mi
+ * día, con una `u` nueva para que el celular la tome en su próxima sincronización (gana la edición más reciente), y su
+ * aviso se mueve o se quita en el servidor por si la app está cerrada. hecho → hecha; cancelado → eliminada; otra
+ * hora → otra hora. El título no se toca: es de la persona. Si no hay nada distinto, no se escribe (así no hay ecos).
+ */
+async function tareaCambiadaEnAtlas(uid: string, ev: any) {
+  const ref = clip(ev.ref, 40);
+  if (!/^[A-Za-z0-9_-]{4,40}$/.test(ref)) return { ok: false, error: "ref" };
+  const { data: fila } = await db.from("midia_tareas").select("data,deleted").eq("user_id", uid).eq("id", ref).maybeSingle();
+  if (!fila || fila.deleted || !fila.data) return { ok: true, sin_tarea: true };
+  const t: any = { ...(fila.data as any) };
+  const devs = await dispositivosDe(uid);
+  const quitarAviso = async () => { if (devs.length) await db.from("midia_recordatorios").delete().in("device", devs).eq("id", ref); };
+  const ahora = Date.now();
+  if (ev.estado === "cancelado") {
+    await db.from("midia_tareas").update({ data: { u: ahora }, deleted: true, updated_at: new Date(ahora).toISOString() }).eq("user_id", uid).eq("id", ref);
+    await quitarAviso();
+    return { ok: true, tarea: "eliminada" };
+  }
+  const f = Date.parse(ev.fecha);
+  const due = isNaN(f) ? t.due : new Date(f).toISOString();
+  const end = isNaN(f) ? t.end : (Number(ev.duracion_min) > 0 ? new Date(f + Number(ev.duracion_min) * 60000).toISOString() : t.end && t.due ? new Date(f + (Date.parse(t.end) - Date.parse(t.due))).toISOString() : null);
+  const hecho = ev.estado === "hecho";
+  if (!!t.done === hecho && t.due === due && (t.end || null) === (end || null)) return { ok: true, sin_cambios: true };
+  if (hecho && !t.done) t.doneAt = ahora;
+  if (!hecho && t.done) { t.doneAt = null; t.order = -1; }
+  t.done = hecho;
+  if (t.due !== due) t.notified = Date.parse(due) <= ahora;
+  t.due = due;
+  t.end = end;
+  t.u = ahora;
+  await db.from("midia_tareas").update({ data: t, updated_at: new Date(ahora).toISOString() }).eq("user_id", uid).eq("id", ref);
+  if (hecho || Date.parse(due) <= ahora) await quitarAviso();
+  else if (devs.length) await db.from("midia_recordatorios").update({ due, sent_at: null }).in("device", devs).eq("id", ref);
+  return { ok: true, tarea: hecho ? "hecha" : "movida" };
+}
+
+/** Un pendiente de Atlas se creó, cambió o se cerró: se programa, se mueve o se quita en todos los celulares. */
+async function atlasEvento(b: any) {
+  const vin = clip(b.vinculo, 64);
+  const { data: en } = await db.from("midia_atlas_enlaces").select("uid").eq("vinculo_id", vin).maybeSingle();
+  if (!en) return { ok: true, sin_enlace: true };   // conectó antes del 12-nov y aún no abre la app: se arregla al abrirla
+  const ev = b.evento && typeof b.evento === "object" ? b.evento : {};
+  if (!ID_ATLAS.test(String(ev.id))) return { ok: false, error: "evento" };
+  if (b.accion === "propia") return await tareaCambiadaEnAtlas(en.uid, ev);
+  const devs = await dispositivosDe(en.uid);
+  if (!devs.length) return { ok: true, sin_dispositivo: true };
+  const rid = "A:" + ev.id, nid = "N:" + ev.id;
+  const t = Date.parse(ev.fecha);
+  const ahora = Date.now();
+  if (b.accion === "quitar" || isNaN(t)) {
+    await db.from("midia_recordatorios").delete().in("device", devs).in("id", [rid, nid]);
+    return { ok: true, quitado: true };
+  }
+  const a = avisoAtlas(ev);
+  const due = siguienteHabil(t);
+  if (due > ahora) {
+    const filas = devs.map((device) => ({ device, id: rid, title: a.title, body: a.body, due: new Date(due).toISOString(), sent_at: null }));
+    const { error } = await db.from("midia_recordatorios").upsert(filas);
+    if (error) throw new Error(error.message);
+  } else {
+    await db.from("midia_recordatorios").delete().in("device", devs).eq("id", rid);
+  }
+  // «Nuevo en tu agenda de Atlas»: el mismo aviso que Telegram al crear, cree quien cree el pendiente. Fuera de horario
+  // se guarda para la primera hora hábil (y si ese pendiente se cierra antes, se quita con él).
+  if (b.accion === "nuevo") {
+    const nuevo = { title: "Nuevo en tu agenda de Atlas", body: clip((ev.titulo || a.title) + " · " + cuando(new Date(t).toISOString()), 200) };
+    if (enHorario(ahora)) await avisar(en.uid, { ...nuevo, tag: rid });
+    else {
+      const filas = devs.map((device) => ({ device, id: nid, ...nuevo, due: new Date(siguienteHabil(ahora)).toISOString(), sent_at: null }));
+      await db.from("midia_recordatorios").upsert(filas);
+    }
+  }
+  return { ok: true };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   if (req.method !== "POST") return json({ error: "método" }, 405);
@@ -387,7 +526,8 @@ Deno.serve(async (req) => {
       const code = await send(dev, { title: r.title, body: r.body ?? "", tag: r.id });
       if (code >= 200 && code < 300) sent++;
       // Los de Atlas traen datos de clientes (contacto, teléfono): no se guardan después de enviarlos.
-      if (String(r.id).startsWith("A:")) await db.from("midia_recordatorios").delete().eq("device", r.device).eq("id", r.id);
+      // «N:» = el aviso de «nuevo en tu agenda de Atlas» que se guardó para la primera hora hábil (12-nov).
+      if (/^[AN]:/.test(String(r.id))) await db.from("midia_recordatorios").delete().eq("device", r.device).eq("id", r.id);
       else {
         await db.from("midia_recordatorios").update({ sent_at: new Date().toISOString() })
           .eq("device", r.device).eq("id", r.id);
@@ -408,11 +548,12 @@ Deno.serve(async (req) => {
       headers: { apikey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, Authorization: "Bearer " + jwt },
     });
     if (!u.ok) return json({ ok: false, error: "Tu sesión de Mi día venció. Entra de nuevo." }, 401);
+    const usuarioMd = await u.json().catch(() => null);
     const ll = b.llamada && typeof b.llamada === "object" ? b.llamada : {};
     if (!ATLAS_OPS.includes(String(ll.operacion))) return json({ ok: false, error: "Operación no reconocida." }, 400);
     const cuerpo = JSON.stringify(ll);
-    // «ocupado» lleva hasta 400 franjas (sólo inicio y fin): necesita más espacio que las demás.
-    if (cuerpo.length > (ll.operacion === "ocupado" ? 48000 : 6000)) return json({ ok: false, error: "Petición demasiado grande." }, 400);
+    // «ocupado» lleva hasta 400 franjas y «tareas» hasta 200 tareas (12-nov): necesitan más espacio que las demás.
+    if (cuerpo.length > ((ll.operacion === "ocupado" || ll.operacion === "tareas") ? 48000 : 6000)) return json({ ok: false, error: "Petición demasiado grande." }, 400);
     const enlace = typeof b.enlace === "string" ? b.enlace.slice(0, 200) : "";
     try {
       const r = await fetch(ATLAS_URL, {
@@ -423,6 +564,12 @@ Deno.serve(async (req) => {
       const texto = await r.text();
       let j: unknown;
       try { j = JSON.parse(texto); } catch { j = { ok: false, error: "Atlas respondió algo ilegible." }; }
+      // 12-nov · Lo que este servidor necesita para avisar sin que la app esté abierta. Nunca tumba la respuesta.
+      if (r.ok && j && typeof j === "object" && usuarioMd?.id) {
+        try { await atlasDespues(String(usuarioMd.id), String(ll.operacion), j as any); }
+        catch (e) { console.error("atlas despues", String(e)); }
+        delete (j as any).vinculo_id;   // el celular no lo necesita
+      }
       return json(j, r.status);
     } catch (e) {
       console.error("atlas", String(e));
@@ -457,6 +604,19 @@ Deno.serve(async (req) => {
     }
   }
 
+  // 12-nov · La agenda de Atlas avisa aquí en el momento en que cambia (disparador en su base, ver
+  // atlas_deploy/sql/2026-11-12_midia_agenda_aviso.sql). Sin sesión de usuario: lo autoriza la firma compartida.
+  if (b.op === "atlas_evento") {
+    const firma = await secret("atlas_aviso");
+    if (!firma || !(await mismaFirma(req.headers.get("x-atlas-firma") || "", firma))) return json({ error: "no" }, 401);
+    try {
+      return json(await atlasEvento(b));
+    } catch (e) {
+      console.error("atlas_evento", String(e));
+      return json({ ok: false, error: "guardar" }, 500);
+    }
+  }
+
   const device = typeof b.device === "string" ? b.device : "";
   if (!/^[a-f0-9]{32,64}$/.test(device)) return json({ error: "dispositivo" }, 400);
 
@@ -464,7 +624,9 @@ Deno.serve(async (req) => {
   if (b.op === "sync") {
     if (!validSub(b.sub)) return json({ error: "suscripción" }, 400);
     const list = (Array.isArray(b.reminders) ? b.reminders : []).slice(0, 200)
-      .filter((r: any) => r && typeof r.id === "string" && !isNaN(Date.parse(r.due)))
+      // 12-nov · Los de Atlas («A:») ya no los dicta el celular: los pone este servidor (con «listar» y con el aviso de
+      // la base), con la regla de horario. Un celular con la versión anterior los sigue mandando: se ignoran.
+      .filter((r: any) => r && typeof r.id === "string" && !/^[AN]:/.test(r.id) && !isNaN(Date.parse(r.due)))
       .map((r: any) => ({
         device, id: clip(r.id, 40), title: clip(r.title, 200) || "Pendiente",
         body: clip(r.body, 200), due: new Date(r.due).toISOString(),
@@ -480,7 +642,7 @@ Deno.serve(async (req) => {
     const { data: old } = await db.from("midia_recordatorios").select("id,due,sent_at").eq("device", device);
     const prev = new Map((old ?? []).map((o) => [o.id, o]));
     const keep = new Set(list.map((r: any) => r.id));
-    const gone = (old ?? []).filter((o) => !keep.has(o.id)).map((o) => o.id);
+    const gone = (old ?? []).filter((o) => !keep.has(o.id) && !/^[AN]:/.test(o.id)).map((o) => o.id);
     if (gone.length) await db.from("midia_recordatorios").delete().eq("device", device).in("id", gone);
     // Si cambió la hora de un recordatorio ya enviado, vuelve a quedar pendiente.
     const rows = list.map((r: any) => {

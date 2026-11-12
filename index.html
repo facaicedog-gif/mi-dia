@@ -275,6 +275,11 @@ body.sheet #sheet{transform:none}
 .qpick button{padding:10px;border-radius:13px;background:var(--qb);border:2px solid transparent;text-align:left}
 .qpick button strong{display:block;color:var(--qc);font-size:14px}
 .qpick button small{color:var(--mut);font-size:11.5px}
+/* 2026-11-12 · «En tu agenda de Atlas» (maqueta-agenda-compartida.html): sólo con Atlas conectado */
+.atlpick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.atlpick button{padding:9px 4px;border-radius:12px;background:var(--qb);border:2px solid transparent;font-size:12.5px;font-weight:700;color:var(--mut)}
+.atlpick button.on{border-color:var(--blue);background:var(--blue-soft);color:var(--blue)}
+#atl-tnote{display:block;color:var(--mut);font-size:12px;margin-top:5px;line-height:1.4}
 .qpick button.sel{border-color:var(--qc)}
 .qpick [data-q="1"]{--qc:var(--q1);--qb:var(--q1b)}.qpick [data-q="2"]{--qc:var(--q2);--qb:var(--q2b)}.qpick [data-q="3"]{--qc:var(--q3);--qb:var(--q3b)}.qpick [data-q="4"]{--qc:var(--q4);--qb:var(--q4b)}
 .acts{display:flex;gap:10px;margin-top:16px}
@@ -744,6 +749,9 @@ body.ws #bubs{display:none}
     <button type="button" data-q="3"><strong>Salir rápido</strong><small>Urgente, poco importante</small></button>
     <button type="button" data-q="4"><strong>Después</strong><small>Ni urgente ni importante</small></button>
   </div>
+  <div id="atl-tbox" style="display:none"><div class="lbl">En tu agenda de Atlas</div>
+    <div class="atlpick" id="atl-tpick" role="group" aria-label="En tu agenda de Atlas"><button type="button" data-atl="t">Con el título</button><button type="button" data-atl="o">Solo «Ocupado»</button><button type="button" data-atl="n">No</button></div>
+    <small id="atl-tnote"></small></div>
   <div id="as-box"><div class="lbl">Asignar a</div><div class="who" id="as-who"></div>
     <div id="as-more"><input id="as-mail" type="email" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="Correo de la persona"><input id="as-nota" maxlength="300" autocomplete="off" placeholder="Nota para la persona (opcional)"></div><div id="as-hint"></div></div>
   <div class="acts"><button type="button" id="f-del">Eliminar</button><button type="button" id="f-share">WhatsApp</button><button type="submit" id="f-save">Guardar</button></div>
@@ -1265,6 +1273,8 @@ function openSheet(t,pre){
   $('#f-wk').checked=false;dowSel=[];wkShow();
   $('#f-save').textContent=t?'Guardar cambios':'Guardar';
   asSel=[];asOther=false;$('#as-mail').value='';$('#as-nota').value='';paintWho();
+  // 12-nov · Nueva: «Con el título». Las de antes (y las que te asignan) siguen como estaban: «Solo Ocupado».
+  atlSel=t?(t.atl||'o'):pre?'o':'t';$('#atl-tbox').style.display=atlasLink&&sess?'':'none';paintAtl();
   if(pre&&pre.assign){$('#hint').textContent='Elige a quién se la asignas';fixed=false}
   if(t&&t.de)$('#hint').textContent='Te la asignó '+t.de+(t.nota?' · «'+t.nota+'»':'');
   document.body.classList.add('sheet');
@@ -1336,6 +1346,17 @@ $$('.chip').forEach(c=>c.onclick=()=>{
 $$('#qpick button').forEach(b=>b.onclick=()=>{quadTouched=true;setQ(+b.dataset.q)});
 $('#fab').onclick=()=>openSheet();
 $('#scrim').onclick=()=>{closeSheet();closeAtlas();closePass();closeCtc()};
+// 12-nov · «En tu agenda de Atlas»: t = con el título (la tarea aparece en Atlas), o = sólo «Ocupado» (franja sin título,
+// como desde el 10-nov), n = nada. Atlas necesita día y hora: sin fecha se queda aquí, y se dice.
+let atlSel='t';
+const ATL_NOTA={t:'Aparece en tu agenda de Atlas con este título.',o:'En Atlas sólo se ve que estás ocupado, sin el título (para lo personal).',n:'No aparece en Atlas.'};
+function paintAtl(){
+  $$('#atl-tpick button').forEach(b=>b.classList.toggle('on',b.dataset.atl===atlSel));
+  $('#atl-tnote').textContent=ATL_NOTA[atlSel]+(atlSel!=='n'&&!getDue()?' Atlas necesita día y hora: sin fecha se queda sólo aquí.':'');
+}
+$('#atl-tpick').onclick=e=>{const b=e.target.closest('[data-atl]');if(!b)return;atlSel=b.dataset.atl;paintAtl()};
+[fD,fH].forEach(i=>i.addEventListener('change',paintAtl));
+document.querySelector('#sheet .chips').addEventListener('click',()=>setTimeout(paintAtl,0));
 $('#sheet').addEventListener('submit',e=>{
   e.preventDefault();
   let title=fT.value.trim();
@@ -1377,9 +1398,10 @@ $('#sheet').addEventListener('submit',e=>{
     if(editing.q!==pickQ)editing.order=-1;
     if(editing.due!==iso)editing.band=iso?bandOf(iso):undefined;
     Object.assign(editing,{title,due:iso,end:eiso,q:pickQ});
+    if(atlasLink)editing.atl=atlSel;
   }else{
     newId=uid();
-    S.tasks.push({id:newId,title,q:pickQ,due:iso,end:eiso,done:false,notified:!!(due&&due<=now),order:-1,created:Date.now(),band:due?bandOf(iso):undefined});
+    S.tasks.push({id:newId,title,q:pickQ,due:iso,end:eiso,done:false,notified:!!(due&&due<=now),order:-1,created:Date.now(),band:due?bandOf(iso):undefined,atl:atlasLink?atlSel:undefined});
   }
   reorder();save();closeSheet();render();newId=null;
   const later=due&&dayDiff(due)>30;
@@ -2044,7 +2066,7 @@ async function atlasLoad(force){
 async function atlasOff(quiet){
   if(!atlasLink)return;
   try{await atlasCall({operacion:'desvincular'})}catch(e){}
-  atlasLink=null;atlasPrefs={};lsSet('midia.atlas',null);lsSet('midia.atlas.prefs',null);atlasSet([]);syncSoon();ocuFirma='';lsSet('midia.atlas.ocu',null);
+  atlasLink=null;atlasPrefs={};lsSet('midia.atlas',null);lsSet('midia.atlas.prefs',null);atlasSet([]);syncSoon();ocuFirma='';lsSet('midia.atlas.ocu',null);tarFirma='';lsSet('midia.atlas.tar',null);
   if(!quiet){render();paintAtlas();toast('Atlas desconectado de este celular')}
 }
 function paintAtlas(){
@@ -2139,22 +2161,41 @@ function atlasAviso(t){
 let ocuT=null,ocuFirma=lsGet('midia.atlas.ocu','');
 function franjasOcupadas(){
   const now=Date.now(),tope=now+60*864e5;
-  return S.tasks.filter(t=>!t.done&&t.due&&!t.atlas)
+  // 12-nov · Sólo las marcadas «Solo Ocupado» (y las de antes, que no tienen marca). Las «con el título» van completas
+  // por `tareas`: mandarlas también aquí las pintaría dos veces en Atlas.
+  return S.tasks.filter(t=>!t.done&&t.due&&!t.atlas&&(t.atl||'o')==='o')
     .map(t=>{const s=new Date(t.due).getTime(),e=t.end?new Date(t.end).getTime():s+DEF*6e4;return {s,e}})
     .filter(x=>x.e>now&&x.s<tope&&x.e>x.s)
     .sort((a,b)=>a.s-b.s).slice(0,400)
     .map(x=>({inicio:new Date(x.s).toISOString(),fin:new Date(x.e).toISOString()}));
 }
 function ocuSoon(){if(!atlasLink||!sess)return;clearTimeout(ocuT);ocuT=setTimeout(ocuSend,4000)}
+// 12-nov · Las tareas «con el título» de la ventana (−7 días, +62 días), completas: Atlas las concilia (crea, cambia o
+// quita) y respeta lo que se haya cambiado allá. Viajan con su `u` (última edición) para saber quién manda.
+let tarFirma=lsGet('midia.atlas.tar','');
+function tareasAtlas(){
+  const now=Date.now(),desde=now-7*864e5,hasta=now+62*864e5;
+  return S.tasks.filter(t=>t.atl==='t'&&t.due&&!t.atlas)
+    .filter(t=>{const s=Date.parse(t.due);return s>=desde&&s<=hasta})
+    .slice(0,200).map(t=>({ref:t.id,titulo:String(t.title||'').slice(0,200),fecha:t.due,fin:t.end||null,hecho:!!t.done,u:t.u||0}));
+}
 async function ocuSend(){
   if(!atlasLink||!sess)return;
   const franjas=franjasOcupadas(),firma=JSON.stringify(franjas);
-  if(firma===ocuFirma)return;
+  if(firma!==ocuFirma){
+    try{
+      const j=await atlasCall({operacion:'ocupado',franjas});
+      if(j.ok){ocuFirma=firma;lsSet('midia.atlas.ocu',firma)}
+      else console.warn('Mi día: Atlas no recibió lo ocupado',j.status,j.error);
+    }catch(e){console.warn('Mi día: sin conexión para mandar lo ocupado a Atlas')}
+  }
+  const tareas=tareasAtlas(),ft=JSON.stringify(tareas);
+  if(ft===tarFirma)return;
   try{
-    const j=await atlasCall({operacion:'ocupado',franjas});
-    if(j.ok){ocuFirma=firma;lsSet('midia.atlas.ocu',firma)}
-    else console.warn('Mi día: Atlas no recibió lo ocupado',j.status,j.error);
-  }catch(e){console.warn('Mi día: sin conexión para mandar lo ocupado a Atlas')}
+    const j=await atlasCall({operacion:'tareas',tareas});
+    if(j.ok){tarFirma=ft;lsSet('midia.atlas.tar',ft)}
+    else console.warn('Mi día: Atlas no recibió las tareas',j.status,j.error);
+  }catch(e){console.warn('Mi día: sin conexión para mandar las tareas a Atlas')}
 }
 /* ---------- la hoja de un pendiente de Atlas ---------- */
 let aCur=null,aComo='contesto';
