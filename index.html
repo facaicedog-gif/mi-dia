@@ -45,7 +45,11 @@ main{padding:0 12px;max-width:760px;margin:0 auto}
 .pill b{color:var(--blue)}.pill.late b{color:var(--q1)}
 
 /* tablero */
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* 2026-11-12 · «1fr» no baja de la palabra más larga: una empresa o un enlace largo empujaba «Planear/Después» fuera de la
+   pantalla (medido a 360 px: la columna derecha terminaba en 418). minmax(0,1fr) reparte el ancho siempre a mitades. */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.grid .quad,.grid .card{min-width:0}
+.grid .card{overflow-wrap:anywhere}
 .quad{background:var(--qb);border-radius:18px;padding:10px 8px 8px;min-height:190px;display:flex;flex-direction:column;border:2px solid transparent;transition:border-color .15s,transform .15s}
 .quad[data-q="1"]{--qc:var(--q1);--qb:var(--q1b)}
 .quad[data-q="2"]{--qc:var(--q2);--qb:var(--q2b)}
