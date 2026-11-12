@@ -477,6 +477,25 @@ body.psheet #psheet{transform:none}
 #asg-in.nueva h3 i{animation:sacude .7s ease-in-out 3}
 .beta{display:inline-block;vertical-align:middle;margin-left:8px;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8a5300;background:var(--q3b);border:1px solid #f5d49b;border-radius:99px;padding:2px 8px;position:relative;top:-2px}
 #auth-f .beta-n{font-size:12.5px;color:#8a5300;background:var(--q3b);border-radius:12px;padding:8px 10px;margin:0 0 4px}
+/* 2026-11-12 · Autorización de datos (Ley 1581): casilla al crear la cuenta y pantalla para las cuentas que ya existían */
+#a-okl{display:none;gap:9px;align-items:flex-start;text-align:left;font-size:12.5px;line-height:1.45;color:var(--mut);margin:4px 0 2px}
+#a-okl input{width:18px;height:18px;margin:1px 0 0;flex:0 0 auto}
+#a-okl a,.a-legal a,#consent a,.atl-okl a{color:var(--blue);font-weight:700}
+.a-legal{font-size:12px;text-align:center;margin:10px 0 0}
+#consent{position:fixed;inset:0;z-index:120;background:var(--bg);display:none;overflow:auto;padding:calc(26px + env(safe-area-inset-top)) 20px 26px}
+body.consent #consent{display:block}
+#consent .cbox{max-width:460px;margin:0 auto}
+#consent h2{font-size:20px;margin:6px 0 6px}
+#consent p,#consent li{font-size:14px;line-height:1.5;color:var(--ink)}
+#consent ul{padding-left:20px;margin:6px 0 12px}
+#consent label{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;line-height:1.45;margin:12px 0}
+#consent label input{width:20px;height:20px;flex:0 0 auto;margin-top:1px}
+#consent .cgo{width:100%;padding:13px;border-radius:14px;background:var(--blue);color:#fff;font-weight:800;font-size:15px;border:0}
+#consent .cgo:disabled{opacity:.5}
+#consent .cno{width:100%;padding:11px;margin-top:8px;border-radius:14px;background:none;color:var(--mut);font-weight:700;border:0}
+#consent .cerr{font-size:13px;color:var(--q1);min-height:18px;margin-top:6px}
+.atl-okl{display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.45;color:var(--mut);margin:8px 0 0}
+.atl-okl input{width:17px;height:17px;flex:0 0 auto;margin-top:1px}
 /* contactos */
 #acct-pop #acct-ctc{background:var(--blue-soft);color:var(--blue);margin-bottom:8px}
 #v-ctc .bk{display:inline-flex;align-items:center;gap:4px;color:var(--blue);font-weight:700;font-size:14px;margin:0 4px 6px;padding:6px 0}
@@ -687,12 +706,30 @@ body.ws #bubs{display:none}
     <input id="a-name" maxlength="40" placeholder="Tu nombre (así te verán los demás)" autocomplete="name" autocapitalize="words">
     <input id="a-email" type="email" placeholder="Correo" autocomplete="email" autocapitalize="off" required>
     <input id="a-pass" type="password" placeholder="Contraseña" autocomplete="current-password" minlength="8" required>
+    <label id="a-okl"><input type="checkbox" id="a-ok"><span>Acepto los <a href="legal.html#terminos" target="_blank" rel="noopener">Términos de uso</a> y autorizo a Veltrion a tratar mis datos según la <a href="legal.html#datos" target="_blank" rel="noopener">Política de datos de Mi día</a>.</span></label>
     <div id="a-msg"></div>
     <button type="submit" id="a-go">Entrar</button>
     <button type="button" class="link" id="a-forgot">Olvidé mi contraseña</button>
+    <p class="a-legal"><a href="legal.html" target="_blank" rel="noopener">Términos y datos personales</a></p>
   </form>
 </div>
-<div id="acct-pop"><div class="pf"><button type="button" id="pf-pic" aria-label="Cambiar foto de perfil"></button><div><small>Tu cuenta</small><b id="acct-mail"></b></div></div><div class="pfb"><button type="button" id="pf-set">Agregar foto</button><button type="button" id="pf-del">Quitar</button></div><input type="file" id="pf-file" accept="image/*" hidden><small>Tu nombre (lo ven a quienes les asignas tareas)</small><input id="pf-name" maxlength="40" autocomplete="name" placeholder="Cómo te llamas"><button type="button" id="acct-ctc">Contactos</button><button type="button" id="acct-asg">Tareas que asigné</button><div id="atl-box"></div><p id="cloud"></p><button type="button" id="acct-perm">Permisos de este dispositivo</button><button type="button" id="acct-upd">Buscar actualización</button><button type="button" id="acct-out">Cerrar sesión</button></div>
+<div id="acct-pop"><div class="pf"><button type="button" id="pf-pic" aria-label="Cambiar foto de perfil"></button><div><small>Tu cuenta</small><b id="acct-mail"></b></div></div><div class="pfb"><button type="button" id="pf-set">Agregar foto</button><button type="button" id="pf-del">Quitar</button></div><input type="file" id="pf-file" accept="image/*" hidden><small>Tu nombre (lo ven a quienes les asignas tareas)</small><input id="pf-name" maxlength="40" autocomplete="name" placeholder="Cómo te llamas"><button type="button" id="acct-ctc">Contactos</button><button type="button" id="acct-asg">Tareas que asigné</button><div id="atl-box"></div><p id="cloud"></p><button type="button" id="acct-perm">Permisos de este dispositivo</button><button type="button" id="acct-upd">Buscar actualización</button><button type="button" id="acct-out">Cerrar sesión</button><p class="a-legal"><a href="legal.html" target="_blank" rel="noopener">Términos y datos personales</a></p></div>
+<div id="consent" role="dialog" aria-modal="true" aria-labelledby="c-tit"><div class="cbox">
+  <h2 id="c-tit">Antes de seguir</h2>
+  <p>Para guardar tus pendientes y enviarte avisos, Mi día necesita tu autorización para tratar tus datos, como lo pide la ley colombiana de protección de datos (Ley 1581 de 2012).</p>
+  <ul>
+    <li><b>Quién:</b> Veltrion - Soluciones en IA SAS, NIT 902.113.165-4.</li>
+    <li><b>Qué:</b> tu correo, tu nombre, tus pendientes, los contactos que agregues y tu dispositivo para los avisos.</li>
+    <li><b>Para qué:</b> que la app funcione: guardar, ordenar, recordarte y compartir lo que tú decidas.</li>
+    <li><b>Dónde:</b> en servidores de Brasil y Estados Unidos.</li>
+    <li><b>Tus derechos:</b> conocer, corregir y borrar tus datos, y revocar esta autorización, escribiendo a ventas.veltrion@gmail.com.</li>
+  </ul>
+  <p><a href="legal.html" target="_blank" rel="noopener">Leer los términos y la política completa</a></p>
+  <label><input type="checkbox" id="c-ok"><span>Acepto los Términos de uso y autorizo el tratamiento de mis datos según la Política de datos de Mi día.</span></label>
+  <button type="button" class="cgo" id="c-go" disabled>Acepto y sigo</button>
+  <button type="button" class="cno" id="c-no">No acepto</button>
+  <div class="cerr" id="c-err"></div>
+</div></div>
 <div id="ptr">Desliza para actualizar</div>
 <header>
   <div class="hdt"><p id="sub"></p><h1><span id="hola">Mi día</span><span class="beta" title="App en desarrollo">Beta</span></h1></div>
@@ -1913,7 +1950,8 @@ let sess=lsGet('midia.session',null),mode='in',recovering=false,linkMsg='',refre
 const setSess=s=>{sess=s;lsSet('midia.session',s)};
 async function authCall(path,body,tk,method){
   const h={'Content-Type':'application/json',apikey:SBKEY};if(tk)h.Authorization='Bearer '+tk;
-  const r=await fetch(SB+'/auth/v1/'+path,{method:method||'POST',headers:h,body:JSON.stringify(body||{})});
+  const m=method||'POST';   // un GET no lleva cuerpo (12-nov: lectura de la autorización)
+  const r=await fetch(SB+'/auth/v1/'+path,m==='GET'?{method:m,headers:h}:{method:m,headers:h,body:JSON.stringify(body||{})});
   let j={};try{j=await r.json()}catch(e){}
   return {ok:r.ok,status:r.status,j};
 }
@@ -1950,6 +1988,7 @@ function showAuth(m,msg,good){
   $('#a-seg').style.display=(m==='in'||m==='up')?'':'none';
   aE.style.display=m==='new'?'none':'';aE.required=m!=='new';
   $('#a-name').style.display=m==='up'?'':'none';$('#a-name').required=m==='up';
+  $('#a-okl').style.display=m==='up'?'flex':'none';
   aP.style.display=m==='forgot'?'none':'';aP.required=m!=='forgot';
   aP.placeholder=m==='new'?'Nueva contraseña (mínimo 8)':m==='up'?'Contraseña (mínimo 8)':'Contraseña';
   aP.autocomplete=m==='in'?'current-password':'new-password';
@@ -1970,8 +2009,11 @@ $('#auth-f').addEventListener('submit',async e=>{
       if(r.ok){takeSession(r.j);aP.value='';enter()}else showAuth('in',authErr(r));
     }else if(mode==='up'){
       // El nombre se guarda aquí hasta la primera entrada (si toca confirmar el correo, se entra después).
+      // 12-nov · Ley 1581: sin la autorización marcada no se crea la cuenta (casilla sin marcar de entrada).
+      if(!$('#a-ok').checked){aM.textContent='Para crear tu cuenta, acepta los términos y autoriza el tratamiento de tus datos.';aM.className='';aGo.disabled=false;return}
       const nombre=$('#a-name').value.replace(/\s+/g,' ').trim().slice(0,40);lsSet('midia.nombre.pend',nombre||null);
-      const r=await authCall('signup?redirect_to='+encodeURIComponent(HOME),{email,password,data:{nombre}});
+      // La prueba de la autorización queda en la cuenta: versión, fecha y por dónde se dio.
+      const r=await authCall('signup?redirect_to='+encodeURIComponent(HOME),{email,password,data:{nombre,consentimiento:consentRegistro('registro')}});
       if(!r.ok)showAuth('up',authErr(r));
       else if(r.j.access_token){takeSession(r.j);aP.value='';enter()}
       else{aP.value='';showAuth('in','Te envié un correo para confirmar tu cuenta. Ábrelo, toca el enlace y luego entra aquí.',true)}
@@ -1984,6 +2026,40 @@ $('#auth-f').addEventListener('submit',async e=>{
     }
   }catch(err){aM.textContent='Sin conexión. Revisa tu internet e intenta de nuevo.';aM.className=''}
   aGo.disabled=false;
+});
+/* ---------- autorización de datos (12-nov, Ley 1581 de 2012) ----------
+   Fabián: «la app debería tener autorización de tratamiento de datos y todo lo que requerimos en políticas para que
+   mañana ingrese el cliente». La versión vigente está en legal.html; si cambia, se sube CONSENT_V y todas las cuentas
+   la vuelven a aceptar al entrar. La prueba (versión, fecha, canal) queda en la cuenta (user_metadata de Supabase). */
+const CONSENT_V='1.0';
+const consentRegistro=canal=>({version:CONSENT_V,fecha:new Date().toISOString(),canal,documento:'legal.html'});
+let consentOk=false;
+async function consentGate(){
+  if(!sess)return;
+  const marca=sess.uid+':'+CONSENT_V;
+  if(lsGet('midia.consent','')===marca){consentOk=true;return}
+  try{
+    const r=await authCall('user',null,await token(),'GET');
+    if(!r.ok)return;   // sin conexión: no se bloquea a ciegas; se vuelve a revisar al próximo ingreso
+    const c=r.j&&r.j.user_metadata&&r.j.user_metadata.consentimiento;
+    if(c&&c.version===CONSENT_V){consentOk=true;lsSet('midia.consent',marca);return}
+  }catch(e){return}
+  $('#c-ok').checked=false;$('#c-go').disabled=true;$('#c-err').textContent='';
+  document.body.classList.add('consent');
+}
+$('#c-ok').addEventListener('change',()=>{$('#c-go').disabled=!$('#c-ok').checked});
+$('#c-go').addEventListener('click',async()=>{
+  const b=$('#c-go');b.disabled=true;$('#c-err').textContent='';
+  try{
+    const r=await authCall('user',{data:{consentimiento:consentRegistro('ingreso')}},await token(),'PUT');
+    if(!r.ok)throw new Error('guardar');
+    lsSet('midia.consent',sess.uid+':'+CONSENT_V);consentOk=true;document.body.classList.remove('consent');toast('Gracias. Ya puedes seguir.');
+  }catch(e){b.disabled=false;$('#c-err').textContent='No se pudo guardar tu autorización. Revisa tu conexión e intenta de nuevo.'}
+});
+$('#c-no').addEventListener('click',async()=>{
+  const ok=await askText('¿Seguro que no aceptas?','Sin tu autorización, Mi día no puede seguir guardando tus datos. Puedes cerrar sesión ahora y, si quieres que borremos tu cuenta, escribir a ventas.veltrion@gmail.com.','Cerrar sesión',false,'Volver');
+  if(ok==null)return;
+  document.body.classList.remove('consent');signOut();
 });
 // Enlaces del correo (confirmar cuenta o cambiar contraseña) llegan con la sesión en la dirección.
 async function fromLink(){
@@ -2008,6 +2084,7 @@ function enter(){
   track();store();atlasStart();render();tick();syncNow();cloudSync();checkUpdate();asgLoad(true,true);
   ctcMigrar();invAceptar();ctcSync();inicioPerfil();
   if(pendingAdd){const a=pendingAdd;pendingAdd=null;openSheet(null,a)}
+  consentGate();   // 12-nov · si esta cuenta no ha dado la autorización vigente, se pide antes de seguir
 }
 async function signOut(){
   $('#acct-pop').classList.remove('show');
@@ -2092,7 +2169,7 @@ function paintAtlas(){
     // 2026-11-12 · Dos pasos (maqueta-conectar.html): pedir el código al correo DE ATLAS (puede ser otro que el de Mi día)
     // y pegarlo. «Ya tengo un código» salta al segundo. Atlas responde igual exista o no el correo: por eso el aviso dice «si».
     if(atlCon.paso==='codigo'){
-      b.innerHTML='<b style="margin:0">Conectar con Atlas</b><small class="atl-ok"></small><div class="row"><input id="atl-code" maxlength="9" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX"><button type="button" id="atl-go">Conectar</button></div><small id="atl-msg" style="color:var(--q1)"></small><button type="button" id="atl-again"></button><button type="button" class="atl-lnk" id="atl-back">Cambiar el correo</button>';
+      b.innerHTML='<b style="margin:0">Conectar con Atlas</b><small class="atl-ok"></small><div class="row"><input id="atl-code" maxlength="9" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX"><button type="button" id="atl-go">Conectar</button></div><label class="atl-okl"><input type="checkbox" id="atl-ok"><span>Autorizo que Mi día muestre aquí mi agenda y las empresas que Atlas me asigna, y que lleve a Atlas lo que anote sobre ellas y las tareas que marque «En tu agenda de Atlas». Son datos de la empresa para la que trabajo y los uso según sus reglas. <a href="legal.html#datos" target="_blank" rel="noopener">Leer más</a></span></label><small id="atl-msg" style="color:var(--q1)"></small><button type="button" id="atl-again"></button><button type="button" class="atl-lnk" id="atl-back">Cambiar el correo</button>';
       b.querySelector('.atl-ok').textContent=!atlCon.enviado
         ?'Pega el código de 8 caracteres que te llegó al correo registrado en Atlas.'
         :atlCon.a?'Te enviamos el código a '+atlCon.a+'. Revisa también «Spam». Vence en '+(atlCon.min||15)+' minutos y sirve sólo el último que pidas.'
@@ -2100,12 +2177,13 @@ function paintAtlas(){
       b.querySelector('#atl-go').onclick=atlasLinkNow;
       b.querySelector('#atl-back').onclick=e=>{e.stopPropagation();atlCon.paso='pedir';atlCon.pedirCorreo=true;atlCon.aviso='';paintAtlas()};
       atlAgainPaint();
+      atlOkEnganchar(b);
       b.querySelector('#atl-again').onclick=e=>{e.stopPropagation();atlasPedir(true)};
     }else{
       // 12-nov (tarde) · Fabián: «que quede sólo con el correo registrado en Atlas». Ya NO se propone el correo de Mi día
       // (no era el de Atlas y el código nunca salió). Si esta cuenta ya estuvo conectada, Atlas sabe a qué usuario volver
       // y basta el botón; el campo es para la primera vez y aparece vacío.
-      b.innerHTML='<b style="margin:0">Conectar con Atlas</b><small>El código llega al correo registrado en tu usuario de Atlas.</small><div class="row col"><input id="atl-mail" type="email" inputmode="email" autocomplete="off" maxlength="120" placeholder="Tu correo registrado en Atlas"><button type="button" id="atl-send">Enviarme el código</button></div><small id="atl-msg" style="color:var(--q1)"></small><button type="button" class="atl-lnk" id="atl-first">¿Primera vez? Escribe tu correo de Atlas</button><button type="button" class="atl-lnk" id="atl-have">Ya tengo un código</button>';
+      b.innerHTML='<b style="margin:0">Conectar con Atlas</b><small>El código llega al correo registrado en tu usuario de Atlas.</small><div class="row col"><input id="atl-mail" type="email" inputmode="email" autocomplete="off" maxlength="120" placeholder="Tu correo registrado en Atlas"><button type="button" id="atl-send">Enviarme el código</button></div><label class="atl-okl"><input type="checkbox" id="atl-ok"><span>Autorizo que Mi día muestre aquí mi agenda y las empresas que Atlas me asigna, y que lleve a Atlas lo que anote sobre ellas y las tareas que marque «En tu agenda de Atlas». Son datos de la empresa para la que trabajo y los uso según sus reglas. <a href="legal.html#datos" target="_blank" rel="noopener">Leer más</a></span></label><small id="atl-msg" style="color:var(--q1)"></small><button type="button" class="atl-lnk" id="atl-first">¿Primera vez? Escribe tu correo de Atlas</button><button type="button" class="atl-lnk" id="atl-have">Ya tengo un código</button>';
       const mail=b.querySelector('#atl-mail');mail.value=atlCon.correo||'';mail.style.display=atlCon.pedirCorreo?'':'none';
       b.querySelector('#atl-first').style.display=atlCon.pedirCorreo?'none':'';
       b.querySelector('#atl-send').textContent=atlCon.pedirCorreo?'Enviarme el código':'Enviarme el código a mi correo de Atlas';
@@ -2113,6 +2191,7 @@ function paintAtlas(){
       b.querySelector('#atl-first').onclick=e=>{e.stopPropagation();atlCon.pedirCorreo=true;paintAtlas();const m=$('#atl-mail');if(m)m.focus()};
       b.querySelector('#atl-have').onclick=e=>{e.stopPropagation();atlCon.paso='codigo';atlCon.enviado=false;paintAtlas()};
       if(atlCon.aviso){const m=b.querySelector('#atl-msg');m.style.color='var(--mut)';m.textContent=atlCon.aviso}
+      atlOkEnganchar(b);
     }
   }else{
     b.innerHTML='<button type="button" id="atl-open">¿Usas Atlas? Conéctalo</button>';
@@ -2121,6 +2200,18 @@ function paintAtlas(){
 }
 // Estado del «Conectar con Atlas»: en qué paso va, a qué correo se pidió y cuándo (para «Reenviar» al minuto).
 let atlCon={paso:'pedir',correo:'',enviado:false,min:15,desde:0,a:'',pedirCorreo:false,aviso:''},atlT=null;
+// 12-nov · La autorización para conectar Atlas: se pide antes de pedir o pegar el código y se recuerda entre los dos pasos.
+function atlOkEnganchar(b){
+  const c=b.querySelector('#atl-ok');if(!c)return;
+  c.checked=!!atlCon.ok;
+  c.addEventListener('change',e=>{e.stopPropagation();atlCon.ok=c.checked;const m=$('#atl-msg');if(m&&c.checked&&/autoriza/i.test(m.textContent))m.textContent=''});
+  c.addEventListener('click',e=>e.stopPropagation());
+}
+function atlOkFalta(){
+  if(atlCon.ok)return false;
+  const m=$('#atl-msg');if(m){m.style.color='var(--q1)';m.textContent='Para conectar, marca la autorización de arriba.'}
+  return true;
+}
 function atlAgainPaint(){
   const g=$('#atl-again');if(!g)return;clearTimeout(atlT);
   const falta=Math.ceil((atlCon.desde+60000-Date.now())/1000);
@@ -2130,6 +2221,7 @@ function atlAgainPaint(){
   else{g.disabled=false;g.textContent='Reenviar el código'}
 }
 async function atlasPedir(reenvio){
+  if(atlOkFalta())return;
   const msg=$('#atl-msg'),inp=$('#atl-mail');
   // Sin campo a la vista se pide sin correo: el servidor de Mi día pone el vínculo anterior de esta cuenta, si lo hay.
   const correo=reenvio?atlCon.correo:(atlCon.pedirCorreo?String((inp&&inp.value)||'').trim():'');
@@ -2141,12 +2233,13 @@ async function atlasPedir(reenvio){
     // Primera vez (esta cuenta nunca se conectó): se abre el campo, vacío, para el correo de Atlas.
     if(j.sin_previo){atlCon.pedirCorreo=true;atlCon.aviso='Es la primera vez en este celular: escribe el correo con el que entras a Atlas.';atlCon.paso='pedir';paintAtlas();const m=$('#atl-mail');if(m)m.focus();return}
     if(!j.ok){if(btn)btn.disabled=false;const m=$('#atl-msg');if(m){m.style.color='var(--q1)';m.textContent=j.error||'No se pudo pedir el código. Inténtalo de nuevo.'}return}
-    atlCon={paso:'codigo',correo,enviado:true,min:j.vence_min||15,desde:Date.now(),a:j.a||'',pedirCorreo:atlCon.pedirCorreo,aviso:''};
+    atlCon={paso:'codigo',correo,enviado:true,min:j.vence_min||15,desde:Date.now(),a:j.a||'',pedirCorreo:atlCon.pedirCorreo,aviso:'',ok:atlCon.ok};
     paintAtlas();const c=$('#atl-code');if(c)c.focus();
     if(reenvio)toast('Te enviamos otro código');
   }catch(e){if(btn)btn.disabled=false;const m=$('#atl-msg');if(m){m.style.color='var(--q1)';m.textContent='Sin conexión. Inténtalo de nuevo.'}}
 }
 async function atlasLinkNow(){
+  if(atlOkFalta())return;
   const msg=$('#atl-msg'),codigo=($('#atl-code').value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
   if(codigo.length!==8){msg.textContent='El código tiene 8 caracteres.';return}
   msg.style.color='var(--mut)';msg.textContent='Conectando…';
@@ -2154,7 +2247,9 @@ async function atlasLinkNow(){
     const j=await atlasCall({operacion:'canjear',codigo},'-');
     if(!j.ok||!j.token){msg.style.color='var(--q1)';msg.textContent=j.error||'No se pudo conectar. Inténtalo de nuevo.';return}
     atlasLink={token:j.token,nombre:j.nombre||'',uid:sess.uid};lsSet('midia.atlas',atlasLink);
-    atlCon={paso:'pedir',correo:'',enviado:false,min:15,desde:0,a:'',pedirCorreo:false,aviso:''};clearTimeout(atlT);
+    // La prueba de la autorización para conectar Atlas queda en la cuenta, como la de la cuenta misma.
+    token().then(tk=>authCall('user',{data:{consentimiento_atlas:consentRegistro('conectar-atlas')}},tk,'PUT')).catch(()=>{});
+    atlCon={paso:'pedir',correo:'',enviado:false,min:15,desde:0,a:'',pedirCorreo:false,aviso:'',ok:false};clearTimeout(atlT);
     delete $('#atl-box').dataset.open;paintAtlas();toast('Atlas conectado');await atlasLoad(true);
   }catch(e){msg.style.color='var(--q1)';msg.textContent='Sin conexión. Inténtalo de nuevo.'}
 }
