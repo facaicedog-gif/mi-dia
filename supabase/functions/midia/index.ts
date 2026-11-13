@@ -491,7 +491,10 @@ async function atlasEvento(b: any) {
   const rid = "A:" + ev.id, nid = "N:" + ev.id;
   const t = Date.parse(ev.fecha);
   const ahora = Date.now();
-  if (b.accion === "quitar" || isNaN(t)) {
+  // 13-nov · «Revisar si ya hay contacto de…» es Atlas esperando un teléfono: en el celular no hay nada que hacer con eso
+  // y no se avisa (Fabián: «el foco de la app es sólo aquellos con los que sí cuentan»). El puente tampoco lo lista.
+  const espera = /^Revisar si ya hay contacto de/i.test(String(ev.titulo || ""));
+  if (b.accion === "quitar" || isNaN(t) || espera) {
     await db.from("midia_recordatorios").delete().in("device", devs).in("id", [rid, nid]);
     return { ok: true, quitado: true };
   }

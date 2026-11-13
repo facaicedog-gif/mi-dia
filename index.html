@@ -187,18 +187,18 @@ body.sheet #bubs,body.out #bubs{display:none}
 @keyframes bubIn{from{transform:scale(.3);opacity:0}}
 @keyframes bubLate{0%,100%{box-shadow:0 10px 20px -8px rgba(20,32,51,.55),0 0 0 0 rgba(29,78,216,.45)}50%{box-shadow:0 10px 20px -8px rgba(20,32,51,.55),0 0 0 10px rgba(29,78,216,0)}}
 #bvelo{position:fixed;inset:0;z-index:8;background:rgba(20,32,51,.16);animation:bFd .2s}@keyframes bFd{from{opacity:0}}
-#globo{position:fixed;left:0;top:0;z-index:9;width:min(270px,calc(100vw - 92px));background:var(--card);border-radius:20px;padding:13px 14px 11px;
+.globo{position:fixed;left:0;top:0;z-index:9;width:min(270px,calc(100vw - 92px));background:var(--card);border-radius:20px;padding:13px 14px 11px;
   box-shadow:0 22px 44px -16px rgba(20,32,51,.5),0 0 0 1px var(--line);transform-origin:100% 100%;animation:gloIn .28s cubic-bezier(.3,1.5,.5,1)}
-#globo.cierra{animation:gloOut .18s ease-in forwards}
+.globo.cierra{animation:gloOut .18s ease-in forwards}
 @keyframes gloIn{from{transform:scale(.3);opacity:0}}@keyframes gloOut{to{transform:scale(.3);opacity:0}}
-#globo .x{position:absolute;right:6px;top:4px;width:34px;height:34px;border-radius:50%;color:var(--mut);font-size:20px;line-height:1}
-#globo .q{font-size:12.5px;color:var(--mut);padding-right:30px;line-height:1.35;overflow-wrap:anywhere}#globo .q b{color:var(--ink)}
-#globo .n{font-size:17px;font-weight:700;line-height:1.3;margin:8px 0 10px;letter-spacing:-.01em;overflow-wrap:anywhere;white-space:pre-wrap;max-height:38vh;overflow-y:auto}
-#globo .f{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--mut)}
-#globo .f div{display:flex;gap:6px;align-items:center}
-#globo .ver{font-weight:700;font-size:12.5px;color:var(--blue);padding:7px 4px}
-#globo .ok{background:var(--blue);color:#fff;font-weight:700;font-size:12.5px;border-radius:999px;padding:8px 13px}
-@media (prefers-reduced-motion:reduce){.bub,.bub.entra,.bub.nueva,.bub.entra.nueva,#globo,#bvelo{animation:none}}
+.globo .x{position:absolute;right:6px;top:4px;width:34px;height:34px;border-radius:50%;color:var(--mut);font-size:20px;line-height:1}
+.globo .q{font-size:12.5px;color:var(--mut);padding-right:30px;line-height:1.35;overflow-wrap:anywhere}.globo .q b{color:var(--ink)}
+.globo .n{font-size:17px;font-weight:700;line-height:1.3;margin:8px 0 10px;letter-spacing:-.01em;overflow-wrap:anywhere;white-space:pre-wrap;max-height:38vh;overflow-y:auto}
+.globo .f{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--mut)}
+.globo .f div{display:flex;gap:6px;align-items:center}
+.globo .ver{font-weight:700;font-size:12.5px;color:var(--blue);padding:7px 4px}
+.globo .ok{background:var(--blue);color:#fff;font-weight:700;font-size:12.5px;border-radius:999px;padding:8px 13px}
+@media (prefers-reduced-motion:reduce){.bub,.bub.entra,.bub.nueva,.bub.entra.nueva,.globo,#bvelo{animation:none}}
 
 /* 2026-11-11 · PESTAÑA «GESTIÓN»: lo asignado y lo recibido en columnas por estado (tablero en la estructura; no se arrastra). */
 nav .tab{position:relative}
@@ -1155,7 +1155,10 @@ function render(){
   // tablero
   $$('.quad').forEach(q=>{
     const n=+q.dataset.q, list=q.querySelector('.list');
-    const items=board.filter(t=>t.q===n).sort((a,b)=>a.order-b.order);
+    // 13-nov · Los de Atlas que no has movido (order -1) iban en el orden de Atlas: del más viejo al más nuevo. Con 37
+    // atrasados, el pendiente de hoy de Nelson quedó de número 37. Ahora: los de hoy primero (por hora), luego los
+    // atrasados del más reciente al más viejo, luego lo que viene. Lo que tú ordenaste se respeta.
+    const items=board.filter(t=>t.q===n).sort((a,b)=>a.order-b.order||(a.atlas&&b.atlas&&a.order<0?atlasRango(a)-atlasRango(b):0));
     list.textContent='';items.forEach(t=>list.appendChild(cardEl(t)));
     q.querySelector('.qh span').textContent=items.length;
   });
@@ -1986,7 +1989,10 @@ function token(){
 function authErr(r){
   const c=(r.j&&(r.j.error_code||r.j.code||r.j.error))||'',m=(r.j&&(r.j.msg||r.j.error_description||r.j.message))||'';
   if(c==='invalid_credentials'||/invalid login/i.test(m))return 'Correo o contraseña incorrectos.';
-  if(c==='email_not_confirmed')return 'Falta confirmar tu correo: abre el mensaje que te envié y toca el enlace.';
+  // 13-nov · Con Nelson el correo de confirmación nunca llegó y la app sólo decía «Demasiados intentos». Ahora dice qué
+  // SÍ se puede hacer: buscarlo en «no deseado» o pedir que activen la cuenta (Fabián la confirma desde Supabase).
+  if(c==='email_not_confirmed')return 'Falta confirmar tu correo: abre el mensaje que te enviamos (míralo también en «no deseado»). Si no llegó, pídele a quien te invitó que active tu cuenta y luego toca «Entrar».';
+  if(c==='over_email_send_rate_limit'||/email rate limit/i.test(m))return 'Tu cuenta quedó creada, pero el correo para confirmarla no salió todavía. Pídele a quien te invitó que la active y luego entra por «Entrar» con tu correo y tu contraseña.';
   if(c==='user_already_exists'||/already registered/i.test(m))return 'Ese correo ya tiene cuenta. Entra con tu contraseña.';
   if(c==='weak_password'||/password/i.test(m))return 'Usa una contraseña de al menos 8 caracteres.';
   if(c==='same_password')return 'Esa es tu contraseña actual; escribe una distinta.';
@@ -2147,6 +2153,13 @@ function atlasMap(e){
     due,end:due&&e.duracion_min?new Date(new Date(due).getTime()+e.duracion_min*6e4).toISOString():null,
     done:false,notified:true,notas:e.notas||'',tipo:e.tipo||'',clase:e.clase||null,empresa:e.empresa||null,contacto:e.contacto||null,cid:e.company_id||null};
 }
+// Para ordenar los de Atlas en el tablero (ver render): hoy por hora < atrasados del más reciente al más viejo < lo que viene.
+function atlasRango(t){
+  if(!t.due)return 3e15;const ms=new Date(t.due).getTime(),hoy=ymd(new Date());
+  if(ymd(new Date(t.due))===hoy)return ms-1e15;          // hoy: primero, por hora
+  if(ms<Date.now())return -ms;                            // atrasados: el más reciente primero
+  return 2e15+ms;                                         // lo que viene
+}
 function atlasSet(evs){ATLAS=(evs||[]).map(atlasMap);lsSet('midia.atlas.cache',evs||[])}
 // El cuadrante y el orden que les des aquí son tuyos: se recuerdan en este celular, Atlas no los conoce.
 function atlasKeep(){
@@ -2157,6 +2170,9 @@ function atlasStart(){
   if(atlasLink&&sess&&atlasLink.uid!==sess.uid){atlasLink=null;lsSet('midia.atlas',null);lsSet('midia.atlas.cache',null)}
   ATLAS=atlasLink?lsGet('midia.atlas.cache',[]).map(atlasMap):[];
   if(atlasLink)atlasLoad(true);else atlasRestaurar();
+  // 13-nov · Si quedó una gestión a medias (la app se cerró antes de guardar), se avisa al volver.
+  const bor=lsGet('midia.ws.borrador',null);   // con la clave escrita: atlasStart puede correr antes de que exista WS_BOR
+  if(atlasLink&&bor&&Date.now()-bor.t<864e5&&(bor.nota||'').trim())setTimeout(()=>toast('Tienes sin guardar lo que anotaste de '+(bor.nombre||'una empresa')+': ábrela y toca «Anotar cómo me fue».'),1500);
 }
 /* 12-nov (noche) · Fabián: «cada vez que se actualiza la app se sale la cuenta de Atlas y tengo que volver a enviar código».
    La conexión ya no vive sólo en este celular: el servidor de Mi día la guarda a nombre de tu cuenta y aquí se recupera
@@ -2266,6 +2282,14 @@ async function atlasPedir(reenvio){
   const msg=$('#atl-msg'),inp=$('#atl-mail');
   // Sin campo a la vista se pide sin correo: el servidor de Mi día pone el vínculo anterior de esta cuenta, si lo hay.
   const correo=reenvio?atlCon.correo:(atlCon.pedirCorreo?String((inp&&inp.value)||'').trim():'');
+  // 13-nov · Nelson escribió el CÓDIGO en la casilla del correo: Atlas contestó «enviado» (no delata) y la app dijo «Si
+  // TMZV3E6L es el correo registrado…». Si lo escrito tiene forma de código (8 letras y números, con un número), no se
+  // pide nada: se pasa al segundo paso y se conecta con él.
+  if(!reenvio&&atlCon.pedirCorreo&&!/@/.test(correo)&&/^[A-Z0-9]{4}-?[A-Z0-9]{4}$/i.test(correo)&&/\d/.test(correo)&&/[A-Z]/i.test(correo)){
+    atlCon.paso='codigo';atlCon.enviado=false;paintAtlas();
+    const c=$('#atl-code');if(c){c.value=correo.toUpperCase();atlasLinkNow()}
+    return;
+  }
   if(atlCon.pedirCorreo&&!reenvio&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)&&!/^[\p{L}\p{N} ._+-]{2,60}$/u.test(correo)){if(msg){msg.style.color='var(--q1)';msg.textContent='Escribe el correo (o el usuario) con el que entras a Atlas.'}return}
   const btn=$(reenvio?'#atl-again':'#atl-send');if(btn)btn.disabled=true;
   if(msg){msg.style.color='var(--mut)';msg.textContent='Pidiendo el código…'}
@@ -2534,20 +2558,28 @@ function wsDias(){
   L.push(['sem','En una semana',sem],['otra','Otra fecha',null]);
   return L;
 }
+const WS_BOR='midia.ws.borrador';
+// El borrador de «¿Cómo te fue?» de esa empresa, si es de las últimas 24 h.
+function wsBorrador(cid){const b=lsGet(WS_BOR,null);return b&&b.cid===cid&&Date.now()-b.t<864e5?b:null}
 function wsRegistro(){
   const c=wCur;if(!c)return;c.paso='registro';
   const B=$('#w-body');B.textContent='';$('#wsheet').scrollTop=0;
   $('#w-back').textContent='‹ '+(c.nombre||'Empresa');$('#w-sub').textContent='';$('#w-name').textContent='¿Cómo te fue?';
   let accion=c.clase==='reunion'?'reunion_hecha':'contesto',dia='no';
+  // 13-nov · Borrador: si la app se cierra (al volver de una llamada el iPhone a veces la recarga), lo escrito no se pierde.
+  const bor=wsBorrador(c.cid);if(bor&&W_RES.some(x=>x[0]===bor.accion))accion=bor.accion;
+  const guarda=()=>lsSet(WS_BOR,{cid:c.cid,ev:c.ev||null,nombre:c.nombre||'',accion,nota:($('#w-nota')||{}).value||'',t:Date.now()});
   B.appendChild(wTit('Resultado'));
   const R=wEl('div','wres');
   // Sin teléfono en la ficha no hay número que quitar: no se ofrece «no es de esta empresa».
   const hayTel=!!(c.d&&((c.d.contacto&&c.d.contacto.telefono)||(c.d.empresa&&c.d.empresa.telefono)));
   for(const [id,txt] of W_RES){if(id==='equivocado'&&!hayTel)continue;const b=wEl('button',id==='equivocado'?'al':'',txt);b.type='button';b.classList.toggle('on',id===accion);
-    b.addEventListener('click',()=>{accion=id;R.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});R.appendChild(b)}
+    b.addEventListener('click',()=>{accion=id;R.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));guarda()});R.appendChild(b)}
   B.appendChild(R);
   B.appendChild(wTit('Nota','opcional'));
   const ta=document.createElement('textarea');ta.id='w-nota';ta.maxLength=2000;ta.placeholder='Qué te dijeron, con quién hablaste, qué quedó pendiente…';B.appendChild(ta);
+  if(bor&&bor.nota){ta.value=bor.nota;B.insertBefore(wEl('p','waviso','Recuperé lo que estabas escribiendo.'),B.firstChild)}
+  ta.addEventListener('input',guarda);
   // Por defecto NO se agenda nada (Fabián, 8-oct: «sólo si le pido que me recuerde me genera el recordatorio»).
   B.appendChild(wTit('Siguiente paso','queda en tu agenda de Atlas'));
   const D=wEl('div','wdias'),dias=wsDias();
@@ -2578,6 +2610,7 @@ function wsRegistro(){
     try{
       const j=await atlasCall({operacion:'gestion',company_id:c.cid,accion,nota:ta.value.trim(),siguiente:f?{fecha:f.toISOString()}:null,evento_id:c.ev||undefined,confirmado});
       if(!j.ok){go.disabled=false;mal((j.error||'Atlas no lo guardó.')+' Lo que escribiste sigue aquí.');return}
+      lsSet(WS_BOR,null);
       const m=sugMia();if(m){const n0=m.items.length;m.items=m.items.filter(x=>x.company_id!==c.cid);if(m.items.length<n0)m.total=Math.max(0,(m.total||1)-1);lsSet('midia.atlas.sug',SUG)}
       if(c.ev&&j.cerrado)ATLAS=ATLAS.filter(x=>x.aid!==c.ev);
       wsClose();render();toast(j.aviso||'Guardado en Atlas');
@@ -2763,8 +2796,25 @@ function asgIsOpen(a){return a.estado==='pendiente'||a.estado==='aceptada'}
 /* 2026-11-11 · RESPUESTAS QUE AÚN NO HAS LEÍDO. Fabián: Geraldine cumplió una reunión y escribió «ya tiene 17 personas y busca
    llegar a 30», y él no lo leía en ningún lado (sólo salía en Asigné → Cerradas). Una respuesta es una tarea que asignaste y
    que terminaron CON nota, o que rechazaron con motivo, en los últimos 7 días, hasta que la marques como leída.
-   «Leída» y «ya la abrí» se guardan en este dispositivo (midia.notas.leidas / midia.notas.vistas). */
+   «Leída» y «ya la abrí» se guardan en este dispositivo (midia.notas.leidas / midia.notas.vistas).
+   13-nov · Y TAMBIÉN EN LA CUENTA (S.extra «_leidas»). Fabián: «vuelven las burbujas que ya había quitado». Causa: desde
+   el 13-nov la app vive en dos direcciones (github.io y atlas.veltrion.com.co/midia) y cada una tiene su propio
+   almacenamiento; lo leído en una no se sabía en la otra ni en otro celular. Se guarda lo de los últimos 14 días. */
 let notasLeidas=lsGet('midia.notas.leidas',{}),notasVistas=lsGet('midia.notas.vistas',{});
+const LEIDAS_DIAS=14;
+// Lo que la cuenta ya sabe se suma a lo de este dispositivo (gana «leída» en cualquiera de los dos lados).
+function leidasDeCuenta(){
+  const d=S.extra.find(x=>x.id==='_leidas');if(!d)return;
+  for(const k of ['leidas','vistas']){const m=d[k]&&typeof d[k]==='object'?d[k]:{},loc=k==='leidas'?notasLeidas:notasVistas;
+    for(const id in m)if(!loc[id])loc[id]=m[id]}
+  lsSet('midia.notas.leidas',notasLeidas);lsSet('midia.notas.vistas',notasVistas);
+}
+function leidasACuenta(){
+  if(!sess)return;const desde=Date.now()-LEIDAS_DIAS*864e5,poda=m=>{const o={};for(const id in m)if(m[id]>=desde)o[id]=m[id];return o};
+  const d=S.extra.find(x=>x.id==='_leidas')||{},leidas=Object.assign({},d.leidas||{},poda(notasLeidas)),vistas=Object.assign({},d.vistas||{},poda(notasVistas));
+  if(JSON.stringify(poda(leidas))===JSON.stringify(d.leidas||{})&&JSON.stringify(poda(vistas))===JSON.stringify(d.vistas||{}))return;
+  S.extra=S.extra.filter(x=>x.id!=='_leidas');S.extra.push({id:'_leidas',kind:'leidas',leidas:poda(leidas),vistas:poda(vistas)});save();
+}
 const notaDe=a=>String((a.estado==='hecha'?a.nota_fin:a.estado==='rechazada'?a.motivo:'')||'').trim();
 function notasPendientes(){
   if(!sess)return [];const desde=Date.now()-7*864e5;
@@ -2876,7 +2926,9 @@ function bubAbre(id){
     bubAbierta=id;if(!notasVistas[id]){notasVistas[id]=Date.now();lsSet('midia.notas.vistas',notasVistas);bubKey=bubKey.replace(id+'n',id+'v')}
     b.classList.remove('nueva','entra');b.classList.add('on');$('#bubs').classList.add('abre');
     const v=document.createElement('div');v.id='bvelo';v.addEventListener('click',()=>bubCierra());document.body.appendChild(v);
-    const g=document.createElement('div');g.id='globo';g.setAttribute('role','dialog');
+    // 13-nov · Los estilos van por la clase .globo, no por el id: al cerrar se le quita el id y antes perdía fondo, ancho y
+    // animación, y el texto quedaba suelto encima del tablero (Fabián lo vio al quitar las burbujas).
+    const g=document.createElement('div');g.id='globo';g.className='globo';g.setAttribute('role','dialog');
     g.innerHTML='<button type="button" class="x" aria-label="Cerrar">×</button><div class="q"><b></b><span></span></div><div class="n"></div><div class="f"><span></span><div><button type="button" class="ver">Ver tarea</button><button type="button" class="ok">✓ Leída</button></div></div>';
     g.querySelector('.q b').textContent=a.para_nombre;
     g.querySelector('.q span').textContent=(a.estado==='rechazada'?' no puede con «':' terminó «')+a.titulo+'»';
@@ -2897,7 +2949,7 @@ function bubAbre(id){
     g.querySelector('.ok').addEventListener('click',()=>{b.classList.add('sale');bubCierra(()=>setTimeout(()=>notaLeida(id),160))});
   });
 }
-function notaLeida(id){notasLeidas[id]=Date.now();lsSet('midia.notas.leidas',notasLeidas);paintBubs();paintAsg()}
+function notaLeida(id){notasLeidas[id]=Date.now();lsSet('midia.notas.leidas',notasLeidas);leidasACuenta();paintBubs();paintAsg()}
 /* lo que enviaste, por día de su fecha (la que quedó al aceptar, o la que pusiste) */
 const asgFecha=e=>{const a=e.miembros[0];return a.due_final||a.due};
 function asgVivas(){return sess?asgEntradas().filter(e=>asgFecha(e)&&e.miembros.some(m=>m.estado!=='cancelada')):[]}
@@ -3597,7 +3649,7 @@ async function cloudSync(){
         cursor=r.updated_at;
         let arr=S.tasks,i=arr.findIndex(t=>t.id===r.id);
         if(i<0){const j=S.rules.findIndex(t=>t.id===r.id);if(j>=0||(r.data&&r.data.kind==='rule')){arr=S.rules;i=j}}
-        if(i<0&&arr===S.tasks){const k=S.extra.findIndex(t=>t.id===r.id);if(k>=0||(r.data&&(r.data.kind==='profile'||r.data.kind==='dest'||r.data.kind==='contactos'))){arr=S.extra;i=k}}
+        if(i<0&&arr===S.tasks){const k=S.extra.findIndex(t=>t.id===r.id);if(k>=0||(r.data&&(r.data.kind==='profile'||r.data.kind==='dest'||r.data.kind==='contactos'||r.data.kind==='leidas'))){arr=S.extra;i=k}}
         const loc=i>=0?arr[i]:null,ru=(r.data&&r.data.u)||0;
         if(outbox[r.id]==='del')continue;
         if(loc&&(loc.u||0)>=ru)continue;
@@ -3616,6 +3668,8 @@ async function cloudSync(){
   }catch(e){}
   syncing=false;store();
   if(changed&&!drag&&!document.body.classList.contains('sheet'))render();
+  // 13-nov · Lo leído viaja con la cuenta: se baja lo de los otros dispositivos y se sube lo de éste.
+  if(sess){leidasDeCuenta();leidasACuenta();if(changed)paintBubs()}
 }
 function cloudSoon(){clearTimeout(cloudT);cloudT=setTimeout(cloudSync,1200)}
 let ticks=0;
