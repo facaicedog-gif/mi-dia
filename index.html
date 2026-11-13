@@ -479,6 +479,7 @@ body.psheet #psheet{transform:none}
 #auth-f .beta-n{font-size:12.5px;color:#8a5300;background:var(--q3b);border-radius:12px;padding:8px 10px;margin:0 0 4px}
 /* 2026-11-12 · Autorización de datos (Ley 1581): casilla al crear la cuenta y pantalla para las cuentas que ya existían */
 #a-okl{display:none;gap:9px;align-items:flex-start;text-align:left;font-size:12.5px;line-height:1.45;color:var(--mut);margin:4px 0 2px}
+body:not(.con-atlas) #a-okl,body:not(.con-atlas) .a-legal,body:not(.con-atlas) #atl-box{display:none!important}
 #a-okl input{width:18px;height:18px;margin:1px 0 0;flex:0 0 auto}
 #a-okl a,.a-legal a,#consent a,.atl-okl a{color:var(--blue);font-weight:700}
 .a-legal{font-size:12px;text-align:center;margin:10px 0 0}
@@ -706,7 +707,7 @@ body.ws #bubs{display:none}
     <input id="a-name" maxlength="40" placeholder="Tu nombre (así te verán los demás)" autocomplete="name" autocapitalize="words">
     <input id="a-email" type="email" placeholder="Correo" autocomplete="email" autocapitalize="off" required>
     <input id="a-pass" type="password" placeholder="Contraseña" autocomplete="current-password" minlength="8" required>
-    <label id="a-okl"><input type="checkbox" id="a-ok"><span>Acepto los <a href="legal.html#terminos" target="_blank" rel="noopener">Términos de uso</a> y autorizo a Veltrion a tratar mis datos según la <a href="legal.html#datos" target="_blank" rel="noopener">Política de datos de Mi día</a>.</span></label>
+    <label id="a-okl"><input type="checkbox" id="a-acepto"><span>Acepto los <a href="legal.html#terminos" target="_blank" rel="noopener">Términos de uso</a> y autorizo a Veltrion a tratar mis datos según la <a href="legal.html#datos" target="_blank" rel="noopener">Política de datos de Mi día</a>.</span></label>
     <div id="a-msg"></div>
     <button type="submit" id="a-go">Entrar</button>
     <button type="button" class="link" id="a-forgot">Olvidé mi contraseña</button>
@@ -2010,10 +2011,10 @@ $('#auth-f').addEventListener('submit',async e=>{
     }else if(mode==='up'){
       // El nombre se guarda aquí hasta la primera entrada (si toca confirmar el correo, se entra después).
       // 12-nov · Ley 1581: sin la autorización marcada no se crea la cuenta (casilla sin marcar de entrada).
-      if(!$('#a-ok').checked){aM.textContent='Para crear tu cuenta, acepta los términos y autoriza el tratamiento de tus datos.';aM.className='';aGo.disabled=false;return}
+      if(atlasModo()&&!$('#a-acepto').checked){aM.textContent='Para crear tu cuenta, acepta los términos y autoriza el tratamiento de tus datos.';aM.className='';aGo.disabled=false;return}
       const nombre=$('#a-name').value.replace(/\s+/g,' ').trim().slice(0,40);lsSet('midia.nombre.pend',nombre||null);
       // La prueba de la autorización queda en la cuenta: versión, fecha y por dónde se dio.
-      const r=await authCall('signup?redirect_to='+encodeURIComponent(HOME),{email,password,data:{nombre,consentimiento:consentRegistro('registro')}});
+      const r=await authCall('signup?redirect_to='+encodeURIComponent(HOME),{email,password,data:atlasModo()?{nombre,consentimiento:consentRegistro('registro')}:{nombre}});
       if(!r.ok)showAuth('up',authErr(r));
       else if(r.j.access_token){takeSession(r.j);aP.value='';enter()}
       else{aP.value='';showAuth('in','Te envié un correo para confirmar tu cuenta. Ábrelo, toca el enlace y luego entra aquí.',true)}
@@ -2035,7 +2036,7 @@ const CONSENT_V='1.0';
 const consentRegistro=canal=>({version:CONSENT_V,fecha:new Date().toISOString(),canal,documento:'legal.html'});
 let consentOk=false;
 async function consentGate(){
-  if(!sess)return;
+  if(!sess||!atlasModo())return;   // 12-nov (noche) · sin Atlas no se pide (Fabián)
   const marca=sess.uid+':'+CONSENT_V;
   if(lsGet('midia.consent','')===marca){consentOk=true;return}
   try{
@@ -2091,7 +2092,7 @@ async function signOut(){
   await cloudSync();
   if(Object.keys(outbox).length){toast('Sin conexión: conéctate para cerrar sesión sin perder cambios');return}
   const at=sess&&sess.at;
-  await atlasOff(true); // otra persona en este celular no debe ver tu agenda de Atlas
+  atlasOlvidar(); // otra persona en este celular no debe ver tu agenda de Atlas; al volver a entrar con TU cuenta se recupera sola
   setSess(null);S={tasks:[],rules:[],extra:[]};known={};outbox={};cursor='';store();
   ASG={rec:[],env:[]};lsSet('midia.asg.cache',null);asgQ=[];lsSet('midia.asg.q',[]);asgSeen={};asgSt=null;lsSet('midia.asg.seen',null);lsSet('midia.asg.st',null);ctcAt=0;FOTOS={};lsSet('midia.fotos',null);
   syncNow(); // este dispositivo deja de recibir avisos de la cuenta
@@ -2112,6 +2113,15 @@ $('#acct-out').onclick=signOut;
 // gestionarlos aquí, el resultado se guarda EN ATLAS. Mi día no copia esa agenda a su base: la pide cada vez.
 // El navegador no habla con Atlas: lo hace el servidor de Mi día, y Atlas sólo acepta el token de enlace.
 let atlasLink=lsGet('midia.atlas',null),atlasPrefs=lsGet('midia.atlas.prefs',{}),atlasAt=0,atlasBusy=false;
+/* 12-nov (noche) · Fabián: «todos aquellos usuarios que no tienen Atlas no deben ver nada de tratamiento de datos ni nada
+   relacionado con Atlas o Veltrion: ese es mi equipo de la empresa donde trabajo». Lo de Atlas (conectar, la autorización
+   de datos, los términos) sólo aparece en «modo Atlas»: con Atlas conectado, o si se entró UNA vez por el enlace
+   …/midia/?atlas (el que se le da a quien tiene usuario de Atlas). Ese enlace se recuerda en el celular. */
+const ATLAS_ON='midia.atlas.on';
+if(/[?&]atlas(=|&|$)/.test(location.search)){lsSet(ATLAS_ON,true);history.replaceState(null,'',location.pathname+location.hash)}
+const atlasModo=()=>!!(atlasLink||lsGet(ATLAS_ON,false));
+const paintModo=()=>document.body.classList.toggle('con-atlas',atlasModo());
+paintModo();
 async function atlasCall(llamada,enlace,keepalive){
   const tk=await token();if(!tk)throw new Error('Sin conexión.');
   const r=await fetch(API,{method:'POST',keepalive:!!keepalive,headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({op:'atlas',llamada,enlace:enlace||(atlasLink&&atlasLink.token)||''})});
@@ -2133,7 +2143,21 @@ function atlasKeep(){
 function atlasStart(){
   if(atlasLink&&sess&&atlasLink.uid!==sess.uid){atlasLink=null;lsSet('midia.atlas',null);lsSet('midia.atlas.cache',null)}
   ATLAS=atlasLink?lsGet('midia.atlas.cache',[]).map(atlasMap):[];
-  atlasLoad(true);
+  if(atlasLink)atlasLoad(true);else atlasRestaurar();
+}
+/* 12-nov (noche) · Fabián: «cada vez que se actualiza la app se sale la cuenta de Atlas y tengo que volver a enviar código».
+   La conexión ya no vive sólo en este celular: el servidor de Mi día la guarda a nombre de tu cuenta y aquí se recupera
+   sola (otra dirección, app reinstalada, sesión cerrada y vuelta a abrir). «Desconectar» sí la borra de los dos lados. */
+async function atlasRestaurar(){
+  if(atlasLink||!sess)return;
+  try{
+    const tk=await token();if(!tk)return;
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({op:'atlas_restaurar'})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.ok||!j.token||atlasLink||!sess)return;
+    atlasLink={token:j.token,nombre:j.nombre||'',uid:sess.uid};lsSet('midia.atlas',atlasLink);
+    paintAtlas();atlasLoad(true);
+  }catch(e){console.warn('Mi día: no se pudo recuperar la conexión con Atlas')}
 }
 async function atlasLoad(force){
   if(!atlasLink||!sess||atlasBusy||drag)return;
@@ -2141,13 +2165,16 @@ async function atlasLoad(force){
   atlasBusy=true;
   try{
     const j=await atlasCall({operacion:'listar'});
-    if(j.status===401){atlasLink=null;lsSet('midia.atlas',null);atlasSet([]);toast('La conexión con Atlas ya no está activa');}
+    if(j.status===401&&/Atlas/.test(j.error||'')){atlasLink=null;lsSet('midia.atlas',null);atlasSet([]);toast('La conexión con Atlas ya no está activa');}   // 12-nov · el 401 de la sesión de Mi día dice «Mi día», no «Atlas»: ese no corta
     else if(j.ok&&Array.isArray(j.eventos)){atlasAt=Date.now();atlasSet(j.eventos);escalate();syncSoon();ocuSoon();if(j.aviso)toast(j.aviso)}
     else if(force&&j.error)toast('Atlas: '+j.error);
     if(!drag&&!document.body.classList.contains('sheet')&&!document.body.classList.contains('asheet'))render();
   }catch(e){if(force)toast('No hubo conexión con Atlas; se muestra lo último que se trajo')}
   atlasBusy=false;paintAtlas();
   sugLoad(force);   // 2026-11-11 · «Atlas te sugiere» va al ritmo de los pendientes
+}
+function atlasOlvidar(){
+  atlasLink=null;lsSet('midia.atlas',null);lsSet('midia.atlas.cache',null);atlasSet([]);ocuFirma='';lsSet('midia.atlas.ocu',null);tarFirma='';lsSet('midia.atlas.tar',null);
 }
 async function atlasOff(quiet){
   if(!atlasLink)return;
@@ -2156,6 +2183,7 @@ async function atlasOff(quiet){
   if(!quiet){render();paintAtlas();toast('Atlas desconectado de este celular')}
 }
 function paintAtlas(){
+  paintModo();
   const b=$('#atl-box');if(!b)return;
   if(atlasLink){
     b.innerHTML='<span class="okk">✓ Atlas conectado</span> <small></small><br><button type="button" id="atl-off">Desconectar</button>';

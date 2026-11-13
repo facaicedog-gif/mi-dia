@@ -399,13 +399,20 @@ async function dispositivosDe(uid: string): Promise<string[]> {
   return (data ?? []).map((d) => d.device);
 }
 /** Después de un relevo que salió bien: recordar el vínculo, tomar la foto de la agenda o soltar todo al desconectar. */
-async function atlasDespues(uid: string, op: string, j: any) {
+async function atlasDespues(uid: string, op: string, j: any, enlace: string) {
   const vin = typeof j.vinculo_id === "string" ? j.vinculo_id.slice(0, 64) : "";
   if ((op === "canjear" || op === "listar") && vin) {
-    await db.from("midia_atlas_enlaces").upsert({ vinculo_id: vin, uid, actualizado: new Date().toISOString() });
+    // 12-nov (noche) · Y la llave de la conexión, para que la app la recupere sola (2026-11-12_atlas_recordar.sql). Al
+    // conectar viene en la respuesta; con «listar» es la que el celular acaba de usar y Atlas aceptó.
+    const llave = op === "canjear" ? String(j.token || "") : enlace;
+    const fila: Record<string, unknown> = { vinculo_id: vin, uid, actualizado: new Date().toISOString() };
+    if (llave.length >= 40 && llave.length <= 200) fila.token = llave;
+    if (typeof j.nombre === "string") fila.nombre = j.nombre.slice(0, 80);
+    await db.from("midia_atlas_enlaces").upsert(fila);
   }
   const devs = await dispositivosDe(uid);
   if (op === "desvincular" && j.ok) {
+    await db.from("midia_atlas_enlaces").update({ token: null }).eq("uid", uid);   // desconectar es desconectar: no vuelve sola
     // 12-nov (tarde) · El vínculo NO se olvida: con él, «Enviarme el código» sabe a qué usuario de Atlas volver sin que la
     // persona tenga que acordarse de su correo de Atlas (Fabián cerró sesión y el correo de Mi día no era el de Atlas).
     // No da acceso a nada: Atlas sólo avisa a vínculos activos, y el código va al correo de Atlas.
@@ -579,15 +586,31 @@ Deno.serve(async (req) => {
       try { j = JSON.parse(texto); } catch { j = { ok: false, error: "Atlas respondió algo ilegible." }; }
       // 12-nov · Lo que este servidor necesita para avisar sin que la app esté abierta. Nunca tumba la respuesta.
       if (r.ok && j && typeof j === "object" && usuarioMd?.id) {
-        try { await atlasDespues(String(usuarioMd.id), String(ll.operacion), j as any); }
+        try { await atlasDespues(String(usuarioMd.id), String(ll.operacion), j as any, enlace); }
         catch (e) { console.error("atlas despues", String(e)); }
         delete (j as any).vinculo_id;   // el celular no lo necesita
+      }
+      // Atlas dice que esa llave ya no sirve (vínculo revocado): se olvida aquí también, para no devolverla al restaurar.
+      if (r.status === 401 && usuarioMd?.id && enlace && ll.operacion !== "canjear" && ll.operacion !== "pedir_codigo") {
+        try { await db.from("midia_atlas_enlaces").update({ token: null }).eq("uid", String(usuarioMd.id)).eq("token", enlace); }
+        catch (e) { console.error("atlas olvidar", String(e)); }
       }
       return json(j, r.status);
     } catch (e) {
       console.error("atlas", String(e));
       return json({ ok: false, error: "No hubo conexión con Atlas." }, 502);
     }
+  }
+
+  // 12-nov (noche) · La conexión con Atlas que esta cuenta ya tenía: la app la pide al entrar si en el celular no está
+  // (otra dirección, app reinstalada, sesión cerrada). Sólo a la misma cuenta, con su sesión; nunca a otra.
+  if (b.op === "atlas_restaurar") {
+    const yo = await quien(req);
+    if (!yo) return json({ ok: false, error: "Tu sesión de Mi día venció. Entra de nuevo." }, 401);
+    const { data } = await db.from("midia_atlas_enlaces").select("token,nombre").eq("uid", yo.id).not("token", "is", null)
+      .order("actualizado", { ascending: false }).limit(1);
+    const f = data?.[0];
+    return json(f ? { ok: true, token: f.token, nombre: f.nombre || "" } : { ok: true, token: null });
   }
 
   // Ver quién invita (antes de entrar a la app): sólo el nombre.
