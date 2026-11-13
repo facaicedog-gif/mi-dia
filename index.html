@@ -2,6 +2,14 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<!-- 13-nov · Auditoría N-1: Atlas sirve Mi día por proxy y sus cabeceras de seguridad no llegan aquí. Esta política
+     viaja en la página: sólo carga código propio, SheetJS de cdnjs y la fuente de Google; sólo habla con su Supabase. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' data: blob:; connect-src 'self' https://hlnxrveoytobqrwrbdvi.supabase.co; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<script>
+/* 13-nov · Auditoría N-1: nadie puede meter Mi día en un marco de otra página para engañar clics (la cabecera
+   frame-ancestors no viaja por el proxy ni se puede poner en un <meta>). */
+if(window.top!==window.self){document.documentElement.style.display='none';try{window.top.location.replace(window.self.location.href)}catch(e){}}
+</script>
 <script>
 /* 2026-11-12 · MUDANZA: Mi día vive en atlas.veltrion.com.co/midia (Fabián eligió la ruta). Atlas la sirve por proxy
    desde este mismo GitHub Pages, así que este archivo se abre en las DOS direcciones: en la vieja (github.io) manda a
