@@ -7,9 +7,21 @@
    desde este mismo GitHub Pages, así que este archivo se abre en las DOS direcciones: en la vieja (github.io) manda a
    la nueva conservando ?… y #… (invitaciones #inv=, tareas #add=, sesión del correo de confirmación). En la nueva no
    hace nada. Se publica DESPUÉS de que Atlas sirva /midia (si no, mandaría a una página que no existe). */
-if(location.hostname==='facaicedog-gif.github.io')location.replace('https://atlas.veltrion.com.co/midia/'+location.search+location.hash);
-// Sin la barra final, «./sw.js» y el manifiesto apuntarían a la raíz de Atlas (Netlify no puede agregarla: hace bucle).
-else if(location.pathname==='/midia')location.replace('/midia/'+location.search+location.hash);
+/* 2026-11-13 · DOS DIRECCIONES. Fabián: «deja la github.io para el equipo». Quien no usa Atlas (su equipo del trabajo) se
+   queda en github.io; quien usa Atlas (conectado, o que entró por …/midia/?atlas) va a atlas.veltrion.com.co/midia.
+   Cada dirección guarda sus propios datos; al pasar a la de Atlas se lleva «?atlas» para no rebotar entre las dos. */
+(function(){
+  var lee=function(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+  var pide=/[?&]atlas(=|&|$)/.test(location.search);
+  var conAtlas=pide||!!lee('midia.atlas')||!!lee('midia.atlas.on');
+  if(location.hostname==='facaicedog-gif.github.io'){
+    if(conAtlas)location.replace('https://atlas.veltrion.com.co/midia/'+(pide?location.search:(location.search?location.search+'&':'?')+'atlas')+location.hash);
+  }else if(location.hostname==='atlas.veltrion.com.co'&&!conAtlas){
+    location.replace('https://facaicedog-gif.github.io/mi-dia/'+location.search+location.hash);
+  }
+  // Sin la barra final, «./sw.js» y el manifiesto apuntarían a la raíz de Atlas (Netlify no puede agregarla: hace bucle).
+  else if(location.pathname==='/midia')location.replace('/midia/'+location.search+location.hash);
+})();
 </script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b1f5c">
@@ -1834,7 +1846,7 @@ const canNotify='Notification'in window;
 function bellState(){$('#bell').classList.toggle('on',canNotify&&Notification.permission==='granted')}
 async function askPerm(){
   if(!canNotify){toast('Instala la app en la pantalla de inicio para recibir avisos');return}
-  if(Notification.permission==='denied'){toast('Los avisos están bloqueados: actívalos en los ajustes del navegador');return}
+  if(Notification.permission==='denied'){pasosAvisos();return}
   const r=await Notification.requestPermission();bellState();
   if(r!=='granted'){toast('Sin avisos por ahora');return}
   toast('Activando avisos…');
@@ -2120,7 +2132,8 @@ let atlasLink=lsGet('midia.atlas',null),atlasPrefs=lsGet('midia.atlas.prefs',{})
 const ATLAS_ON='midia.atlas.on';
 if(/[?&]atlas(=|&|$)/.test(location.search)){lsSet(ATLAS_ON,true);history.replaceState(null,'',location.pathname+location.hash)}
 const atlasModo=()=>!!(atlasLink||lsGet(ATLAS_ON,false));
-const paintModo=()=>document.body.classList.toggle('con-atlas',atlasModo());
+// Quien conectó Atlas una vez queda en modo Atlas en este celular (así no lo manda a github.io si cierra sesión).
+const paintModo=()=>{if(atlasLink&&!lsGet(ATLAS_ON,false))lsSet(ATLAS_ON,true);document.body.classList.toggle('con-atlas',atlasModo())};
 paintModo();
 async function atlasCall(llamada,enlace,keepalive){
   const tk=await token();if(!tk)throw new Error('Sin conexión.');
@@ -3460,6 +3473,7 @@ function permFila(ic,tit,txt,estado,accion){
   r.innerHTML='<div class="ic"></div><div class="tx"><b></b><small></small></div>';
   r.querySelector('.ic').textContent=ic;r.querySelector('b').textContent=tit;r.querySelector('small').textContent=txt;
   if(estado==='ok'){const e=document.createElement('span');e.className='ok';e.textContent='✓ Listo';r.appendChild(e)}
+  else if(estado==='bloqueado'){const b=document.createElement('button');b.type='button';b.textContent='Ver cómo activarlos';b.onclick=accion;r.appendChild(b)}
   else if(estado&&estado!=='pedir'){const e=document.createElement('span');e.className='no';e.textContent=estado;r.appendChild(e)}
   else{const b=document.createElement('button');b.type='button';b.textContent='Permitir';b.onclick=accion;r.appendChild(b)}
   return r;
@@ -3467,8 +3481,8 @@ function permFila(ic,tit,txt,estado,accion){
 function paintPerm(){
   const box=$('#perm-rows');box.textContent='';
   if(canNotify){
-    const st=Notification.permission==='granted'?'ok':Notification.permission==='denied'?'Bloqueados: actívalos en los ajustes':'pedir';
-    box.appendChild(permFila('🔔','Avisos','Te recuerda tus pendientes a su hora y te avisa lo que te asignen, aunque la app esté cerrada.',st,async()=>{await askPerm();paintPerm()}));
+    const bloq=Notification.permission==='denied',st=Notification.permission==='granted'?'ok':bloq?'bloqueado':'pedir';
+    box.appendChild(permFila('🔔','Avisos',bloq?'Están bloqueados para esta dirección. Toca el botón y te digo dónde activarlos.':'Te recuerda tus pendientes a su hora y te avisa lo que te asignen, aunque la app esté cerrada.',st,bloq?pasosAvisos:async()=>{await askPerm();paintPerm()}));
   }else if(isIOS&&!standalone){
     box.appendChild(permFila('🔔','Avisos','En iPhone primero instálala: en Safari toca Compartir → «Agregar a inicio» y ábrela desde ese ícono.','Instálala primero'));
   }
@@ -3481,6 +3495,19 @@ function paintPerm(){
       lsSet('midia.perm.mic',micState);paintPerm();
     }));
   }
+}
+/* 2026-11-13 · Fabián: «me dice que los avisos están bloqueados: actívalos en ajustes, pero no es claro dónde, y cuando
+   ingreso a notificaciones todo está activado». El permiso es POR DIRECCIÓN: desde el 12-nov Mi día vive en dos (github.io
+   y atlas.veltrion.com.co/midia), y en iPhone cada ícono de inicio es una app aparte con su propio permiso. Lo activado en
+   Ajustes puede ser el ícono de la otra dirección. Aquí se dice el camino exacto según el teléfono y la dirección. */
+function pasosAvisos(){
+  const dir=location.hostname==='atlas.veltrion.com.co'?'atlas.veltrion.com.co/midia':'facaicedog-gif.github.io/mi-dia';
+  const t=isIOS
+    ?'1. Abre Ajustes del iPhone → Notificaciones.\n2. Busca «Mi día» y activa «Permitir notificaciones».\n3. Si ahí ya está activado, ese es otro ícono de Mi día (de otra dirección). Borra el ícono de Mi día de tu pantalla, abre '+dir+' en Safari, toca Compartir → «Agregar a inicio» y entra desde el ícono nuevo. Al abrirla, toca «Permitir».'
+    :'1. Toca el candado (o los tres puntos) junto a la dirección '+dir+'.\n2. Entra a «Permisos» o «Configuración del sitio» → «Notificaciones» → «Permitir».\n3. Si la instalaste en el teléfono: Ajustes → Aplicaciones → Mi día → Notificaciones → activadas.\n4. Cierra Mi día y vuelve a abrirla.';
+  const p=askText('Cómo activar los avisos',t,'Entendido',false,'Cerrar');
+  $('#qa-p').style.whiteSpace='pre-line';
+  p.then(()=>{$('#qa-p').style.whiteSpace=''});
 }
 function openPerm(){paintPerm();$('#perm').classList.add('show')}
 function closePerm(){$('#perm').classList.remove('show');lsSet('midia.perm.visto',1)}
