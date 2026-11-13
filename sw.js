@@ -1,5 +1,5 @@
 // Mi día · service worker: funciona sin conexión y muestra los avisos.
-const CACHE = 'midia-v35';
+const CACHE = 'midia-v36';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-180.png'];
 
 self.addEventListener('install', e => {
@@ -38,6 +38,12 @@ self.addEventListener('push', e => {
     body: d.body || '',
     tag: d.tag,
     silent: false,
+    // 13-nov · Para que se note más donde el sistema lo permite (Android y computador): vibración propia, vuelve a sonar
+    // aunque ya hubiera un aviso con la misma etiqueta, y se queda en pantalla hasta que lo toques. El iPhone ignora
+    // estas tres: ahí el sonido es el del sistema (Ajustes → Sonidos y vibraciones → Alertas predeterminadas).
+    vibrate: [200, 90, 200, 90, 450],
+    renotify: !!d.tag,
+    requireInteraction: true,
     icon: 'icon-192.png',
     badge: 'icon-192.png',
     data: d.data || {}
