@@ -78,7 +78,8 @@ const ATLAS_URL = "https://atlas.veltrion.com.co/.netlify/functions/midia-puente
 // 2026-11-11 · + sugeridas, empresa y gestion: el Workspace de bolsillo (maqueta-workspace.html). La lista sigue cerrada.
 // 2026-11-12 · + pedir_codigo: el código para conectar llega solo al correo de Atlas (maqueta-conectar.html).
 // 2026-11-12 · + tareas: lo que se crea en Mi día con «Ponerla en Atlas» aparece en la agenda de Atlas.
-const ATLAS_OPS = ["canjear", "pedir_codigo", "listar", "cerrar", "reprogramar", "desvincular", "ocupado", "sugeridas", "empresa", "gestion", "tareas"];
+// 2026-11-12 · + toque: tocar Llamar / WhatsApp / Correo en la ficha queda anotado en Atlas, como en el panel.
+const ATLAS_OPS = ["canjear", "pedir_codigo", "listar", "cerrar", "reprogramar", "desvincular", "ocupado", "sugeridas", "empresa", "gestion", "tareas", "toque"];
 
 // Quién llama, según su sesión de Mi día. null si no trae sesión o si venció.
 type Quien = { id: string; email: string };

@@ -2112,9 +2112,9 @@ $('#acct-out').onclick=signOut;
 // gestionarlos aquí, el resultado se guarda EN ATLAS. Mi día no copia esa agenda a su base: la pide cada vez.
 // El navegador no habla con Atlas: lo hace el servidor de Mi día, y Atlas sólo acepta el token de enlace.
 let atlasLink=lsGet('midia.atlas',null),atlasPrefs=lsGet('midia.atlas.prefs',{}),atlasAt=0,atlasBusy=false;
-async function atlasCall(llamada,enlace){
+async function atlasCall(llamada,enlace,keepalive){
   const tk=await token();if(!tk)throw new Error('Sin conexión.');
-  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({op:'atlas',llamada,enlace:enlace||(atlasLink&&atlasLink.token)||''})});
+  const r=await fetch(API,{method:'POST',keepalive:!!keepalive,headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({op:'atlas',llamada,enlace:enlace||(atlasLink&&atlasLink.token)||''})});
   let j={};try{j=await r.json()}catch(e){}
   j.status=r.status;return j;
 }
@@ -2312,6 +2312,18 @@ async function ocuSend(){
     else console.warn('Mi día: Atlas no recibió las tareas',j.status,j.error);
   }catch(e){console.warn('Mi día: sin conexión para mandar las tareas a Atlas')}
 }
+/* ---------- el toque: Llamar / WhatsApp / Correo cuentan en Atlas ----------
+   Lo mismo que anota el panel de Atlas al tocar esos botones («Abrió el marcador con +57…»): con eso la empresa pasa a
+   «En gestión». No frena el marcador (keepalive: el aviso sale aunque el celular cambie de app). Un toque repetido a la
+   misma empresa y canal en 2 minutos no se vuelve a anotar. */
+const toqueVisto={};
+function atlasToque(cid,canal,numero,nombre){
+  if(!atlasLink||!cid)return;
+  const k=cid+'|'+canal;if(toqueVisto[k]&&Date.now()-toqueVisto[k]<120000)return;toqueVisto[k]=Date.now();
+  atlasCall({operacion:'toque',company_id:cid,canal,numero:numero||'',nombre:nombre||''},null,true)
+    .then(j=>{if(!j.ok){delete toqueVisto[k];console.warn('Mi día: Atlas no anotó el toque',j.status,j.error)}})
+    .catch(()=>{delete toqueVisto[k];console.warn('Mi día: sin conexión para anotar el toque en Atlas')});
+}
 /* ---------- la hoja de un pendiente de Atlas ---------- */
 let aCur=null,aComo='contesto';
 const soloDig=s=>String(s||'').replace(/\D/g,'');
@@ -2323,10 +2335,10 @@ function openAtlas(t){
   const n=$('#a-notas');n.textContent=t.notas||'';n.style.display=t.notas?'':'none';
   // Para actuar con un toque. El teléfono del contacto manda; si no hay, el de la empresa.
   const tel=soloDig(con.telefono||emp.telefono),mail=con.correo||emp.correo||'',acts=$('#a-acts');acts.textContent='';
-  const link=(txt,href,cls)=>{const a=document.createElement('a');a.textContent=txt;a.href=href;if(cls)a.className=cls;a.target='_blank';a.rel='noopener';acts.appendChild(a)};
-  if(tel.length>=7)link('Llamar','tel:'+tel);
-  if(tel.length===10&&tel[0]==='3')link('WhatsApp','https://wa.me/57'+tel,'wa');
-  if(/^[^\s@]+@[^\s@]+$/.test(mail))link('Correo','mailto:'+mail);
+  const link=(txt,href,cls,canal)=>{const a=document.createElement('a');a.textContent=txt;a.href=href;if(cls)a.className=cls;a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(t.cid,canal,tel,con.nombre));acts.appendChild(a)};
+  if(tel.length>=7)link('Llamar','tel:'+tel,'','llamar');
+  if(tel.length===10&&tel[0]==='3')link('WhatsApp','https://wa.me/57'+tel,'wa','whatsapp');
+  if(/^[^\s@]+@[^\s@]+$/.test(mail))link('Correo','mailto:'+mail,'','correo');
   acts.style.display=acts.children.length?'':'none';
   // Las mismas preguntas que el «Ya lo hice» de Atlas: una llamada pregunta si contestó; lo interno se cierra sin más.
   $('#a-ask').style.display=t.clase?'':'none';
@@ -2431,10 +2443,10 @@ function wsFicha(){
   kv('Correo',mail);kv('Web',e.web);
   if(q.lastChild)q.lastChild.classList.add('fin');
   const cel=tel.length===10&&tel[0]==='3',acts=wEl('div','wacts');
-  const link=(txt,href,cls)=>{const a=wEl('a',cls||'',txt);a.href=href;a.target='_blank';a.rel='noopener';acts.appendChild(a)};
-  if(tel.length>=7)link('Llamar','tel:'+tel,'pri');
-  if(cel)link('WhatsApp','https://wa.me/57'+tel,'wa');
-  if(/^[^\s@]+@[^\s@]+$/.test(mail))link('Correo','mailto:'+mail);
+  const link=(txt,href,cls,canal)=>{const a=wEl('a',cls||'',txt);a.href=href;a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(e.company_id,canal,tel,k.nombre));acts.appendChild(a)};
+  if(tel.length>=7)link('Llamar','tel:'+tel,'pri','llamar');
+  if(cel)link('WhatsApp','https://wa.me/57'+tel,'wa','whatsapp');
+  if(/^[^\s@]+@[^\s@]+$/.test(mail))link('Correo','mailto:'+mail,'','correo');
   if(acts.children.length)q.appendChild(acts);
   if(!q.children.length)q.appendChild(wEl('div','wkv fin','Atlas todavía no tiene un contacto de esta empresa.'));
   B.appendChild(q);
@@ -2452,7 +2464,7 @@ function wsFicha(){
     B.appendChild(wTit('Qué decirle'));
     B.appendChild(wEl('div','wmsg',d.texto));
     const a2=wEl('div','wacts');a2.style.marginBottom='4px';
-    if(cel){const a=wEl('a','wa','Abrir en WhatsApp con este texto');a.href='https://wa.me/57'+tel+'?text='+encodeURIComponent(d.texto);a.target='_blank';a.rel='noopener';a2.appendChild(a)}
+    if(cel){const a=wEl('a','wa','Abrir en WhatsApp con este texto');a.href='https://wa.me/57'+tel+'?text='+encodeURIComponent(d.texto);a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(e.company_id,'whatsapp',tel,k.nombre));a2.appendChild(a)}
     else{const b=wEl('button','','Copiar este texto');b.type='button';b.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(d.texto);toast('Texto copiado')}catch(x){toast('No se pudo copiar: mantén presionado el texto para copiarlo')}});a2.appendChild(b)}
     B.appendChild(a2);
   }
