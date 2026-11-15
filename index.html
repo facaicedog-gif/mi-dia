@@ -823,9 +823,9 @@ nav{border-top:1px solid var(--line);box-shadow:0 -1px 2px rgba(15,23,42,.04)}
 .wch.nu{background:var(--q3b);color:var(--q3);border-color:var(--q3l)}
 /* 2026-11-15 · La X para cerrar las hojas que suben desde abajo (Fabián: «cuando se abre una tarea no me parece una opción para
    cerrar esa pestaña, agregarle una x»). Antes sólo se cerraban tocando fuera, y eso no se adivina. */
-.xcl{position:absolute;top:8px;right:12px;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--mut);font-size:22px;line-height:1;display:grid;place-items:center;z-index:2}
+.xcl{position:absolute;top:6px;right:12px;width:30px;height:30px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--mut);font-size:22px;line-height:1;display:grid;place-items:center;z-index:2}
 .xcl:active{transform:scale(.94)}
-#sheet .trow{margin-top:18px}
+#sheet .trow{margin-top:42px}   /* 15-nov · la X (6–36 px) no puede tocar el botón de dictar: medido en local, queda un hueco de unos 16 px */
 #asheet h3,#psheet h3,#c-form h3{padding-right:44px}
 </style>
 </head>
@@ -1195,6 +1195,7 @@ function cardEl(t,o){
     c.querySelector('.ct').appendChild(d);
   }
   if(t.de){const g=document.createElement('span');g.className='from';g.textContent='de '+t.de+(t.con?' · con '+t.con.map(n=>n.split(' ')[0]).join(' y '):'');c.querySelector('.ct').appendChild(g)}
+  else if(Array.isArray(t.con)&&t.con.length){const g=document.createElement('span');g.className='from';g.textContent='con '+t.con.map(n=>String(n).split(' ')[0]).join(' y ');c.querySelector('.ct').appendChild(g)}   // 15-nov · tu copia de una tarea que también enviaste
   if(o.tag&&!t.done){const g=document.createElement('span');g.className='tag';g.textContent=QN[t.q];(c.querySelector('.due')||c.querySelector('.ct')).appendChild(g)}
   return c;
 }
@@ -1455,7 +1456,7 @@ function openSheet(t,pre){
   $('#rep-box').style.display=t?'none':'';
   $('#f-wk').checked=false;dowSel=[];wkShow();
   $('#f-save').textContent=t?'Guardar cambios':'Guardar';
-  asSel=[];asOther=false;$('#as-mail').value='';$('#as-nota').value='';paintWho();
+  asSel=[];asOther=false;asMe=false;$('#as-mail').value='';$('#as-nota').value='';paintWho();
   // 12-nov · Nueva: «Con el título». Las de antes (y las que te asignan) siguen como estaban: «Solo Ocupado».
   atlSel=t?(t.atl||'o'):pre?'o':'t';$('#atl-tbox').style.display=atlasLink&&sess?'':'none';paintAtl();
   if(pre&&pre.assign){$('#hint').textContent='Elige a quién se la asignas';fixed=false}
@@ -3508,10 +3509,15 @@ async function ctcSync(){
 let asSel=[],asOther=false; // asSel = [{correo,nombre}]; asOther = escribir un correo nuevo
 const MAX_PARA=5;
 const asgWanted=()=>asSel.length>0||asOther;
+/* 2026-11-15 · «Yo también» (Fabián: «que algunas tareas que se envían a diferentes personas también me pueda agregar yo y
+   dejarme esa tarea también para mí»). Con personas elegidas, «Yo» ya no se apaga solo: se puede dejar marcado, y entonces la
+   tarea sale para ellos y además queda una copia tuya en el tablero, como la «copia» de pasar una tarjeta. */
+let asMe=false;
 function paintWho(){
   const show=!editing&&!!sess;
   $('#as-box').classList.toggle('show',show);
-  if(!show){asSel=[];asOther=false}
+  if(!show){asSel=[];asOther=false;asMe=false}
+  if(!asgWanted())asMe=false;
   const w=$('#as-who');w.textContent='';
   const B=(name,label,key,add,on)=>{
     const b=document.createElement('button');b.type='button';b.dataset.who=key;
@@ -3519,7 +3525,7 @@ function paintWho(){
     const s=document.createElement('span');s.textContent=label;b.append(av,s);
     b.classList.toggle('on',!!on);w.appendChild(b);
   };
-  B((sess&&sess.email)||'Yo','Yo','me',false,!asgWanted());
+  B((sess&&sess.email)||'Yo','Yo','me',false,!asgWanted()||asMe);
   const ds=dests();
   // los ya elegidos que no estén entre los primeros 8 también se ven
   const vis=ds.slice(0,8);asSel.forEach(s=>{if(!vis.some(d=>d.correo===s.correo))vis.push(s)});
@@ -3531,13 +3537,13 @@ function paintWho(){
   $('#as-nota').placeholder=n>1?'Nota para todos (opcional)':pri.length?'Nota para '+pri[0]+' (opcional)':'Nota para la persona (opcional)';
   $('#rep-box').style.display=asgWanted()||editing?'none':'';
   const quien=asOther&&!pri.length?'':pri.length===1&&!asOther?pri[0]:n===2&&!asOther?pri[0]+' y '+pri[1]:n+' personas';
-  $('#f-save').textContent=editing?'Guardar cambios':asgWanted()?(quien?'Enviar a '+quien:'Enviar'):'Guardar';
-  $('#as-hint').textContent=n>1?'Tarea compartida: cada persona la acepta y la marca hecha por su lado.':'';
+  $('#f-save').textContent=editing?'Guardar cambios':asgWanted()?(quien?'Enviar a '+quien:'Enviar')+(asMe?' y guardarla para mí':''):'Guardar';
+  $('#as-hint').textContent=(n>1?'Tarea compartida: cada persona la acepta y la marca hecha por su lado.':'')+(asgWanted()?(asMe?' Tú también la tienes en tu tablero.':' Toca «Yo» si también la quieres en tu tablero.'):'');
 }
 $('#as-who').onclick=e=>{
   const b=e.target.closest('[data-who]');if(!b)return;
   const k=b.dataset.who;
-  if(k==='me'){asSel=[];asOther=false}
+  if(k==='me'){if(asgWanted())asMe=!asMe;else{asSel=[];asOther=false}}
   else if(k==='other'){
     if(!asOther&&asSel.length>=MAX_PARA){toast('Máximo '+MAX_PARA+' personas por tarea');return}
     asOther=!asOther;if(asOther)setTimeout(()=>$('#as-mail').focus(),50);
@@ -3568,9 +3574,15 @@ async function sendAssign(title,due,end){
     if(!j.ok){toast(j.error||'No se pudo enviar');return}
     const lista=j.asignaciones||[j.asignacion];
     lista.forEach(a=>{asgKeep(a);addDest(a.para_correo,a.para_nombre)});
-    save();closeSheet();render();
     const nom=lista.map(a=>a.para_nombre.split(' ')[0]);
-    toast('Enviada a '+(nom.length>2?nom.length+' personas':nom.join(' y '))+' · te aviso cuando la acepten');
+    // «Yo también»: tu copia, en tu tablero, como cualquier tarea tuya (con su aviso a la hora y en tu agenda de Atlas si aplica).
+    if(asMe){
+      const iso=due?due.toISOString():null,eiso=due?end.toISOString():null;
+      S.tasks.push({id:uid(),title,q:pickQ,due:iso,end:eiso,done:false,notified:!!(due&&due<=new Date()),order:-1,created:Date.now(),band:due?bandOf(iso):undefined,atl:atlasLink?atlSel:undefined,con:nom});
+      reorder();
+    }
+    save();closeSheet();render();
+    toast('Enviada a '+(nom.length>2?nom.length+' personas':nom.join(' y '))+(asMe?' · también quedó en tu tablero':' · te aviso cuando la acepten'));
   }catch(e){toast('Sin conexión. Inténtalo de nuevo.')}
   finally{btn.disabled=false}
 }
