@@ -821,6 +821,12 @@ nav{border-top:1px solid var(--line);box-shadow:0 -1px 2px rgba(15,23,42,.04)}
 .wch{border:1px solid var(--blue-border)}
 .wch.t{background:var(--okb);color:var(--ok);border-color:var(--okl)}
 .wch.nu{background:var(--q3b);color:var(--q3);border-color:var(--q3l)}
+/* 2026-11-15 · La X para cerrar las hojas que suben desde abajo (Fabián: «cuando se abre una tarea no me parece una opción para
+   cerrar esa pestaña, agregarle una x»). Antes sólo se cerraban tocando fuera, y eso no se adivina. */
+.xcl{position:absolute;top:8px;right:12px;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--mut);font-size:22px;line-height:1;display:grid;place-items:center;z-index:2}
+.xcl:active{transform:scale(.94)}
+#sheet .trow{margin-top:18px}
+#asheet h3,#psheet h3,#c-form h3{padding-right:44px}
 </style>
 </head>
 <body class="out">
@@ -1523,6 +1529,20 @@ $$('.chip').forEach(c=>c.onclick=()=>{
 $$('#qpick button').forEach(b=>b.onclick=()=>{quadTouched=true;setQ(+b.dataset.q)});
 $('#fab').onclick=()=>openSheet();
 $('#scrim').onclick=()=>{closeSheet();closeAtlas();closePass();closeCtc()};
+/* 2026-11-15 · La X de cada hoja. La de la tarea pregunta antes de perder lo escrito (cerrar no guarda: sólo «Guardar»). */
+async function cerrarTarea(){
+  const ahora=fT.value.trim(),antes=editing?String(editing.title||'').trim():'';
+  if(ahora&&ahora!==antes){
+    const ok=await askText('¿Cerrar sin guardar?','Lo que escribiste no se guarda. Para guardarlo, toca «'+(editing?'Guardar cambios':'Guardar')+'».','Cerrar sin guardar',false,'Seguir editando');
+    if(ok==null)return;
+  }
+  closeSheet();
+}
+[['#sheet',cerrarTarea],['#asheet',closeAtlas],['#psheet',closePass],['#c-form',closeCtc]].forEach(([sel,fn])=>{
+  const h=$(sel);if(!h)return;
+  const b=document.createElement('button');b.type='button';b.className='xcl';b.setAttribute('aria-label','Cerrar');b.textContent='×';
+  b.addEventListener('click',()=>fn());h.insertBefore(b,h.firstChild);
+});
 // 12-nov · «En tu agenda de Atlas»: t = con el título (la tarea aparece en Atlas), o = sólo «Ocupado» (franja sin título,
 // como desde el 10-nov), n = nada. Atlas necesita día y hora: sin fecha se queda aquí, y se dice.
 let atlSel='t';
