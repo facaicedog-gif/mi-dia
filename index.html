@@ -32,11 +32,11 @@ if(window.top!==window.self){document.documentElement.style.display='none';try{w
 })();
 </script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b1f5c">
+<meta name="theme-color" content="#1e3a8a">
 <meta name="robots" content="noindex,nofollow">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -718,6 +718,109 @@ body.ws #bubs{display:none}
 .werr{font-size:13px;margin-top:10px;min-height:18px;text-align:center;color:var(--mut);line-height:1.4}
 .waviso{font-size:12px;color:var(--mut);text-align:center;margin:8px 0 0;line-height:1.4}
 #a-emp{background:var(--blue-soft);color:var(--blue)}
+
+/* ═══ 2026-11-15 · IMAGEN DE ATLAS (maqueta-imagen-atlas.html; Fabián: «me gusta mucho» → «Sí, constrúyelo») ═══
+   Mi día toma el lenguaje del panel de Atlas (sistema de diseño «Atlas», https://claude.ai/artifact/RkvUCC5q1Ec5tkanftrDCC):
+   la letra Nunito, el índigo #1D4ED8, los tríos de estado (texto · fondo · borde), tarjetas blancas con borde y sombra suave,
+   radios 8/10/12. Quien no usa Atlas no ve la palabra Atlas (regla del 12-nov): ve la misma letra y los mismos colores, que no
+   nombran a nadie; «Mi día · de Atlas» sólo sale en modo Atlas. Es una CAPA, como «Atlas de noche»: quitar este bloque devuelve
+   todo como estaba. Nunito se sirve desde la propia app (fonts/): nada sale a Google. */
+@font-face{font-family:'Nunito';font-style:normal;font-weight:200 1000;font-display:swap;src:url('fonts/nunito-latin-ext.woff2') format('woff2');
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Nunito';font-style:normal;font-weight:200 1000;font-display:swap;src:url('fonts/nunito-latin.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+:root{--bg:#ffffff;--card:#ffffff;--ink:#0f172a;--mut:#64748b;--line:#cbd5e1;--line-control:#8492a6;
+  --blue:#1d4ed8;--blue-soft:#eff6ff;--blue-border:#93c5fd;--blue-hover:#2563eb;
+  --q1:#991b1b;--q1b:#fef2f2;--q1l:#fca5a5;--q2:#1d4ed8;--q2b:#eff6ff;--q2l:#93c5fd;
+  --q3:#92400e;--q3b:#fffbeb;--q3l:#fde68a;--q4:#64748b;--q4b:#f1f5f9;--q4l:#cbd5e1;
+  --ok:#047857;--okb:#ecfdf5;--okl:#6ee7b7;--oro:#f0c33c;--oro2:#d9a21b;--oro-claro:#ffdd7a;--noche:#1e3a8a;
+  --shadow:0 1px 2px rgba(15,23,42,.06)}
+html,body{font-family:"Nunito","Inter Variable",system-ui,-apple-system,"Segoe UI",sans-serif}
+
+/* encabezado: la portada azul, en el índigo de Atlas */
+header{background:linear-gradient(150deg,#1e3a8a 0%,#1d4ed8 70%,#2563eb 100%)}
+header::after{display:none}
+header h1{font-weight:800;letter-spacing:-.01em}
+.hmarca{display:none;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.92);margin:0 0 6px}
+.hmarca svg{width:18px;height:18px;flex:none}
+body.con-atlas .hmarca{display:flex}
+/* el punto de guardado (verde = todo en tu cuenta; naranja = cambios sin subir), en la esquina y fuera de la foto */
+#acct{overflow:visible}
+#acct::after{top:-4px;right:-4px;width:11px;height:11px;border:2.5px solid #fff;box-shadow:0 1px 2px rgba(15,23,42,.3)}
+#acct.pend::after{background:#d97706}
+/* resumen del día */
+#res{border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 4px rgba(15,23,42,.05),0 12px 32px rgba(15,23,42,.10)}
+
+/* cuadrantes: blancos con borde; el color dice el cuadrante en el título y el contador */
+.quad[data-q="1"]{--ql:var(--q1l)}.quad[data-q="2"]{--ql:var(--q2l)}.quad[data-q="3"]{--ql:var(--q3l)}.quad[data-q="4"]{--ql:var(--q4l)}
+.quad{border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.qh strong{color:var(--qc);font-weight:800}
+.qh strong::before{display:none}
+.qh span,.quad[data-q="1"] .qh span{background:var(--qb);color:var(--qc);border:1px solid var(--ql)}
+.list:empty::after{border-color:var(--line)}
+/* tarjetas de tarea */
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:none}
+.card .chk{background:#fff}
+.card .due{background:var(--qb,var(--blue-soft));color:var(--qc,var(--blue))}
+.card[data-q="1"]{background:var(--q1b);border-color:var(--q1l);color:var(--q1);box-shadow:none}
+.card[data-q="1"] .chk{border-color:var(--q1);background:#fff}
+.card[data-q="1"] .due,.card[data-q="1"] .due.soon,.card[data-q="1"] .due.late{background:#fff;color:var(--q1)}
+.card.done[data-q]{background:var(--q4b);border-color:var(--line)}
+/* lo que viene de Atlas se distingue de lo propio */
+.card:has(.atl){border-color:var(--blue-border)}
+.atl,.card[data-q="1"] .atl{background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-border);border-radius:999px;padding:1px 7px;font-size:9.5px}
+
+/* barra de abajo y botón +: el botón principal de Atlas con el oro del logo */
+nav{border-top:1px solid var(--line);box-shadow:0 -1px 2px rgba(15,23,42,.04)}
+#fab{background:var(--blue);color:#fff;border:3px solid var(--oro-claro);border-radius:16px;box-shadow:0 10px 20px -8px rgba(29,78,216,.6)}
+
+/* la franja de contactos sale del tablero: las personas aparecen al arrastrar una tarea (Fabián, 15-nov) */
+#ppl{display:none!important}
+#pdock{border-top:1px solid var(--line);border-radius:18px 18px 0 0;box-shadow:0 -10px 24px rgba(15,23,42,.14)}
+#pdock p{color:var(--mut)}
+#pdock .pp.on .av{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--blue)}
+
+/* las caras sin foto: inicial en azul suave (el color dice el estado, no la persona) */
+.av{background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-border);border-radius:12px}
+
+/* Contactos */
+.cbtns button{border-radius:8px;background:#fff;color:var(--ink);border:1px solid var(--line-control)}
+.cbtns button[data-ctc-inv]{background:var(--blue);color:#fff;border-color:var(--blue)}
+#ctc-q,#c-form input{border:1.5px solid var(--line-control);border-radius:10px;background:#fff}
+.crow{border-bottom-color:#e2e8f0}
+.cst{border:1px solid}
+.cst.y{background:var(--okb);color:var(--ok);border-color:var(--okl)}
+.cst.w{background:var(--q4b);color:var(--mut);border-color:var(--line)}
+.cst.p{background:var(--q3b);color:var(--q3);border-color:var(--q3l)}
+.cstar{color:#cbd5e1}.cstar.on{color:var(--oro2)}
+
+/* Calendario */
+.day{background:var(--q4b);border-radius:8px}
+.day.today{box-shadow:inset 0 0 0 2px var(--blue)}
+.ok{color:var(--ok)}.no{color:var(--q1)}.pl{color:var(--blue)}.as{color:var(--q3)}
+.dsum{border-radius:12px;border:1px solid var(--blue-border)}
+
+/* Gestión */
+.kc{border-radius:12px;border:1px solid var(--kl,var(--line))}
+.kc.w{--kb:var(--q3b);--kc:var(--q3);--kl:var(--q3l)}.kc.c{--kb:var(--q2b);--kc:var(--q2);--kl:var(--q2l)}
+.kc.l{--kb:var(--q1b);--kc:var(--q1);--kl:var(--q1l)}.kc.d{--kb:var(--okb);--kc:var(--ok);--kl:var(--okl)}
+.kc h5 span{background:#fff;color:var(--kc);border:1px solid var(--kl)}
+.kt{border-radius:10px;border:1px solid var(--line);box-shadow:none}
+.kt .ia button{border-radius:8px}
+
+/* Atlas te sugiere y la ficha de la empresa */
+.sug,.sugmsg,.wcard{border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.sug .lg{background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-border);border-radius:12px}
+.whd{background:linear-gradient(150deg,#1e3a8a 0%,#1d4ed8 70%,#2563eb 100%)}
+.whd::after{display:none}
+.wacts a,.wacts button{border-radius:8px;background:#fff;color:var(--ink);border:1px solid var(--line-control)}
+.wacts .pri{background:var(--blue);color:#fff;border-color:var(--blue)}
+.wacts .wa{background:var(--okb);color:var(--ok);border-color:var(--okl)}
+.wmot{background:var(--blue-soft);border:1px solid var(--blue-border)}
+.wmot b{color:var(--blue)}
+.wch{border:1px solid var(--blue-border)}
+.wch.t{background:var(--okb);color:var(--ok);border-color:var(--okl)}
+.wch.nu{background:var(--q3b);color:var(--q3);border-color:var(--q3l)}
 </style>
 </head>
 <body class="out">
@@ -757,7 +860,7 @@ body.ws #bubs{display:none}
 </div></div>
 <div id="ptr">Desliza para actualizar</div>
 <header>
-  <div class="hdt"><p id="sub"></p><h1><span id="hola">Mi día</span><span class="beta" title="App en desarrollo">Beta</span></h1></div>
+  <div class="hdt"><div class="hmarca"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7.5" fill="#fff" opacity=".18"/><circle cx="12" cy="11" r="6" fill="#f0c33c"/><circle cx="21" cy="17" r="4.2" fill="#ffdd7a"/><circle cx="12.5" cy="22" r="3.4" fill="#d9a21b"/></svg>Mi día · de Atlas</div><p id="sub"></p><h1><span id="hola">Mi día</span><span class="beta" title="App en desarrollo">Beta</span></h1></div>
   <span class="sp"></span>
   <button id="acct" aria-label="Tu cuenta"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></button>
   <button id="bell" aria-label="Avisos"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button>
@@ -863,7 +966,7 @@ body.ws #bubs{display:none}
   <button type="button" class="fin" id="perm-ok">Listo</button>
   <button type="button" class="luego" id="perm-no">Ahora no</button>
 </div></div>
-<div id="pdock"><p>Suéltala sobre alguien para pasársela</p><div class="people"></div></div>
+<div id="pdock"><p>Pásale esta tarea a</p><div class="people"></div></div>
 <div id="psheet">
   <div class="grab"></div>
   <h3 id="p-title"></h3>
@@ -3174,9 +3277,9 @@ function paintCtc(){
     .sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),'es'));
   const keep=document.activeElement&&document.activeElement.id==='ctc-q';
   V.textContent='';
-  V.insertAdjacentHTML('beforeend','<button type="button" class="bk" data-asg-back>‹ Tablero</button><h2 class="t">Contactos</h2><p class="s">Las ⭐ salen en la franja al arrastrar una tarjeta (hasta 4).</p>'
-    +'<div class="cbtns"><button type="button" data-ctc-inv>📲 Invitar</button><button type="button" data-ctc-add>＋ Agregar</button></div>'
-    +'<input id="ctc-q" type="search" placeholder="🔍 Buscar por nombre" autocomplete="off">');
+  V.insertAdjacentHTML('beforeend','<button type="button" class="bk" data-asg-back>‹ Tablero</button><h2 class="t">Contactos</h2><p class="s">Las ★ salen primero cuando arrastras una tarea para pasarla (hasta 4).</p>'
+    +'<div class="cbtns"><button type="button" data-ctc-inv>Invitar por WhatsApp</button><button type="button" data-ctc-add>Agregar a mano</button></div>'
+    +'<input id="ctc-q" type="search" placeholder="Buscar por nombre" autocomplete="off">');
   const qi=$('#ctc-q');qi.value=ctcQ;qi.oninput=()=>{ctcQ=qi.value;paintCtc()};if(keep){qi.focus();qi.setSelectionRange(qi.value.length,qi.value.length)}
   const grupo=(titulo,lista)=>{
     if(!lista.length)return;
