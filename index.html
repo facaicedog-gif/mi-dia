@@ -2677,6 +2677,18 @@ function wsFicha(){
     else{const b=wEl('button','','Copiar este texto');b.type='button';b.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(d.texto);toast('Texto copiado')}catch(x){toast('No se pudo copiar: mantén presionado el texto para copiarlo')}});a2.appendChild(b)}
     B.appendChild(a2);
   }
+  // 15-nov · Enlace para agendar (maqueta_enlace_agendar.html): la empresa elige la hora y la cita entra sola a Atlas y aquí.
+  // Lo trae Atlas sólo si la cuenta tiene el piloto encendido; el mensaje sale del WhatsApp del asesor, no de Atlas.
+  if(d.agendar&&d.agendar.url){
+    B.appendChild(wTit('Que elija la hora','20 min'));
+    const g=wEl('div','wcard wmot');
+    g.append(wEl('b','','Mándale tu enlace para agendar'),wEl('small','','Ve sólo tus horas libres; la cita cae sola en tu agenda de Atlas y en Mi día.'));
+    const a3=wEl('div','wacts');
+    if(cel){const a=wEl('a','wa','Mandar por WhatsApp');a.href='https://wa.me/57'+tel+'?text='+encodeURIComponent(d.agendar.mensaje);a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(e.company_id,'whatsapp',tel,k.nombre));a3.appendChild(a)}
+    if(/^[^\s@]+@[^\s@]+$/.test(mail)){const a=wEl('a','','Por correo');a.href='mailto:'+mail+'?subject='+encodeURIComponent('Agendemos una reunión')+'&body='+encodeURIComponent(d.agendar.mensaje);a.addEventListener('click',()=>atlasToque(e.company_id,'correo',tel,k.nombre));a3.appendChild(a)}
+    const cp=wEl('button','','Copiar enlace');cp.type='button';cp.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(d.agendar.mensaje);toast('Mensaje con el enlace copiado')}catch(x){toast('No se pudo copiar')}});a3.appendChild(cp);
+    g.appendChild(a3);B.appendChild(g);
+  }
   // qué ha pasado
   B.appendChild(wTit('Qué ha pasado'));
   const hc=wEl('div','wcard');
