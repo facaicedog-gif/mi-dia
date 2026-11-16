@@ -22,6 +22,11 @@ if(window.top!==window.self){document.documentElement.style.display='none';try{w
   var lee=function(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
   var pide=/[?&]atlas(=|&|$)/.test(location.search);
   var conAtlas=pide||!!lee('midia.atlas')||!!lee('midia.atlas.on');
+  // 15-nov (noche) · El ícono instalado desde atlas.veltrion.com.co abre «./» SIN «?atlas», y en iPhone el ícono tiene su
+  // propio almacenamiento (no ve lo que se guardó en Safari): sin esto, el primer arranque lo mandaba a github.io (le pasó
+  // a Fabián al reinstalar). Quien instaló el ícono de la dirección de Atlas la eligió: se queda en ella.
+  var instalada=navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+  if(location.hostname==='atlas.veltrion.com.co'&&instalada){conAtlas=true;try{localStorage.setItem('midia.atlas.on','true')}catch(e){}}
   if(location.hostname==='facaicedog-gif.github.io'){
     if(conAtlas)location.replace('https://atlas.veltrion.com.co/midia/'+(pide?location.search:(location.search?location.search+'&':'?')+'atlas')+location.hash);
   }else if(location.hostname==='atlas.veltrion.com.co'&&!conAtlas){
@@ -682,7 +687,8 @@ body.ws #bubs{display:none}
 .wkv.fin{border:0}
 .wkv span{flex:none;width:74px;color:var(--mut);font-size:12.5px}
 .wkv b{font-weight:600;min-width:0;overflow-wrap:anywhere}
-.wacts{display:flex;gap:8px;margin-top:10px}
+.wacts{display:flex;gap:8px;margin-top:10px;align-items:stretch}
+.wagnota{margin:6px 2px 0;font-size:12px;color:var(--mut);line-height:1.4}
 .wacts a,.wacts button{flex:1;text-align:center;border-radius:13px;padding:11px 4px;font-weight:700;font-size:13px;background:var(--blue-soft);color:var(--blue);text-decoration:none}
 .wacts .wa{background:#e7f8ee;color:#128c4a}
 .wacts .pri{background:var(--blue);color:#fff}
@@ -2652,9 +2658,13 @@ function wsFicha(){
   kv('Correo',mail);kv('Web',e.web);
   if(q.lastChild)q.lastChild.classList.add('fin');
   const cel=tel.length===10&&tel[0]==='3',acts=wEl('div','wacts');
+  // 15-nov (noche) · Fabián: «pusiste 3 veces WhatsApp… debe ser solo una vez». Queda UN botón de WhatsApp: el de «Qué decirle»,
+  // con el enlace para agendar al final. Sin texto sugerido, el de la tarjeta del contacto (con el enlace, si lo hay).
+  const ag=d.agendar&&d.agendar.url?d.agendar:null;
+  const msgWa=d.texto?d.texto+(ag?'\n\nSi le queda más fácil, elija aquí el día y la hora para hablar '+(ag.min||20)+' minutos: '+ag.url:''):(ag?ag.mensaje:'');
   const link=(txt,href,cls,canal)=>{const a=wEl('a',cls||'',txt);a.href=href;a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(e.company_id,canal,tel,k.nombre));acts.appendChild(a)};
   if(tel.length>=7)link('Llamar','tel:'+tel,'pri','llamar');
-  if(cel)link('WhatsApp','https://wa.me/57'+tel,'wa','whatsapp');
+  if(cel&&!d.texto)link('WhatsApp','https://wa.me/57'+tel+(msgWa?'?text='+encodeURIComponent(msgWa):''),'wa','whatsapp');
   if(/^[^\s@]+@[^\s@]+$/.test(mail))link('Correo','mailto:'+mail,'','correo');
   if(acts.children.length)q.appendChild(acts);
   if(!q.children.length)q.appendChild(wEl('div','wkv fin','Atlas todavía no tiene un contacto de esta empresa.'));
@@ -2672,22 +2682,17 @@ function wsFicha(){
   if(d.texto){
     B.appendChild(wTit('Qué decirle'));
     B.appendChild(wEl('div','wmsg',d.texto));
+    if(ag)B.appendChild(wEl('p','wagnota','📅 Al final va tu enlace para que elija la hora: ve sólo tus horas libres y la cita cae sola en Atlas y aquí.'));
     const a2=wEl('div','wacts');a2.style.marginBottom='4px';
-    if(cel){const a=wEl('a','wa','Abrir en WhatsApp con este texto');a.href='https://wa.me/57'+tel+'?text='+encodeURIComponent(d.texto);a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(e.company_id,'whatsapp',tel,k.nombre));a2.appendChild(a)}
-    else{const b=wEl('button','','Copiar este texto');b.type='button';b.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(d.texto);toast('Texto copiado')}catch(x){toast('No se pudo copiar: mantén presionado el texto para copiarlo')}});a2.appendChild(b)}
+    if(cel){const a=wEl('a','wa','Abrir en WhatsApp con este texto');a.href='https://wa.me/57'+tel+'?text='+encodeURIComponent(msgWa);a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(e.company_id,'whatsapp',tel,k.nombre));a2.appendChild(a)}
+    else{const b=wEl('button','','Copiar este texto');b.type='button';b.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(msgWa);toast('Texto copiado')}catch(x){toast('No se pudo copiar: mantén presionado el texto para copiarlo')}});a2.appendChild(b)}
     B.appendChild(a2);
   }
-  // 15-nov · Enlace para agendar (maqueta_enlace_agendar.html): la empresa elige la hora y la cita entra sola a Atlas y aquí.
-  // Lo trae Atlas sólo si la cuenta tiene el piloto encendido; el mensaje sale del WhatsApp del asesor, no de Atlas.
-  if(d.agendar&&d.agendar.url){
-    B.appendChild(wTit('Que elija la hora','20 min'));
-    const g=wEl('div','wcard wmot');
-    g.append(wEl('b','','Mándale tu enlace para agendar'),wEl('small','','Ve sólo tus horas libres; la cita cae sola en tu agenda de Atlas y en Mi día.'));
+  // 15-nov · Enlace para agendar: va dentro del mensaje de WhatsApp (arriba). Aquí sólo se copia, para pegarlo en otro lado.
+  if(ag){
     const a3=wEl('div','wacts');
-    if(cel){const a=wEl('a','wa','Mandar por WhatsApp');a.href='https://wa.me/57'+tel+'?text='+encodeURIComponent(d.agendar.mensaje);a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(e.company_id,'whatsapp',tel,k.nombre));a3.appendChild(a)}
-    if(/^[^\s@]+@[^\s@]+$/.test(mail)){const a=wEl('a','','Por correo');a.href='mailto:'+mail+'?subject='+encodeURIComponent('Agendemos una reunión')+'&body='+encodeURIComponent(d.agendar.mensaje);a.addEventListener('click',()=>atlasToque(e.company_id,'correo',tel,k.nombre));a3.appendChild(a)}
-    const cp=wEl('button','','Copiar enlace');cp.type='button';cp.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(d.agendar.mensaje);toast('Mensaje con el enlace copiado')}catch(x){toast('No se pudo copiar')}});a3.appendChild(cp);
-    g.appendChild(a3);B.appendChild(g);
+    const cp=wEl('button','','📅 Copiar mi enlace para agendar');cp.type='button';cp.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(ag.url);toast('Enlace copiado')}catch(x){toast('No se pudo copiar')}});a3.appendChild(cp);
+    B.appendChild(a3);
   }
   // qué ha pasado
   B.appendChild(wTit('Qué ha pasado'));
