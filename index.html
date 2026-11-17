@@ -692,6 +692,7 @@ body.ws #bubs{display:none}
 .wkv.fin{border:0}
 .wkv span{flex:none;width:74px;color:var(--mut);font-size:12.5px}
 .wkv b{font-weight:600;min-width:0;overflow-wrap:anywhere}
+.wcopy{margin-left:10px;border:1px solid var(--line);background:#fff;color:var(--blue);border-radius:8px;padding:2px 9px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;vertical-align:1px}
 .wacts{display:flex;gap:8px;margin-top:10px;align-items:stretch}
 .wagnota{margin:6px 2px 0;font-size:12px;color:var(--mut);line-height:1.4}
 .wacts a,.wacts button{flex:1;text-align:center;border-radius:13px;padding:11px 4px;font-weight:700;font-size:13px;background:var(--blue-soft);color:var(--blue);text-decoration:none}
@@ -2685,7 +2686,7 @@ function paintSug(){
     const b=document.createElement('button');b.type='button';b.className='sug';
     const lg=document.createElement('span');lg.className='lg';lg.textContent=(String(x.nombre||'?').trim()[0]||'?').toUpperCase();lg.style.setProperty('--av',avColor(x.nombre||''));
     const n=document.createElement('span');n.className='n';const nb=document.createElement('b');nb.textContent=x.nombre||'Empresa';const ns=document.createElement('small');
-    const c=x.contacto||{};ns.textContent=[x.ciudad,c.nombre?c.nombre+(c.cargo?', '+c.cargo.toLowerCase():''):''].filter(Boolean).join(' · ')||'Sin contacto con nombre';
+    const c=x.contacto||{};ns.textContent=[x.nit?'NIT '+nitFmt(x):'',x.ciudad,c.nombre?c.nombre+(c.cargo?', '+c.cargo.toLowerCase():''):''].filter(Boolean).join(' · ')||'Sin contacto con nombre';
     n.append(nb,ns);
     const k=W_CANAL[x.canal]||['Contacto',''],ch=document.createElement('span');ch.className='wch '+(x.recien_llego?'nu':k[1]);ch.textContent=(x.recien_llego?'✨ ':'')+k[0];
     b.append(lg,n,ch);b.addEventListener('click',()=>wsOpen(x.company_id,{nombre:x.nombre}));B.appendChild(b);
@@ -2698,6 +2699,13 @@ let wCur=null;
 const wEl=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined&&txt!==null)e.textContent=txt;return e};
 const wTit=(txt,sub)=>{const h=wEl('div','wtt',txt);if(sub)h.appendChild(wEl('span','',sub));return h};
 const wPrimero=s=>String(s||'').split(/[\/,;|]| y /)[0];   // «300… / 602…» → el primero
+// 17-nov · NIT «901.234.567-8»; al copiar va sin puntos ni dígito de verificación, que es como lo piden los formularios.
+const nitFmt=e=>String(e.nit).replace(/\B(?=(\d{3})+$)/g,'.')+(e.dv?'-'+e.dv:'');
+async function copiarNit(n,btn){
+  let ok=false;try{await navigator.clipboard.writeText(String(n));ok=true}catch(e){}
+  if(!ok){try{const t=document.createElement('textarea');t.value=String(n);t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();ok=document.execCommand('copy');t.remove()}catch(e){}}
+  if(btn){btn.textContent=ok?'Copiado':'No se pudo copiar';setTimeout(()=>{btn.textContent='Copiar'},1600)}
+}
 function wsOpen(cid,ctx){
   const c=ctx||{};
   wCur={cid,ev:c.ev||null,clase:c.clase||null,nombre:c.nombre||'',d:null,paso:'ficha',err:''};
@@ -2732,6 +2740,11 @@ function wsFicha(){
   // quién
   const q=wEl('div','wcard');
   const kv=(l,v)=>{if(!v)return;const r=wEl('div','wkv');r.append(wEl('span','',l),wEl('b','',v));q.appendChild(r)};
+  // 17-nov · El NIT (observación de Comfenalco; Fabián: «sí, con el nit»), con botón para copiarlo y pegarlo en su sistema.
+  // Sólo el de empresas: el de una persona natural es su cédula y Atlas no lo manda al celular (midia-puente, nitDe).
+  if(e.nit){const r=wEl('div','wkv'),v=wEl('b','',nitFmt(e));const cp=wEl('button','wcopy','Copiar');cp.type='button';
+    cp.addEventListener('click',ev=>{ev.stopPropagation();copiarNit(e.nit,cp)});v.appendChild(cp);r.append(wEl('span','','NIT'),v);q.appendChild(r)}
+  else if(e.persona_natural)kv('NIT','Persona natural · la cédula está en Atlas');
   kv('Contacto',k.nombre?k.nombre+(k.cargo?' · '+k.cargo.toLowerCase():''):'');
   const telCrudo=k.telefono||e.telefono||'',tel=soloDig(wPrimero(telCrudo)),mail=k.correo||e.correo||'';
   kv('Teléfono',telCrudo?telFmt(wPrimero(telCrudo))+(wPrimero(telCrudo)!==String(telCrudo)?'  (hay más en Atlas)':''):'');
