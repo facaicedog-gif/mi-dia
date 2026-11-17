@@ -97,8 +97,10 @@ main{padding:0 12px;max-width:760px;margin:0 auto}
 .qh span{flex:none;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--qc);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
 .list{flex:1;display:flex;flex-direction:column;gap:7px;min-height:60px}
 /* 17-nov · «+N más»: lo que espera su turno en el cuadro */
-.qmas{width:100%;border:1.5px dashed var(--qc,var(--blue));background:transparent;color:var(--qc,var(--blue));border-radius:12px;padding:8px 10px;font:inherit;font-size:13px;font-weight:800;cursor:pointer;text-align:center}
-.qmas small{display:block;font-weight:600;color:var(--mut);font-size:11px;margin-top:1px}
+.qmas{width:100%;border:0;border-top:1.5px dashed color-mix(in srgb,var(--qc,var(--blue)) 40%,transparent);background:transparent;color:var(--qc,var(--blue));padding:7px 6px 2px;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;text-align:center}
+/* 17-nov (2) · el número del cuadro se toca para ver todas; abierto, el cuadro ocupa todo el ancho */
+.qh span.abre{cursor:pointer;min-width:34px;white-space:nowrap}
+.grid .quad.abierto{grid-column:1/-1;min-height:0}
 .list:empty::after{box-sizing:border-box;content:"Suelta aquí";margin:auto;color:var(--mut);font-size:12px;opacity:.7;border:1.5px dashed var(--line);border-radius:12px;padding:14px 10px;width:100%;text-align:center}
 .card{background:var(--card);border-radius:13px;box-shadow:var(--shadow);padding:9px 9px 9px 7px;display:flex;gap:7px;align-items:flex-start;border-left:4px solid var(--qc,var(--blue));user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab}
 .card.new{animation:pop .25s ease-out}
@@ -836,6 +838,35 @@ nav{border-top:1px solid var(--line);box-shadow:0 -1px 2px rgba(15,23,42,.04)}
 .xcl:active{transform:scale(.94)}
 #sheet .trow{margin-top:42px}   /* 15-nov · la X (6–36 px) no puede tocar el botón de dictar: medido en local, queda un hueco de unos 16 px */
 #asheet h3,#psheet h3,#c-form h3{padding-right:44px}
+/* 2026-11-17 · VISTA APILADA EN EL CELULAR (maqueta-vista-apilada.html; Fabián: «construyela, veamos cómo nos va»).
+   Medido en 375 px: en 2 columnas cada cuadro tenía 171 px, cada tarjeta 104 px de alto, el nombre en 3 líneas cortado y la
+   hora sin verse. Aquí: un cuadro debajo del otro en orden de urgencia (Hacer ya → Salir rápido → Planear → Después), la
+   hora en su columna a la izquierda, el título en hasta 2 líneas, y el cuadro vacío como una franja. En pantallas anchas
+   (tableta, computador) sigue la cuadrícula de 2 en 2. Quitar este bloque = volver a la de antes. */
+.card .hr{display:none}
+@media (max-width:699px){
+  .grid{grid-template-columns:minmax(0,1fr);gap:9px}
+  .grid .quad[data-q="1"]{order:1}.grid .quad[data-q="3"]{order:2}.grid .quad[data-q="2"]{order:3}.grid .quad[data-q="4"]{order:4}
+  .grid .quad{min-height:0;padding:8px 8px 6px}
+  .grid .qh{align-items:center;padding:2px 6px 7px}
+  .grid .qh div{display:flex;align-items:baseline;gap:8px;min-width:0}
+  .grid .qh small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .grid .list{gap:5px;min-height:0}
+  .grid .card{align-items:center;padding:8px 10px 8px 6px;gap:9px}
+  .grid .card .hr{display:block;flex:none;width:56px;text-align:right;line-height:1.1}
+  .grid .card .hr b{display:block;font-size:14px;font-weight:800;color:var(--ink)}
+  .grid .card .hr b i{font-style:normal;font-size:10px;font-weight:700;color:var(--mut);margin-left:2px}
+  .grid .card .hr small{display:block;font-size:10.5px;color:var(--mut);margin-top:1px}
+  .grid .card .hr small.late{color:var(--q1);font-weight:800}
+  .grid .card .chk{margin-top:0}
+  .grid .card .ct>.due{display:none}
+  .grid .card .tt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .grid .card .co{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .grid .card .ct>.atl{float:left;margin:2px 6px 0 0}   /* la marca ATLAS al lado del título, no en una línea aparte */
+  /* el cuadro vacío: una franja que sigue recibiendo lo que sueltes */
+  .grid .list:empty{min-height:34px}
+  .grid .list:empty::after{padding:7px 10px;font-size:11.5px}
+}
 </style>
 </head>
 <body class="out">
@@ -1203,6 +1234,21 @@ function cardEl(t,o){
     d.textContent=(t.rule&&!o.note?'↻ ':'')+(o.note||(cls==='late'?(dayDiff(dd)<0?'Viene de '+fmtDay(dd).toLowerCase():'Atrasada · '+spanTxt(t)):spanTxt(t)));
     c.querySelector('.ct').appendChild(d);
   }
+  // 17-nov (3) · Vista apilada en el celular (maqueta-vista-apilada.html, Fabián: «construyela, veamos cómo nos va»): en el
+  // tablero la hora va en su propia columna a la izquierda, siempre visible (en 2 columnas era lo primero que se cortaba).
+  // La pastilla .due sigue ahí para pantallas anchas; el CSS decide cuál se ve.
+  if(o.hora){
+    const h=document.createElement('div');h.className='hr';
+    if(t.due){
+      const dd=new Date(t.due),x=t12(dd),b=document.createElement('b'),ap=document.createElement('i'),s=document.createElement('small');
+      b.textContent=x[0].indexOf(':')<0?x[0]+':00':x[0];ap.textContent=x[1]==='a. m.'?'am':'pm';b.appendChild(ap);
+      const n=dayDiff(dd),late=dueClass(t)==='late';
+      s.textContent=late&&n===0?'atrasada':n===0?'hoy':fmtDay(dd).toLowerCase().replace(/\.$/,'');
+      if(late)s.className='late';
+      h.append(b,s);
+    }else{const s=document.createElement('small');s.textContent='sin hora';h.appendChild(s)}
+    c.insertBefore(h,c.firstChild);
+  }
   if(t.de){const g=document.createElement('span');g.className='from';g.textContent='de '+t.de+(t.con?' · con '+t.con.map(n=>n.split(' ')[0]).join(' y '):'');c.querySelector('.ct').appendChild(g)}
   else if(Array.isArray(t.con)&&t.con.length){const g=document.createElement('span');g.className='from';g.textContent='con '+t.con.map(n=>String(n).split(' ')[0]).join(' y ');c.querySelector('.ct').appendChild(g)}   // 15-nov · tu copia de una tarea que también enviaste
   if(o.tag&&!t.done){const g=document.createElement('span');g.className='tag';g.textContent=QN[t.q];(c.querySelector('.due')||c.querySelector('.ct')).appendChild(g)}
@@ -1255,7 +1301,7 @@ function rollover(){
 }
 // 17-nov · Cuántas se ven por cuadro antes de «+N más», cuáles quedaron esperando y qué cuadros abriste (sólo mientras
 // la app está abierta: al volver a entrar, cada cuadro arranca otra vez con las primeras).
-var TOPE_Q=5,OCULTAS={},quadAbierto={};
+var TOPE_Q=3,OCULTAS={},quadAbierto={};
 function render(){
   if(drag)return;
   paintProfile();paintAsgIn();paintPpl();paintBubs();paintSug();
@@ -1297,20 +1343,28 @@ function render(){
     // apareciendo según se ejecuten». Maqueta aprobada: maqueta-tope-y-reparto.html. Se ven las primeras TOPE_Q en el orden
     // de siempre (lo que tú ordenaste; lo de Atlas: hoy por hora, luego lo atrasado); el resto queda en «+N más», que las
     // abre todas. El contador sigue diciendo el total: no se esconde cuánto hay. Al cerrar una, sube la siguiente sola.
-    const abierto=quadAbierto[n]||items.length<=TOPE_Q+1, vis=abierto?items:items.slice(0,TOPE_Q);
+    // 17-nov (2) · Fabián, con la v44 en la mano: «5 sigue siendo mucho scroll, reduzcámoslo a 3 y que cuando pinche el
+    // número… se desplieguen para poder verlas y acomodar». Ahora: 3 por cuadro; el NÚMERO del cuadro abre y cierra
+    // (y la línea fina «+N más» también, para quien no sepa que el número se toca). Abierto, el cuadro ocupa todo el
+    // ancho: las tarjetas quedan más anchas y más bajas, y se arrastran como siempre (a otro cuadro, o para ordenarlas).
+    const sobran=items.length>TOPE_Q, abierto=sobran&&!!quadAbierto[n], vis=sobran&&!abierto?items.slice(0,TOPE_Q):items;
     OCULTAS[n]=items.slice(vis.length).map(t=>t.id);
-    list.textContent='';vis.forEach(t=>list.appendChild(cardEl(t)));
-    if(items.length>TOPE_Q+1){
+    q.classList.toggle('abierto',abierto);
+    list.textContent='';vis.forEach(t=>list.appendChild(cardEl(t,{hora:true})));
+    const alternar=e=>{e.stopPropagation();quadAbierto[n]=!abierto;render();if(!abierto)q.scrollIntoView({block:'nearest',behavior:'smooth'})};
+    if(sobran){
       const b=document.createElement('button');b.type='button';b.className='qmas';
-      const s=document.createElement('small');
-      if(abierto){b.textContent='Ver solo las '+TOPE_Q+' primeras'}
+      if(abierto)b.textContent='Ver solo las '+TOPE_Q+' primeras';
       else{const r=items.length-TOPE_Q,hoyK=ymd(now),deHoy=OCULTAS[n].map(byId).filter(t=>t&&t.due&&dueK(t)<=hoyK).length;
-        b.textContent='+'+r+' más'+(deHoy===r?' para hoy':'');s.textContent='Salen al cerrar estas · toca para ver todas'}
-      if(s.textContent)b.appendChild(s);
-      b.addEventListener('click',e=>{e.stopPropagation();quadAbierto[n]=!abierto;render()});
+        b.textContent='+'+r+' más'+(deHoy===r?' para hoy':'')}
+      b.addEventListener('click',alternar);
       list.appendChild(b);
     }
-    q.querySelector('.qh span').textContent=items.length;
+    const num=q.querySelector('.qh span');
+    num.textContent=items.length+(sobran?(abierto?' ▴':' ▾'):'');
+    num.classList.toggle('abre',sobran);
+    num.setAttribute('role',sobran?'button':'');num.setAttribute('aria-label',sobran?(abierto?'Mostrar solo '+TOPE_Q:'Ver las '+items.length):'');
+    num.onclick=sobran?alternar:null;
   });
   // agenda
   const A=$('#v-agenda');A.textContent='';
