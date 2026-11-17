@@ -1226,7 +1226,8 @@ function cardEl(t,o){
   if(t.atlas){
     const g=document.createElement('span');g.className='atl';g.textContent='ATLAS';
     c.querySelector('.ct').insertBefore(g,c.querySelector('.tt'));
-    const co=[t.empresa&&t.empresa.nombre,t.contacto&&t.contacto.nombre].filter(Boolean).join(' · ');
+    // 17-nov · Fabián: el NIT en todas las empresas del tablero. Va en esta misma línea pequeña (no agranda la tarjeta).
+    const co=[t.empresa&&t.empresa.nit?'NIT '+nitFmt(t.empresa):'',t.empresa&&t.empresa.nombre,t.contacto&&t.contacto.nombre].filter(Boolean).join(' · ');
     if(co){const e=document.createElement('div');e.className='co';e.textContent=co;c.querySelector('.ct').appendChild(e)}
   }
   if(o.note||t.due){
@@ -2700,7 +2701,8 @@ const wEl=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className
 const wTit=(txt,sub)=>{const h=wEl('div','wtt',txt);if(sub)h.appendChild(wEl('span','',sub));return h};
 const wPrimero=s=>String(s||'').split(/[\/,;|]| y /)[0];   // «300… / 602…» → el primero
 // 17-nov · NIT «901.234.567-8»; al copiar va sin puntos ni dígito de verificación, que es como lo piden los formularios.
-const nitFmt=e=>String(e.nit).replace(/\B(?=(\d{3})+$)/g,'.')+(e.dv?'-'+e.dv:'');
+// (función declarada, no const: el tablero la usa al arrancar, antes de que el script llegue a esta línea)
+function nitFmt(e){return String(e.nit).replace(/\B(?=(\d{3})+$)/g,'.')+(e.dv?'-'+e.dv:'')}
 async function copiarNit(n,btn){
   let ok=false;try{await navigator.clipboard.writeText(String(n));ok=true}catch(e){}
   if(!ok){try{const t=document.createElement('textarea');t.value=String(n);t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();ok=document.execCommand('copy');t.remove()}catch(e){}}
