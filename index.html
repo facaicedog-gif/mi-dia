@@ -692,6 +692,10 @@ body.ws #bubs{display:none}
 .wkv.fin{border:0}
 .wkv span{flex:none;width:74px;color:var(--mut);font-size:12.5px}
 .wkv b{font-weight:600;min-width:0;overflow-wrap:anywhere}
+/* 17-nov · el letrero del tope en «Atlas te sugiere» */
+.letm{border:1px solid var(--blue-border);background:var(--blue-soft);color:var(--ink);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.4;margin-bottom:9px}
+.letm .b{height:6px;border-radius:3px;background:#fff;border:1px solid var(--blue-border);margin-top:7px;overflow:hidden}.letm .b i{display:block;height:100%;background:var(--blue)}
+.letm.cerca{border-color:var(--q3l);background:var(--q3b)}.letm.cerca .b{border-color:var(--q3l)}.letm.cerca .b i{background:#d97706}
 .wcopy{margin-left:10px;border:1px solid var(--line);background:#fff;color:var(--blue);border-radius:8px;padding:2px 9px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;vertical-align:1px}
 .wacts{display:flex;gap:8px;margin-top:10px;align-items:stretch}
 .wagnota{margin:6px 2px 0;font-size:12px;color:var(--mut);line-height:1.4}
@@ -2665,7 +2669,7 @@ async function sugLoad(force){
   sugBusy=true;
   try{
     const j=await atlasCall({operacion:'sugeridas'});
-    if(j.ok&&Array.isArray(j.sugeridas)){sugAt=Date.now();sugErr='';SUG={items:j.sugeridas,total:j.total||0,sin:j.sin_canal||0,uid:sess.uid};lsSet('midia.atlas.sug',SUG)}
+    if(j.ok&&Array.isArray(j.sugeridas)){sugAt=Date.now();sugErr='';SUG={items:j.sugeridas,total:j.total||0,sin:j.sin_canal||0,uid:sess.uid,letrero:j.letrero||null};lsSet('midia.atlas.sug',SUG)}
     else if(j.status!==401)sugErr=j.error||'Atlas no respondió';   // el 401 ya lo atiende atlasLoad (la conexión se cayó)
   }catch(e){sugErr='sin conexión'}
   sugBusy=false;paintSug();
@@ -2681,6 +2685,14 @@ function paintSug(){
     if(btn){const b=document.createElement('button');b.type='button';b.textContent=btn;b.addEventListener('click',()=>{sugErr='';paintSug();sugLoad(true)});d.appendChild(b)}B.appendChild(d)};
   // Nunca una lista vacía que parezca «no hay nada»: si no se pudo traer, se dice y se ofrece reintentar.
   if(!m){msg(sugErr?'No se pudo traer lo que Atlas te sugiere ('+sugErr+'). Tus pendientes de Atlas sí están en el tablero.':'Buscando lo que Atlas te sugiere…',sugErr?'Reintentar':null);return}
+  // 17-nov · El letrero del tope (lo calcula Atlas: lib/letrero-tope.js; maqueta disenos/maqueta_letrero_tope.html): una
+  // franja corta sobre las sugeridas, que son justo las empresas sin gestionar. Sólo sale cerca del tope.
+  const L=m.letrero;
+  if(L&&L.corto&&L.cupo>0){
+    const f=document.createElement('div');f.className='letm'+(L.nivel==='cerca'?' cerca':'');f.textContent=L.corto;
+    const b=document.createElement('div');b.className='b';const i=document.createElement('i');i.style.width=Math.max(0,Math.min(100,Math.round((L.ocupado||0)/L.cupo*100)))+'%';b.appendChild(i);f.appendChild(b);
+    B.appendChild(f);
+  }
   if(!m.items.length){msg('Hoy no hay empresas nuevas por contactar: ya gestionaste las que tienen cómo contactarlas.'+(m.sin?' Atlas sigue buscando el contacto de '+m.sin+' más.':''));return}
   s.textContent=m.total>m.items.length?m.items.length+' de '+m.total:m.items.length===1?'1 para hoy':m.items.length+' para hoy';
   for(const x of m.items){
