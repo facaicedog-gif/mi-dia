@@ -226,6 +226,34 @@ body.sheet #bubs,body.out #bubs{display:none}
 nav .tab{position:relative}
 #ges-n{position:absolute;top:0;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:9px;background:var(--q1);color:#fff;font-size:10.5px;font-weight:800;font-style:normal;display:none;place-items:center;padding:0 4px;border:2px solid var(--card)}
 #ges-n.on{display:grid}
+/* 18-nov · Barra de abajo con pestañas en recuadro (aprobada sobre la app real: opcion-C-tablero.jpg). «Buscar» sólo con Atlas
+   conectado (body.atl-con); sin Atlas la barra queda con sus tres pestañas y el ➕. */
+nav{gap:6px}
+nav .tab{border-radius:14px;box-shadow:0 0 0 1.5px var(--line);background:var(--card);padding:7px 0 6px!important}
+nav .tab.act{background:var(--blue-soft,#EAF1FF);box-shadow:0 0 0 2px var(--blue)}
+#tab-bus{display:none}
+body.atl-con #tab-bus{display:flex}
+body.atl-con #fab{margin-left:6px;margin-right:6px}
+nav .tn{position:absolute;top:-7px;right:-3px;min-width:19px;height:19px;border-radius:10px;background:var(--blue);color:#fff;font-size:10.5px;font-weight:800;font-style:normal;display:none;place-items:center;padding:0 5px}
+nav .tn.on{display:grid}
+#bus-n{background:#F6C445;color:#14213D}
+/* la hoja de Buscar (usa #wsheet, como la ficha) */
+.bcampo{display:flex;align-items:center;gap:8px;border:2px solid var(--blue);border-radius:14px;padding:4px 12px;background:var(--card);margin:2px 0 12px}
+.bcampo svg{width:18px;height:18px;fill:none;stroke:var(--mut);stroke-width:2;flex:none}
+.bcampo input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-size:16px;padding:9px 0;color:var(--ink)}
+.bcampo button{border:none;background:none;color:var(--mut);font-size:15px;padding:4px}
+.blist{background:var(--card);border-radius:16px;box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden}
+.bfila{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line)}
+.bfila:first-child{border-top:none}
+.bfila .bn{flex:1;min-width:0;text-align:left;background:none;border:none;padding:0;color:inherit}
+.bfila .bn b{display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bfila .bn small{display:block;color:var(--mut);font-size:12px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bfila .by{border:none;background:var(--blue);color:#fff;font-weight:700;font-size:12px;border-radius:10px;padding:8px 10px;white-space:nowrap;flex:none}
+.bfila .ba{border:none;background:var(--blue-soft,#EAF1FF);color:var(--blue);font-weight:700;font-size:12px;border-radius:10px;padding:8px 10px;white-space:nowrap;flex:none}
+.btt{font-size:11.5px;font-weight:800;letter-spacing:.06em;color:#B45309;margin:4px 2px 8px;display:flex;justify-content:space-between;gap:8px}
+.btt span{color:var(--mut);font-weight:600;letter-spacing:0}
+.bmas{display:block;width:100%;text-align:center;padding:11px;font-size:12.5px;color:var(--blue);font-weight:700;border:none;border-top:1px solid var(--line);background:none}
+.bnota{font-size:11.5px;color:var(--mut);line-height:1.45;margin:4px 4px 12px}
 #v-asg h2.t{margin:0 4px 2px;font-size:22px;letter-spacing:-.02em}
 #v-asg p.s{margin:0 4px 12px;color:var(--mut);font-size:13px}
 #v-asg .seg{margin:0 4px 10px}
@@ -944,9 +972,10 @@ nav{border-top:1px solid var(--line);box-shadow:0 -1px 2px rgba(15,23,42,.04)}
 
 <nav>
   <button class="tab act" data-v="board"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>Tablero</button>
-  <button class="tab" data-v="agenda"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendario</button>
+  <button class="tab" data-v="agenda"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendario<i id="cal-n" class="tn"></i></button>
   <button id="fab" aria-label="Nuevo pendiente"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
   <button class="tab" data-v="asg" id="tab-ges"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/></svg>Gestión<i id="ges-n"></i></button>
+  <button class="tab" id="tab-bus" type="button" aria-label="Buscar empresa"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Buscar<i id="bus-n" class="tn"></i></button>
 </nav>
 
 <div id="scrim"></div>
@@ -1331,16 +1360,12 @@ function render(){
     b.textContent=!tot?'Nada con fecha para hoy':hechas===tot?'¡Día completo! '+tot+' de '+tot+' hechas':hechas===0?(tot===1?'Tienes 1 para hoy':'Tienes '+tot+' para hoy'):'Vas bien: '+hechas+' de '+tot+' hechas';
     s.textContent=(tot?(faltan?(faltan===1?'Falta 1':'Faltan '+faltan)+' por hacer':'Todo lo de hoy está hecho'):'Agrega una con el botón +')+' · '+(late?late+(late===1?' atrasada':' atrasadas'):'sin atrasos');
     tx.append(b,s);R.append(ring,tx);}}
+  // 18-nov · Fabián: «los botones de filtro sobran: cada cuadro tiene su contador». La fila de píldoras se quita; lo que sí
+  // llevaba a otro lado queda como numerito en su pestaña de abajo (programadas → Calendario).
   const f=$('#focus');f.innerHTML='';
-  const pill=(n,txt,cls)=>{const e=document.createElement('div');e.className='pill '+(cls||'');e.innerHTML='<b>'+n+'</b> '+txt;f.appendChild(e)};
-  if(late)pill(late,late===1?'atrasada':'atrasadas','late');
-  pill(today,'para hoy');
   // el tablero muestra lo de hoy, lo atrasado y lo que no tiene fecha; lo futuro espera en el calendario
   const kToday=ymd(now),board=open.filter(t=>!t.due||dueK(t)<=kToday||(!t.rule&&dayDiff(new Date(t.due))<=30)),fut=open.length-board.length;
-  pill(board.filter(t=>t.q===1).length,'por hacer ya');
-  if(fut){pill(fut,fut===1?'programada ›':'programadas ›');f.lastChild.dataset.go='agenda'}
-  const ao=sess?ASG.env.filter(asgIsOpen).length:0;
-  if(ao){pill(ao,ao===1?'que asignaste ›':'que asignaste ›');f.lastChild.dataset.asg='1'}
+  {const cn=$('#cal-n');if(cn){cn.textContent=fut>99?'99+':fut;cn.classList.toggle('on',fut>0)}}
   // tablero
   $$('.quad').forEach(q=>{
     const n=+q.dataset.q, list=q.querySelector('.list');
@@ -1463,6 +1488,7 @@ function toast(msg){const e=$('#toast');e.textContent=msg;e.classList.add('show'
 
 /* ---------- pestañas ---------- */
 $$('nav .tab').forEach(b=>b.onclick=()=>{
+  if(!b.dataset.v){busOpen();return}   // 18-nov · «Buscar» no es una vista: abre su hoja encima (busOpen)
   $$('nav .tab').forEach(x=>x.classList.toggle('act',x===b));
   $$('.view').forEach(v=>v.classList.toggle('act',v.id==='v-'+b.dataset.v));
   scrollTo(0,0);
@@ -2676,11 +2702,13 @@ async function sugLoad(force){
     else if(j.status!==401)sugErr=j.error||'Atlas no respondió';   // el 401 ya lo atiende atlasLoad (la conexión se cayó)
   }catch(e){sugErr='sin conexión'}
   sugBusy=false;paintSug();
+  busLoad();   // 18-nov · 💬 Esperando respuesta: al mismo ritmo (cada 2 min como mucho)
 }
 const W_CANAL={telefono:['Teléfono','t'],correo:['Correo',''],linkedin:['LinkedIn',''],web:['Web','']};
 function paintSug(){
   const B=$('#atl-sug');if(!B)return;
-  const on=!!(atlasLink&&sess);B.classList.toggle('show',on);B.textContent='';
+  const on=!!(atlasLink&&sess);
+  document.body.classList.toggle('atl-con',on);   // 18-nov · la pestaña «Buscar» sólo con Atlas conectadoB.classList.toggle('show',on);B.textContent='';
   if(!on)return;
   const m=sugMia();
   const h=document.createElement('div');h.className='wtt';h.textContent='Atlas te sugiere';const s=document.createElement('span');h.appendChild(s);B.appendChild(h);
@@ -2726,12 +2754,107 @@ async function copiarNit(n,btn){
 }
 function wsOpen(cid,ctx){
   const c=ctx||{};
-  wCur={cid,ev:c.ev||null,clase:c.clase||null,nombre:c.nombre||'',d:null,paso:'ficha',err:''};
+  wCur={cid,ev:c.ev||null,clase:c.clase||null,nombre:c.nombre||'',d:null,paso:'ficha',err:'',desde:c.desde||null,resp:c.resp||null};
   document.body.classList.add('ws');$('#wsheet').setAttribute('aria-hidden','false');$('#wsheet').scrollTop=0;
   wsFicha();wsLoad();
 }
+
+/* ═══ 2026-11-18 · 🔎 BUSCAR y 💬 ESPERANDO RESPUESTA (aprobado sobre la app real: opcion-C-tablero.jpg / opcion-C-buscar.jpg) ═══
+   Fabián: «le escribí por WhatsApp y no ha respondido; ¿cómo anoto la respuesta si me llega en un par de horas?», «con 15
+   gestiones habría que hacer scroll» y «apenas responda la persona debe quedar en Atlas». Buscar va en la barra de abajo;
+   sin escribir nada muestra primero las que esperan respuesta (su última gestión fue un mensaje sin respuesta, ≤ 3 días
+   hábiles: atlas lib/midia-buscar.js). «Ya respondió» abre «¿Cómo te fue?» con «Respondió el mensaje» marcado, que Atlas
+   guarda como contacto logrado. Busca SÓLO en la hoja y la agenda de quien la usa; nada se guarda en el celular salvo la
+   última lista de «esperando» (para el numerito). */
+let BUS=null,busQ='',busRes=null,busErr='',busVer=6,busT=0,busPide=0,busAt=0;
+const BUS_CANAL={whatsapp:'WhatsApp',correo:'correo'};
+function haceCuanto(f){
+  const m=Math.max(0,Math.round((Date.now()-new Date(f).getTime())/60000));
+  if(m<1)return 'hace un momento';if(m<60)return 'hace '+m+' min';
+  const h=Math.round(m/60);if(h<24)return 'hace '+h+(h===1?' hora':' horas');
+  const d=Math.round(h/24);return d===1?'ayer':'hace '+d+' días';
+}
+function busBadge(){const n=$('#bus-n');if(!n)return;const k=BUS?BUS.total||0:0;n.textContent=k>99?'99+':k;n.classList.toggle('on',k>0)}
+async function busLoad(force){
+  if(!atlasLink||!sess)return;
+  if(!force&&Date.now()-busAt<120000)return;
+  try{
+    const j=await atlasCall({operacion:'buscar'});
+    if(j.ok){busAt=Date.now();BUS={esperando:j.esperando||[],total:j.total_esperando||0};busBadge();if(wCur&&wCur.paso==='buscar'&&!busQ)busPaint()}
+  }catch(e){}
+}
+function busOpen(){
+  if(!atlasLink||!sess)return;
+  wCur={paso:'buscar',cid:null};busVer=6;
+  document.body.classList.add('ws');$('#wsheet').setAttribute('aria-hidden','false');$('#wsheet').scrollTop=0;
+  $('#w-back').textContent='‹ Volver';$('#w-sub').textContent='';$('#w-name').textContent='Buscar empresa';
+  const B=$('#w-body');B.textContent='';
+  const box=wEl('div','bcampo');
+  box.innerHTML='<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>';
+  const inp=document.createElement('input');inp.type='search';inp.id='bus-q';inp.placeholder='NIT, empresa o contacto';inp.autocomplete='off';inp.maxLength=80;inp.value=busQ;inp.setAttribute('enterkeyhint','search');
+  const x=wEl('button','','✕');x.type='button';x.setAttribute('aria-label','Borrar');x.style.visibility=busQ?'visible':'hidden';
+  x.addEventListener('click',()=>{inp.value='';busQ='';busRes=null;busErr='';x.style.visibility='hidden';busPaint();inp.focus()});
+  inp.addEventListener('input',()=>{busQ=inp.value;x.style.visibility=busQ?'visible':'hidden';clearTimeout(busT);busT=setTimeout(busBuscar,350)});
+  box.append(inp,x);B.appendChild(box);
+  const L=wEl('div','');L.id='bus-l';B.appendChild(L);
+  busPaint();busLoad(true);
+  if(busQ)busBuscar();
+}
+async function busBuscar(){
+  const q=busQ.trim();
+  if(q.replace(/[\s.\-]/g,'').length<2){busRes=null;busErr='';busPaint();return}
+  const n=++busPide;busErr='';busRes='cargando';busPaint();
+  try{
+    const j=await atlasCall({operacion:'buscar',q});
+    if(n!==busPide)return;   // ya se escribió otra cosa
+    if(j.ok){busRes=j.resultados||[];if(Array.isArray(j.esperando)){BUS={esperando:j.esperando,total:j.total_esperando||0};busBadge()}}
+    else{busRes=null;busErr=j.error||'Atlas no respondió.'}
+  }catch(e){if(n!==busPide)return;busRes=null;busErr='Sin conexión. Inténtalo de nuevo.'}
+  busPaint();
+}
+function busFila(x,conBoton){
+  const r=wEl('div','bfila');
+  const n=document.createElement('button');n.type='button';n.className='bn';
+  const b=wEl('b','',[x.contacto,x.nombre].filter(Boolean).join(' · ')||'Empresa');
+  let sub='';
+  if(x.esperando)sub='💬 '+(x.esperando.canal==='correo'?'Correo':'WhatsApp')+' '+haceCuanto(x.esperando.fecha);
+  else if(x.agenda&&x.agenda.fecha)sub='📅 En tu agenda: '+(x.agenda.titulo||'pendiente');
+  else if(x.ultimo&&x.ultimo.fecha)sub='Última gestión '+haceCuanto(x.ultimo.fecha);
+  else sub='En tu hoja · sin gestión';
+  const nit=x.nit?'NIT '+nitFmt(x):'';
+  n.append(b,wEl('small','',[sub,!x.esperando?nit:''].filter(Boolean).join(' · ')));
+  n.addEventListener('click',()=>wsOpen(x.company_id,{nombre:x.nombre,desde:'buscar'}));
+  r.appendChild(n);
+  if(conBoton&&x.esperando){const y=wEl('button','by','Ya respondió');y.type='button';y.addEventListener('click',()=>wsOpen(x.company_id,{nombre:x.nombre,desde:'buscar',resp:x.esperando.canal}));r.appendChild(y)}
+  else{const a=wEl('button','ba','Abrir');a.type='button';a.addEventListener('click',()=>wsOpen(x.company_id,{nombre:x.nombre,desde:'buscar'}));r.appendChild(a)}
+  return r;
+}
+function busPaint(){
+  const L=$('#bus-l');if(!L||!wCur||wCur.paso!=='buscar')return;L.textContent='';
+  if(busErr){L.appendChild(wEl('div','sugmsg',busErr));}
+  if(busRes==='cargando'){L.appendChild(wEl('div','sugmsg','Buscando en Atlas…'));return}
+  if(Array.isArray(busRes)){
+    if(!busRes.length){L.appendChild(wEl('div','sugmsg','No encontré «'+busQ.trim()+'» en tu hoja ni en tu agenda. Prueba con el NIT o con otra palabra del nombre.'));return}
+    const g=wEl('div','blist');busRes.forEach(x=>g.appendChild(busFila(x,true)));L.appendChild(g);return;
+  }
+  const E=BUS?BUS.esperando||[]:[];
+  if(!BUS){L.appendChild(wEl('div','sugmsg','Trayendo de Atlas las que esperan respuesta…'));return}
+  if(!E.length){L.appendChild(wEl('div','sugmsg','Nadie te debe respuesta ahora. Cuando anotes «Le escribí por WhatsApp» o «por correo», la empresa aparece aquí para que anotes la respuesta cuando llegue.'));return}
+  const h=wEl('div','btt','💬 ESPERANDO RESPUESTA · '+E.length);h.appendChild(wEl('span','','la más reciente primero'));L.appendChild(h);
+  const g=wEl('div','blist');E.slice(0,busVer).forEach(x=>g.appendChild(busFila(x,true)));
+  if(E.length>busVer){const k=E.length-busVer,m=wEl('button','bmas',(k===1?'Ver 1 más':'Ver las '+k+' más')+' ›');m.type='button';m.addEventListener('click',()=>{busVer=E.length;busPaint()});g.appendChild(m)}
+  L.appendChild(g);
+  L.appendChild(wEl('p','bnota','Pasados 3 días hábiles sin respuesta, la empresa sale de esta lista; el siguiente intento te lo marca Atlas.'));
+}
+
 function wsClose(){document.body.classList.remove('ws');$('#wsheet').setAttribute('aria-hidden','true');wCur=null}
-$('#w-back').onclick=()=>{if(wCur&&wCur.paso==='registro'){wsFicha();$('#wsheet').scrollTop=0}else wsClose()};
+$('#w-back').onclick=()=>{
+  if(wCur&&wCur.paso==='buscar'){wsClose();return}
+  if(wCur&&wCur.paso==='registro'){wsFicha();$('#wsheet').scrollTop=0;return}
+  // 18-nov · si la empresa se abrió desde Buscar, «‹ Buscar» vuelve a la búsqueda (con lo que se había escrito)
+  if(wCur&&wCur.desde==='buscar'){busOpen();return}
+  wsClose();
+};
 async function wsLoad(){
   const c=wCur;if(!c)return;c.err='';
   try{
@@ -2740,12 +2863,14 @@ async function wsLoad(){
     if(!j.ok||!j.empresa){c.err=j.error||'Atlas no respondió.';if(c.paso==='ficha')wsFicha();return}
     c.d=j;if(j.empresa.nombre)c.nombre=j.empresa.nombre;
   }catch(e){if(wCur!==c)return;c.err='No hubo conexión con Atlas.'}
+  // 18-nov · «Ya respondió» (Buscar): con la empresa ya leída se va directo a «¿Cómo te fue?» con la respuesta marcada.
+  if(c.resp&&c.d&&c.paso==='ficha'){wsRegistro();return}
   if(c.paso==='ficha')wsFicha();
 }
 function wsFicha(){
   const c=wCur;if(!c)return;c.paso='ficha';
   const B=$('#w-body');B.textContent='';
-  $('#w-back').textContent='‹ Tablero';$('#w-name').textContent=c.nombre||'Empresa';
+  $('#w-back').textContent=c.desde==='buscar'?'‹ Buscar':'‹ Tablero';$('#w-name').textContent=c.nombre||'Empresa';
   const d=c.d;
   if(!d){
     $('#w-sub').textContent='';
@@ -2820,7 +2945,7 @@ function wsFicha(){
   if(d.aviso)B.appendChild(wEl('p','waviso',d.aviso));
   const go=wEl('button','wgo','Anotar cómo me fue');go.type='button';go.addEventListener('click',wsRegistro);B.appendChild(go);
 }
-const W_RES=[['contesto','📞 Contestaron'],['no_contesta','📵 No contestaron'],['ocupado','⏳ Estaba ocupado'],['escribi_whatsapp','💬 Le escribí por WhatsApp'],
+const W_RES=[['respondio','💬 Respondió el mensaje'],['contesto','📞 Contestaron'],['no_contesta','📵 No contestaron'],['ocupado','⏳ Estaba ocupado'],['escribi_whatsapp','💬 Le escribí por WhatsApp'],
   ['escribi_correo','✉️ Le escribí por correo'],['reunion_hecha','🤝 Se hizo la reunión'],['equivocado','🚫 El número no es de esta empresa']];
 const a9=d=>{d.setHours(9,0,0,0);return d};
 function wsDias(){
@@ -2837,7 +2962,7 @@ function wsRegistro(){
   const c=wCur;if(!c)return;c.paso='registro';
   const B=$('#w-body');B.textContent='';$('#wsheet').scrollTop=0;
   $('#w-back').textContent='‹ '+(c.nombre||'Empresa');$('#w-sub').textContent='';$('#w-name').textContent='¿Cómo te fue?';
-  let accion=c.clase==='reunion'?'reunion_hecha':'contesto',dia='no';
+  let accion=c.resp?'respondio':c.clase==='reunion'?'reunion_hecha':'contesto',dia='no';
   // 13-nov · Borrador: si la app se cierra (al volver de una llamada el iPhone a veces la recarga), lo escrito no se pierde.
   const bor=wsBorrador(c.cid);if(bor&&W_RES.some(x=>x[0]===bor.accion))accion=bor.accion;
   const guarda=()=>lsSet(WS_BOR,{cid:c.cid,ev:c.ev||null,nombre:c.nombre||'',accion,nota:($('#w-nota')||{}).value||'',t:Date.now()});
@@ -2880,11 +3005,14 @@ function wsRegistro(){
     }
     go.disabled=true;err.style.color='var(--mut)';err.textContent='Guardando en Atlas…';
     try{
-      const j=await atlasCall({operacion:'gestion',company_id:c.cid,accion,nota:ta.value.trim(),siguiente:f?{fecha:f.toISOString()}:null,evento_id:c.ev||undefined,confirmado});
+      // 18-nov · «Respondió el mensaje» se anota con el canal por el que le escribió (correo o, si no se sabe, WhatsApp).
+      const acc=accion==='respondio'?(c.resp==='correo'?'respondio_correo':'respondio_whatsapp'):accion;
+      const j=await atlasCall({operacion:'gestion',company_id:c.cid,accion:acc,nota:ta.value.trim(),siguiente:f?{fecha:f.toISOString()}:null,evento_id:c.ev||undefined,confirmado});
       if(!j.ok){go.disabled=false;mal((j.error||'Atlas no lo guardó.')+' Lo que escribiste sigue aquí.');return}
       lsSet(WS_BOR,null);
       const m=sugMia();if(m){const n0=m.items.length;m.items=m.items.filter(x=>x.company_id!==c.cid);if(m.items.length<n0)m.total=Math.max(0,(m.total||1)-1);lsSet('midia.atlas.sug',SUG)}
       if(c.ev&&j.cerrado)ATLAS=ATLAS.filter(x=>x.aid!==c.ev);
+      if(BUS){BUS.esperando=(BUS.esperando||[]).filter(x=>x.company_id!==c.cid);BUS.total=BUS.esperando.length;busBadge()}
       wsClose();render();toast(j.aviso||'Guardado en Atlas');
       atlasAt=0;sugAt=0;atlasLoad(true);
     }catch(x){go.disabled=false;mal('Sin conexión. Lo que escribiste sigue aquí; inténtalo de nuevo.')}
