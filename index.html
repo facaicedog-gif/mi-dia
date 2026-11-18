@@ -671,6 +671,7 @@ nav .tab{font-weight:700}
 .sug .n{flex:1;min-width:0}
 .sug .n b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sug .n small{display:block;color:var(--mut);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sug .n small.volv{color:#B45309;font-weight:700;white-space:normal}
 .wch{flex:none;font-size:11px;font-weight:800;border-radius:99px;padding:3px 9px;background:var(--blue-soft);color:var(--blue)}
 .wch.t{background:#e8f7ee;color:#15803d}
 .wch.nu{background:#fff4d6;color:#8a5a00}
@@ -2700,8 +2701,9 @@ function paintSug(){
     const lg=document.createElement('span');lg.className='lg';lg.textContent=(String(x.nombre||'?').trim()[0]||'?').toUpperCase();lg.style.setProperty('--av',avColor(x.nombre||''));
     const n=document.createElement('span');n.className='n';const nb=document.createElement('b');nb.textContent=x.nombre||'Empresa';const ns=document.createElement('small');
     const c=x.contacto||{};ns.textContent=[x.nit?'NIT '+nitFmt(x):'',x.ciudad,c.nombre?c.nombre+(c.cargo?', '+c.cargo.toLowerCase():''):''].filter(Boolean).join(' · ')||'Sin contacto con nombre';
-    n.append(nb,ns);
-    const k=W_CANAL[x.canal]||['Contacto',''],ch=document.createElement('span');ch.className='wch '+(x.recien_llego?'nu':k[1]);ch.textContent=(x.recien_llego?'✨ ':'')+k[0];
+    // 17-nov · la dejaste «sin datos de contacto» y Atlas ya encontró uno: se dice antes que el resto de la línea.
+    if(x.volvio){const v=document.createElement('small');v.className='volv';v.textContent='🔁 Ya '+(x.volvio.nuevo===false?'tiene ':'llegó ')+(x.volvio.que||'el contacto')+': haz el primer intento';n.append(nb,v,ns)}else n.append(nb,ns);
+    const k=W_CANAL[x.canal]||['Contacto',''],ch=document.createElement('span');ch.className='wch '+(x.recien_llego||x.volvio?'nu':k[1]);ch.textContent=(x.volvio?'🔁 ':x.recien_llego?'✨ ':'')+k[0];
     b.append(lg,n,ch);b.addEventListener('click',()=>wsOpen(x.company_id,{nombre:x.nombre}));B.appendChild(b);
   }
   if(sugErr){const p=document.createElement('p');p.className='waviso';p.textContent='No se pudo actualizar ('+sugErr+'): esta es la última lista que se trajo.';B.appendChild(p)}
