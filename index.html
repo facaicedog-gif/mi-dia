@@ -530,7 +530,9 @@ body.consent #consent{display:block}
 #consent .cno{width:100%;padding:11px;margin-top:8px;border-radius:14px;background:none;color:var(--mut);font-weight:700;border:0}
 #consent .cerr{font-size:13px;color:var(--q1);min-height:18px;margin-top:6px}
 .atl-okl{display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.45;color:var(--mut);margin:8px 0 0}
-.atl-okl input{width:17px;height:17px;flex:0 0 auto;margin-top:1px}
+/* 18-nov · «#atl-box input» (el campo del código: flex:1, min-width:0) también caía sobre esta casilla y en Android la dejaba
+   en 0 px de ancho: Valentina (WORKFIX) veía el texto de la autorización sin casilla y no podía pedir el código. */
+#atl-box .atl-okl input{width:20px;height:20px;min-width:20px;flex:0 0 20px;margin-top:1px;padding:0;border:0;text-transform:none;letter-spacing:0;accent-color:var(--blue)}
 /* contactos */
 #acct-pop #acct-ctc{background:var(--blue-soft);color:var(--blue);margin-bottom:8px}
 #v-ctc .bk{display:inline-flex;align-items:center;gap:4px;color:var(--blue);font-weight:700;font-size:14px;margin:0 4px 6px;padding:6px 0}
