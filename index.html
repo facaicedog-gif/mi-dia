@@ -237,6 +237,19 @@ body.atl-con #fab{margin-left:6px;margin-right:6px}
 nav .tn{position:absolute;top:-7px;right:-3px;min-width:19px;height:19px;border-radius:10px;background:var(--blue);color:#fff;font-size:10.5px;font-weight:800;font-style:normal;display:none;place-items:center;padding:0 5px}
 nav .tn.on{display:grid}
 #bus-n{background:#F6C445;color:#14213D}
+/* 19-nov · 💼 Negocios (maqueta-negocios-1/2.jpg, aprobada: «Sí, constrúyelo») */
+.pg-tot{display:flex;gap:8px;margin:10px 0 12px}.pg-tot div{flex:1;background:var(--card);border-radius:14px;padding:9px 10px;box-shadow:var(--shadow)}
+.pg-tot b{display:block;font-size:17px}.pg-tot span{font-size:11px;color:var(--mut);font-weight:600}
+.pg-h{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:800;letter-spacing:.06em;margin:14px 2px 7px}
+.pg-h span{color:var(--mut);font-weight:700;letter-spacing:0}
+.pg-c{display:block;width:100%;text-align:left;background:var(--card);border-radius:16px;padding:11px 12px;box-shadow:var(--shadow);margin-bottom:8px;border:none;border-left:4px solid #94A3B8;color:inherit}
+.pg-c.Negociación{border-left-color:#16A37A}.pg-c.Calificado{border-left-color:#F6C445}
+.pg-c .r1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.pg-c b{font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pg-c .v{font-weight:800;font-size:13px;white-space:nowrap}
+.pg-c small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+.pg-c .sg{margin-top:6px;font-size:12.5px}.pg-c .sg.late{color:#D93747;font-weight:700}
+.pg-c .fr{font-size:11px;color:var(--mut);font-weight:600;margin-top:4px}.pg-c .fr.al{color:#B45309;font-weight:700}
+.pg-mas{display:block;width:100%;background:var(--card);border:none;border-radius:16px;padding:11px;color:var(--blue);font-weight:700;font-size:12.5px;box-shadow:var(--shadow);margin-bottom:8px}
+.wtt.wneg{color:#16A37A}
 /* la hoja de Buscar (usa #wsheet, como la ficha) */
 .bcampo{display:flex;align-items:center;gap:8px;border:2px solid var(--blue);border-radius:14px;padding:4px 12px;background:var(--card);margin:2px 0 12px}
 .bcampo svg{width:18px;height:18px;fill:none;stroke:var(--mut);stroke-width:2;flex:none}
@@ -2754,7 +2767,7 @@ async function copiarNit(n,btn){
 }
 function wsOpen(cid,ctx){
   const c=ctx||{};
-  wCur={cid,ev:c.ev||null,clase:c.clase||null,nombre:c.nombre||'',d:null,paso:'ficha',err:'',desde:c.desde||null,resp:c.resp||null};
+  wCur={cid,ev:c.ev||null,clase:c.clase||null,nombre:c.nombre||'',d:null,paso:'ficha',err:'',desde:c.desde||null,resp:c.resp||null};   // desde: 'buscar' | 'negocios'
   document.body.classList.add('ws');$('#wsheet').setAttribute('aria-hidden','false');$('#wsheet').scrollTop=0;
   wsFicha();wsLoad();
 }
@@ -2847,12 +2860,60 @@ function busPaint(){
   L.appendChild(wEl('p','bnota','Pasados 3 días hábiles sin respuesta, la empresa sale de esta lista; el siguiente intento te lo marca Atlas.'));
 }
 
+
+/* ═══ 2026-11-19 · 💼 NEGOCIOS (maqueta-negocios-1/2.jpg, aprobada: «Sí, constrúyelo») ═══
+   Fabián: «que Mi día me permitiera ver los negocios que tengo en el pipeline y gestionarlos de igual forma que lo hacemos
+   con las otras empresas». Gestión → 💼 Negocios: lo vivo de SU pipeline (atlas lib/midia-negocio.js), por etapa, con el
+   próximo paso en rojo si venció. Tocar uno abre la ficha de siempre; en «¿Cómo te fue?» se mueve la etapa. */
+let NEG=null,negAt=0,negBusy=false,negErr='',negVer={};
+const NEG_ETAPAS=[['Prospecto','🌱 Prospecto'],['Calificado','✅ Calificado'],['Negociación','🤝 Negociación'],['Cerrado','🏆 Ganado'],['Perdido','✖ Perdido']];
+const NEG_NOMBRE=e=>e==='Cerrado'?'Ganado':e;
+function negPlata(v){const n=Number(v)||0;if(n>=1e6)return '$'+(Math.round(n/1e5)/10).toString().replace('.',',')+' M';if(n>=1e3)return '$'+Math.round(n/1e3)+' mil';return '$'+n}
+async function negLoad(force){
+  if(!atlasLink||!sess||negBusy)return;
+  if(!force&&NEG&&Date.now()-negAt<120000)return;
+  negBusy=true;
+  try{const j=await atlasCall({operacion:'negocios'});if(j.ok&&Array.isArray(j.negocios)){NEG=j.negocios;negAt=Date.now();negErr=''}else negErr=j.error||'Atlas no respondió.'}
+  catch(e){negErr='Sin conexión.'}
+  negBusy=false;
+  if(asgTab==='n')paintAsg();
+}
+function negPaint(V){
+  if(!NEG){V.appendChild(wEl('p','empty',negErr?'No se pudieron traer tus negocios ('+negErr+'). Desliza para reintentar.':'Trayendo tus negocios de Atlas…'));return}
+  if(!NEG.length){V.appendChild(wEl('p','empty','No tienes negocios vivos en tu pipeline. Cuando pases una empresa al pipeline en Atlas, aparece aquí.'));return}
+  const total=NEG.reduce((s,n)=>s+(Number(n.valor)||0),0),venc=NEG.filter(n=>n.vencido).length;
+  const T=wEl('div','pg-tot');
+  [[NEG.length,NEG.length===1?'negocio vivo':'negocios vivos',''],[total?negPlata(total):'—','en juego',''],[venc,'con el paso vencido',venc?'#D93747':'']].forEach(([b,s,col])=>{const d=document.createElement('div');const bb=wEl('b','',String(b));if(col)bb.style.color=col;d.append(bb,wEl('span','',s));T.appendChild(d)});
+  V.appendChild(T);
+  for(const [et,txt] of [['Negociación','🤝 NEGOCIACIÓN'],['Calificado','✅ CALIFICADO'],['Prospecto','🌱 PROSPECTO']]){
+    const L=NEG.filter(n=>n.etapa===et).sort((a,b)=>(b.vencido-a.vencido)||((Number(b.valor)||0)-(Number(a.valor)||0)));
+    if(!L.length)continue;
+    const sum=L.reduce((s,n)=>s+(Number(n.valor)||0),0);
+    const h=wEl('div','pg-h',txt+' · '+L.length);h.appendChild(wEl('span','',sum?negPlata(sum):''));V.appendChild(h);
+    const tope=negVer[et]?L.length:4;
+    L.slice(0,tope).forEach(n=>{
+      const c=document.createElement('button');c.type='button';c.className='pg-c '+et;
+      const r1=wEl('div','r1');r1.append(wEl('b','',n.nombre||'Empresa'),wEl('span','v',(n.valor?negPlata(n.valor):'sin valor')+(n.probabilidad!=null?' · '+n.probabilidad+' %':'')));
+      c.append(r1,wEl('small','',[n.contacto||'Sin contacto con nombre',n.nit?'NIT '+nitFmt(n):''].filter(Boolean).join(' · ')));
+      if(n.siguiente){const f=n.siguiente.fecha?new Date(n.siguiente.fecha+'T12:00:00'):null;
+        c.appendChild(wEl('div','sg'+(n.vencido?' late':''),(n.vencido?'⚠ ':'➜ ')+(n.siguiente.texto||'Próximo paso')+(f?' · '+(n.vencido?'venció el ':'')+f.toLocaleDateString('es-CO',{day:'numeric',month:'short'}):'')))}
+      else c.appendChild(wEl('div','sg late','⚠ Sin próximo paso'));
+      const d=n.dias_sin_gestion;
+      c.appendChild(wEl('div','fr'+(d!=null&&d>=14?' al':''),d==null?'Sin gestiones todavía':d>=14?'⚠ '+d+' días sin gestión':d===0?'Última gestión hoy':d===1?'Última gestión ayer':'Última gestión hace '+d+' días'));
+      c.addEventListener('click',()=>wsOpen(n.company_id,{nombre:n.nombre,desde:'negocios'}));
+      V.appendChild(c);
+    });
+    if(L.length>tope){const m=wEl('button','pg-mas','Ver '+(L.length-tope===1?'1 más':'los '+(L.length-tope)+' más')+' ›');m.type='button';m.addEventListener('click',()=>{negVer[et]=1;paintAsg()});V.appendChild(m)}
+  }
+}
+
 function wsClose(){document.body.classList.remove('ws');$('#wsheet').setAttribute('aria-hidden','true');wCur=null}
 $('#w-back').onclick=()=>{
   if(wCur&&wCur.paso==='buscar'){wsClose();return}
   if(wCur&&wCur.paso==='registro'){wsFicha();$('#wsheet').scrollTop=0;return}
   // 18-nov · si la empresa se abrió desde Buscar, «‹ Buscar» vuelve a la búsqueda (con lo que se había escrito)
   if(wCur&&wCur.desde==='buscar'){busOpen();return}
+  if(wCur&&wCur.desde==='negocios'&&wCur.paso!=='registro'){wsClose();asgTab='n';paintAsg();return}
   wsClose();
 };
 async function wsLoad(){
@@ -2870,7 +2931,7 @@ async function wsLoad(){
 function wsFicha(){
   const c=wCur;if(!c)return;c.paso='ficha';
   const B=$('#w-body');B.textContent='';
-  $('#w-back').textContent=c.desde==='buscar'?'‹ Buscar':'‹ Tablero';$('#w-name').textContent=c.nombre||'Empresa';
+  $('#w-back').textContent=c.desde==='buscar'?'‹ Buscar':c.desde==='negocios'?'‹ Negocios':'‹ Tablero';$('#w-name').textContent=c.nombre||'Empresa';
   const d=c.d;
   if(!d){
     $('#w-sub').textContent='';
@@ -2973,6 +3034,15 @@ function wsRegistro(){
   for(const [id,txt] of W_RES){if(id==='equivocado'&&!hayTel)continue;const b=wEl('button',id==='equivocado'?'al':'',txt);b.type='button';b.classList.toggle('on',id===accion);
     b.addEventListener('click',()=>{accion=id;R.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));guarda()});R.appendChild(b)}
   B.appendChild(R);
+  // 19-nov · 💼 Etapa del negocio: sólo si la empresa está en SU pipeline (la ficha trae `negocio`). «Ganado» = Cerrado.
+  const ng=c.d&&c.d.negocio;let etapa=ng?ng.etapa:null;
+  if(ng){
+    const h=wTit('💼 Etapa del negocio','hoy: '+NEG_NOMBRE(ng.etapa)+(ng.valor?' · '+negPlata(ng.valor):''));h.classList.add('wneg');B.appendChild(h);
+    const D0=wEl('div','wdias');
+    for(const [id,txt] of NEG_ETAPAS){const b=wEl('button','',txt);b.type='button';b.classList.toggle('on',id===etapa);
+      b.addEventListener('click',()=>{etapa=id;D0.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});D0.appendChild(b)}
+    B.appendChild(D0);
+  }
   B.appendChild(wTit('Nota','opcional'));
   const ta=document.createElement('textarea');ta.id='w-nota';ta.maxLength=2000;ta.placeholder='Qué te dijeron, con quién hablaste, qué quedó pendiente…';B.appendChild(ta);
   if(bor&&bor.nota){ta.value=bor.nota;B.insertBefore(wEl('p','waviso','Recuperé lo que estabas escribiendo.'),B.firstChild)}
@@ -3007,13 +3077,16 @@ function wsRegistro(){
     try{
       // 18-nov · «Respondió el mensaje» se anota con el canal por el que le escribió (correo o, si no se sabe, WhatsApp).
       const acc=accion==='respondio'?(c.resp==='correo'?'respondio_correo':'respondio_whatsapp'):accion;
-      const j=await atlasCall({operacion:'gestion',company_id:c.cid,accion:acc,nota:ta.value.trim(),siguiente:f?{fecha:f.toISOString()}:null,evento_id:c.ev||undefined,confirmado});
+      const j=await atlasCall({operacion:'gestion',company_id:c.cid,accion:acc,...(ng&&etapa&&etapa!==ng.etapa?{etapa}:{}),nota:ta.value.trim(),siguiente:f?{fecha:f.toISOString()}:null,evento_id:c.ev||undefined,confirmado});
       if(!j.ok){go.disabled=false;mal((j.error||'Atlas no lo guardó.')+' Lo que escribiste sigue aquí.');return}
       lsSet(WS_BOR,null);
       const m=sugMia();if(m){const n0=m.items.length;m.items=m.items.filter(x=>x.company_id!==c.cid);if(m.items.length<n0)m.total=Math.max(0,(m.total||1)-1);lsSet('midia.atlas.sug',SUG)}
       if(c.ev&&j.cerrado)ATLAS=ATLAS.filter(x=>x.aid!==c.ev);
       if(BUS){BUS.esperando=(BUS.esperando||[]).filter(x=>x.company_id!==c.cid);BUS.total=BUS.esperando.length;busBadge()}
-      wsClose();render();toast(j.aviso||'Guardado en Atlas');
+      if(ng)negAt=0;   // 19-nov · Negocios se vuelve a pedir: la etapa o el próximo paso pudieron cambiar
+      const volverNeg=c.desde==='negocios';
+      wsClose();render();toast(j.aviso||(j.etapa?'Guardado en Atlas · negocio en '+NEG_NOMBRE(j.etapa):'Guardado en Atlas'));
+      if(volverNeg){NEG=null;paintAsg();negLoad(true)}
       atlasAt=0;sugAt=0;atlasLoad(true);
     }catch(x){go.disabled=false;mal('Sin conexión. Lo que escribiste sigue aquí; inténtalo de nuevo.')}
   });
@@ -3448,12 +3521,15 @@ function paintAsg(){
   // Se conserva la columna a la vista sólo si se repinta la MISMA lista (al cambiar de Asigné a Me asignaron se empieza de nuevo).
   const viejo=V.querySelector('.kb'),sx=viejo&&V.dataset.tab===asgTab&&!kIr?viejo.scrollLeft:null;
   V.textContent='';
-  if(asgTab!=='a'&&asgTab!=='r')asgTab='a';V.dataset.tab=asgTab;
+  const negOn=!!(atlasLink&&sess);   // 19-nov · 💼 Negocios (sólo con Atlas conectado)
+  if(asgTab!=='a'&&asgTab!=='r'&&!(asgTab==='n'&&negOn))asgTab='a';V.dataset.tab=asgTab;
   const E=asgEntradas(),Rc=sess?ASG.rec:[];
-  V.insertAdjacentHTML('beforeend','<h2 class="t">Gestión</h2><p class="s">Lo que pediste a otros, lo que te pidieron y lo que te respondieron.</p>');
+  V.insertAdjacentHTML('beforeend','<h2 class="t">Gestión</h2><p class="s">'+(atlasLink&&sess?'Lo que pediste a otros, lo que te pidieron y tus negocios en Atlas.':'Lo que pediste a otros, lo que te pidieron y lo que te respondieron.')+'</p>');
   const sg=document.createElement('div');sg.className='seg';
-  sg.innerHTML='<button type="button" data-asg-tab="a">Asigné · '+E.length+'</button><button type="button" data-asg-tab="r">Me asignaron · '+Rc.length+'</button>';
+  sg.innerHTML='<button type="button" data-asg-tab="a">Asigné · '+E.length+'</button><button type="button" data-asg-tab="r">Me asignaron · '+Rc.length+'</button>'
+    +(negOn?'<button type="button" data-asg-tab="n">💼 Negocios'+(NEG?' · '+NEG.length:'')+'</button>':'');
   sg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.asgTab===asgTab));V.appendChild(sg);
+  if(asgTab==='n'){negPaint(V);negLoad();return}
   const cols={w:[],c:[],l:[],d:[]};
   // En «Terminadas»: primero lo hecho (lo más reciente arriba), al final lo rechazado y lo cancelado.
   const peso=x=>{const m=x.miembros?x.miembros:[x];return m.some(y=>y.estado==='hecha')?0:m.some(y=>y.estado==='rechazada')?1:2};
