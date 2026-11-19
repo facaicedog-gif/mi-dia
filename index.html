@@ -246,7 +246,9 @@ nav .tn.on{display:grid}
 .pg-c.Negociación{border-left-color:#16A37A}.pg-c.Calificado{border-left-color:#F6C445}
 .pg-c .r1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.pg-c b{font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pg-c .v{font-weight:800;font-size:13px;white-space:nowrap}
 .pg-c small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
-.pg-c .sg{margin-top:6px;font-size:12.5px}.pg-c .sg.late{color:#D93747;font-weight:700}
+.pg-c .sg{margin-top:6px;font-size:12.5px}.pg-c .sg.late{color:#D93747;font-weight:700}.pg-c .sg.sgs{color:var(--blue);font-weight:700}
+.pg-pend{display:inline-block;background:#D93747;color:#fff;font-size:11px;font-weight:800;border-radius:99px;padding:3px 9px;margin-bottom:6px}
+.pg-c .fr{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pg-c .fr{font-size:11px;color:var(--mut);font-weight:600;margin-top:4px}.pg-c .fr.al{color:#B45309;font-weight:700}
 .pg-mas{display:block;width:100%;background:var(--card);border:none;border-radius:16px;padding:11px;color:var(--blue);font-weight:700;font-size:12.5px;box-shadow:var(--shadow);margin-bottom:8px}
 .wtt.wneg{color:#16A37A}
@@ -2895,11 +2897,22 @@ function negPaint(V){
       const c=document.createElement('button');c.type='button';c.className='pg-c '+et;
       const r1=wEl('div','r1');r1.append(wEl('b','',n.nombre||'Empresa'),wEl('span','v',(n.valor?negPlata(n.valor):'sin valor')+(n.probabilidad!=null?' · '+n.probabilidad+' %':'')));
       c.append(r1,wEl('small','',[n.contacto||'Sin contacto con nombre',n.nit?'NIT '+nitFmt(n):''].filter(Boolean).join(' · ')));
-      if(n.siguiente){const f=n.siguiente.fecha?new Date(n.siguiente.fecha+'T12:00:00'):null;
-        c.appendChild(wEl('div','sg'+(n.vencido?' late':''),(n.vencido?'⚠ ':'➜ ')+(n.siguiente.texto||'Próximo paso')+(f?' · '+(n.vencido?'venció el ':'')+f.toLocaleDateString('es-CO',{day:'numeric',month:'short'}):'')))}
+      // 19-nov · Fabián (Spinomax): «una notificación en rojo en la tarjeta que me diga que tengo eso pendiente». Si el
+      // pendiente de SU agenda para esta empresa es hoy, mañana o ya venció, la tarjeta lo dice arriba, en rojo.
+      if(n.fuente==='agenda'&&n.siguiente&&n.siguiente.fecha){
+        const hoyK=ymd(new Date()),manK=ymd(new Date(Date.now()+864e5)),f=n.siguiente.fecha;
+        const q=f<hoyK?'🔔 Pendiente vencido':f===hoyK?'🔔 Pendiente para hoy':f===manK?'🔔 Pendiente para mañana':null;
+        if(q){const p=wEl('div','pg-pend',q);c.insertBefore(p,c.firstChild)}
+      }
+      // 19-nov · El próximo paso sale de tu agenda (📅) o, si gestionaste después del paso viejo del pipeline, Atlas sugiere
+      // el seguimiento (💡). Sólo sale en rojo lo que de verdad venció.
+      const dia=s=>new Date(s+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'});
+      if(n.siguiente){const f=n.siguiente.fecha;
+        c.appendChild(wEl('div','sg'+(n.vencido?' late':''),(n.vencido?'⚠ ':n.fuente==='agenda'?'📅 ':'➜ ')+(n.siguiente.texto||'Próximo paso')+(f?' · '+(n.vencido?'venció el ':'')+dia(f):'')))}
+      else if(n.sugerido)c.appendChild(wEl('div','sg sgs','💡 Atlas sugiere: '+n.sugerido.texto+' · '+dia(n.sugerido.fecha)));
       else c.appendChild(wEl('div','sg late','⚠ Sin próximo paso'));
-      const d=n.dias_sin_gestion;
-      c.appendChild(wEl('div','fr'+(d!=null&&d>=14?' al':''),d==null?'Sin gestiones todavía':d>=14?'⚠ '+d+' días sin gestión':d===0?'Última gestión hoy':d===1?'Última gestión ayer':'Última gestión hace '+d+' días'));
+      const d=n.dias_sin_gestion,ut=n.ultima_texto?' · '+n.ultima_texto:'';
+      c.appendChild(wEl('div','fr'+(d!=null&&d>=14?' al':''),d==null?'Sin gestiones todavía':d>=14?'⚠ '+d+' días sin gestión'+ut:(d===0?'Última gestión hoy':d===1?'Última gestión ayer':'Última gestión hace '+d+' días')+ut));
       c.addEventListener('click',()=>wsOpen(n.company_id,{nombre:n.nombre,desde:'negocios'}));
       V.appendChild(c);
     });
