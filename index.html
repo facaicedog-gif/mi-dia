@@ -751,6 +751,20 @@ body.ws #bubs{display:none}
 .wmot{background:linear-gradient(135deg,#fff8e1,#fff);border:1px solid #f6e3a6}
 .wmot b{font-size:14px;overflow-wrap:anywhere}
 .wmot small{display:block;color:var(--mut);font-size:12px;margin-top:4px;overflow-wrap:anywhere}
+/* 21-nov · 💬 WhatsApp de la empresa (waCargar). Los globos llevan sus colores de WhatsApp también de noche. */
+.wab .wabv{padding:8px 10px;border-radius:10px;font-size:12.5px;font-weight:700;margin-bottom:8px;line-height:1.35}
+.wab .wabv.ok{background:#E7F8EE;color:#0F7A3D}.wab .wabv.cl{background:#FFF4E5;color:#B45309}
+.wabc{background:#ECE5DD;border-radius:12px;padding:9px;display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto}
+.wabm{max-width:84%;padding:7px 9px;border-radius:10px;font-size:13.5px;line-height:1.4;color:#142033;overflow-wrap:anywhere;white-space:pre-wrap}
+.wabm.in{background:#fff;align-self:flex-start}.wabm.out{background:#DCF8C6;align-self:flex-end}.wabm.tpl{border:1px dashed #9BC59B}
+.wabm small{display:block;text-align:right;font-size:10.5px;color:#667;margin-top:3px}.wabm small.al{color:#991b1b;text-align:left}
+.wabe{display:inline-block;font-size:10px;font-weight:800;background:#fff;border-radius:99px;padding:1px 7px;margin-bottom:3px;color:#128C7E}
+.wabb{display:flex;gap:6px;margin-top:6px}.wabb span{flex:1;text-align:center;background:#fff;border-radius:8px;padding:5px;font-size:12px;color:#0b6bcb;font-weight:700}
+.wabd{align-self:center;background:#E1F3FB;font-size:11px;padding:2px 9px;border-radius:8px;color:#556}
+.wabr{display:flex;gap:8px;margin-top:9px;align-items:flex-end}.wabr textarea{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:14px;padding:9px 12px;font:inherit;font-size:16px;background:var(--bg);color:var(--ink);resize:none}
+.wabr button{border:none;background:#128C7E;color:#fff;border-radius:50%;width:42px;height:42px;font-size:17px;flex:none}
+.wabt{width:100%;margin-top:9px;border:none;background:var(--blue);color:#fff;border-radius:12px;padding:11px;font-weight:800;font-size:14px}
+.wabn{font-size:12.5px;color:var(--mut);margin-top:6px}.wabn.al{color:#b91c1c}
 .wmsg{background:var(--blue-soft);border-radius:4px 16px 16px 16px;padding:10px 12px;font-size:13.5px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
 .whist{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
 .whist:last-child{border:0}
@@ -2663,10 +2677,12 @@ async function ocuSend(){
    «En gestión». No frena el marcador (keepalive: el aviso sale aunque el celular cambie de app). Un toque repetido a la
    misma empresa y canal en 2 minutos no se vuelve a anotar. */
 const toqueVisto={};
-function atlasToque(cid,canal,numero,nombre){
+// 22-nov · `texto`: el WhatsApp llevaba el seguimiento ya escrito → canal whatsapp_mensaje, Atlas lo anota «Le escribí por WhatsApp».
+function atlasToque(cid,canal,numero,nombre,texto){
   if(!atlasLink||!cid)return;
+  if(canal==='whatsapp'&&texto)canal='whatsapp_mensaje';
   const k=cid+'|'+canal;if(toqueVisto[k]&&Date.now()-toqueVisto[k]<120000)return;toqueVisto[k]=Date.now();
-  atlasCall({operacion:'toque',company_id:cid,canal,numero:numero||'',nombre:nombre||''},null,true)
+  atlasCall({operacion:'toque',company_id:cid,canal,numero:numero||'',nombre:nombre||'',texto:texto||undefined},null,true)
     .then(j=>{if(!j.ok){delete toqueVisto[k];console.warn('Mi día: Atlas no anotó el toque',j.status,j.error)}})
     .catch(()=>{delete toqueVisto[k];console.warn('Mi día: sin conexión para anotar el toque en Atlas')});
 }
@@ -2681,9 +2697,10 @@ function openAtlas(t){
   const n=$('#a-notas');n.textContent=t.notas||'';n.style.display=t.notas?'':'none';
   // Para actuar con un toque. El teléfono del contacto manda; si no hay, el de la empresa.
   const tel=soloDig(con.telefono||emp.telefono),mail=con.correo||emp.correo||'',acts=$('#a-acts');acts.textContent='';
-  const link=(txt,href,cls,canal)=>{const a=document.createElement('a');a.textContent=txt;a.href=href;if(cls)a.className=cls;a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(t.cid,canal,tel,con.nombre));acts.appendChild(a)};
+  const link=(txt,href,cls,canal,msj)=>{const a=document.createElement('a');a.textContent=txt;a.href=href;if(cls)a.className=cls;a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(t.cid,canal,tel,con.nombre,msj));acts.appendChild(a)};
   if(tel.length>=7)link('Llamar','tel:'+tel,'','llamar');
-  if(tel.length===10&&tel[0]==='3')link('WhatsApp','https://wa.me/57'+tel,'wa','whatsapp');
+  // 22-nov · Con seguimiento (Atlas lo escribe con la fecha de la última conversación), el chat abre con el mensaje listo.
+  if(tel.length===10&&tel[0]==='3')link(t.seguimiento?'WhatsApp con mensaje':'WhatsApp','https://wa.me/57'+tel+(t.seguimiento?'?text='+encodeURIComponent(t.seguimiento):''),'wa','whatsapp',t.seguimiento||'');
   if(/^[^\s@]+@[^\s@]+$/.test(mail))link('Correo','mailto:'+mail,'','correo');
   acts.style.display=acts.children.length?'':'none';
   // Las mismas preguntas que el «Ya lo hice» de Atlas: una llamada pregunta si contestó; lo interno se cierra sin más.
@@ -2995,10 +3012,12 @@ function wsFicha(){
   // 15-nov (noche) · Fabián: «pusiste 3 veces WhatsApp… debe ser solo una vez». Queda UN botón de WhatsApp: el de «Qué decirle»,
   // con el enlace para agendar al final. Sin texto sugerido, el de la tarjeta del contacto (con el enlace, si lo hay).
   const ag=d.agendar&&d.agendar.url?d.agendar:null;
-  const msgWa=d.texto?d.texto+(ag?'\n\nSi le queda más fácil, elija aquí el día y la hora para hablar '+(ag.min||20)+' minutos: '+ag.url:''):(ag?ag.mensaje:'');
+  // 22-nov · Si ya hubo conversación, lo que se le dice es el SEGUIMIENTO (lib/midia-seguimiento.js), no el primer contacto.
+  const txtBase=d.seguimiento||d.texto;
+  const msgWa=txtBase?txtBase+(ag?'\n\nSi le queda más fácil, elija aquí el día y la hora para hablar '+(ag.min||20)+' minutos: '+ag.url:''):(ag?ag.mensaje:'');
   const link=(txt,href,cls,canal)=>{const a=wEl('a',cls||'',txt);a.href=href;a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(e.company_id,canal,tel,k.nombre));acts.appendChild(a)};
   if(tel.length>=7)link('Llamar','tel:'+tel,'pri','llamar');
-  if(cel&&!d.texto)link('WhatsApp','https://wa.me/57'+tel+(msgWa?'?text='+encodeURIComponent(msgWa):''),'wa','whatsapp');
+  if(cel&&!txtBase)link('WhatsApp','https://wa.me/57'+tel+(msgWa?'?text='+encodeURIComponent(msgWa):''),'wa','whatsapp');
   if(/^[^\s@]+@[^\s@]+$/.test(mail))link('Correo','mailto:'+mail,'','correo');
   if(acts.children.length)q.appendChild(acts);
   if(!q.children.length)q.appendChild(wEl('div','wkv fin','Atlas todavía no tiene un contacto de esta empresa.'));
@@ -3013,12 +3032,12 @@ function wsFicha(){
     B.appendChild(m);
   }
   // qué decirle
-  if(d.texto){
-    B.appendChild(wTit('Qué decirle'));
-    B.appendChild(wEl('div','wmsg',d.texto));
+  if(txtBase){
+    B.appendChild(wTit('Qué decirle',d.seguimiento?'seguimiento':''));
+    B.appendChild(wEl('div','wmsg',txtBase));
     if(ag)B.appendChild(wEl('p','wagnota','📅 Al final va tu enlace para que elija la hora: ve sólo tus horas libres y la cita cae sola en Atlas y aquí.'));
     const a2=wEl('div','wacts');a2.style.marginBottom='4px';
-    if(cel){const a=wEl('a','wa','Abrir en WhatsApp con este texto');a.href='https://wa.me/57'+tel+'?text='+encodeURIComponent(msgWa);a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(e.company_id,'whatsapp',tel,k.nombre));a2.appendChild(a)}
+    if(cel){const a=wEl('a','wa','Abrir en WhatsApp con este texto');a.href='https://wa.me/57'+tel+'?text='+encodeURIComponent(msgWa);a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(e.company_id,'whatsapp',tel,k.nombre,msgWa));a2.appendChild(a)}
     else{const b=wEl('button','','Copiar este texto');b.type='button';b.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(msgWa);toast('Texto copiado')}catch(x){toast('No se pudo copiar: mantén presionado el texto para copiarlo')}});a2.appendChild(b)}
     B.appendChild(a2);
   }
@@ -3040,8 +3059,53 @@ function wsFicha(){
     if(d.sigue.pista)sg.appendChild(wEl('em','',d.sigue.pista));
     B.appendChild(sg);
   }
+  if(d.whatsapp){B.appendChild(wTit('💬 WhatsApp'));const wa=wEl('div','wcard wab');wa.appendChild(wEl('div','wabn','Cargando la conversación…'));B.appendChild(wa);waCargar(c,wa)}   // 21-nov
   if(d.aviso)B.appendChild(wEl('p','waviso',d.aviso));
   const go=wEl('button','wgo','Anotar cómo me fue');go.type='button';go.addEventListener('click',wsRegistro);B.appendChild(go);
+}
+// 21-nov · 💬 WhatsApp de la empresa: la conversación con la línea oficial (Atlas, netlify/functions/whatsapp-bandeja.js por
+// midia-puente). Sólo si la cuenta lo tiene encendido (la ficha trae «whatsapp»). Atlas decide la ventana de 24 h: dentro,
+// se contesta con texto; fuera, sólo «Retomar conversación» (plantilla aprobada). Lo enviado queda anotado en Atlas.
+const WA_EST={enviado:'✓',entregado:'✓✓',leido:'✓✓ leído',fallido:'⚠ no llegó'};
+const waHora=s=>new Date(s).toLocaleTimeString('es-CO',{hour:'numeric',minute:'2-digit',timeZone:'America/Bogota'});
+const waDia=s=>new Date(s).toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',timeZone:'America/Bogota'});
+async function waCargar(c,box,aviso){
+  let j;try{j=await atlasCall({operacion:'whatsapp',accion:'conversacion',company_id:c.cid})}catch(e){j={ok:false,error:'No hubo conexión con Atlas.'}}
+  if(wCur!==c||c.paso!=='ficha'||!box.isConnected)return;
+  if(!j.ok&&j.encendido===false){const t=box.previousElementSibling;if(t&&t.classList.contains('wtt'))t.remove();box.remove();return}
+  box.textContent='';
+  if(!j.ok){box.appendChild(wEl('div','wabn al',j.error||'No se pudo leer la conversación.'));return}
+  const v=j.ventana||{},M=(j.mensajes||[]).slice(-30);
+  box.appendChild(wEl('div','wabv '+(v.abierta?'ok':'cl'),v.abierta?'🟢 Puedes contestarle por aquí hasta el '+waDia(v.hasta)+' a las '+waHora(v.hasta)
+    :v.ya_escribio?'⏳ Pasaron más de 24 horas desde su último mensaje. Para escribirle, Meta exige una plantilla aprobada.'
+    :M.length?'Todavía no ha respondido por este número.':'Aún no hay mensajes con esta empresa por la línea oficial.'));
+  if(M.length){
+    const ch=wEl('div','wabc');let ud='';
+    for(const m of M){const dd=waDia(m.cuando);if(dd!==ud){ch.appendChild(wEl('div','wabd',dd));ud=dd}
+      const b=wEl('div','wabm '+(m.dir==='in'?'in':'out')+(m.etiqueta?' tpl':''));
+      if(m.etiqueta)b.appendChild(wEl('span','wabe',m.etiqueta));
+      b.appendChild(wEl('div','',m.texto||''));
+      if(m.botones){const bb=wEl('div','wabb');m.botones.forEach(x=>bb.appendChild(wEl('span','',x)));b.appendChild(bb)}
+      b.appendChild(wEl('small','',waHora(m.cuando)+(m.estado?' '+(WA_EST[m.estado]||''):'')));
+      if(m.error)b.appendChild(wEl('small','al',m.error));
+      ch.appendChild(b)}
+    box.appendChild(ch);requestAnimationFrame(()=>{ch.scrollTop=ch.scrollHeight});
+  }
+  const msg=wEl('div','wabn'+(aviso&&aviso.error?' al':''),aviso?aviso.texto:'');
+  const enviar=async(btn,llamada,ok)=>{btn.disabled=true;msg.className='wabn';msg.textContent='Enviando…';
+    let r;try{r=await atlasCall(Object.assign({operacion:'whatsapp',company_id:c.cid},llamada))}catch(e){r={ok:false,error:'No hubo conexión con Atlas.'}}
+    if(wCur!==c||!box.isConnected)return;
+    if(!r.ok){btn.disabled=false;msg.className='wabn al';msg.textContent=r.error||'No se pudo enviar.';return}
+    toast(r.aviso||ok);waCargar(c,box,r.aviso?{texto:r.aviso,error:true}:null)};
+  if(j.puede_enviar===false){if(!msg.textContent)msg.textContent='El número de WhatsApp todavía no está conectado: por ahora sólo se ve la conversación.'}
+  else if(v.abierta){const f=wEl('div','wabr'),ta=wEl('textarea');ta.rows=2;ta.maxLength=1000;ta.placeholder='Escribe tu respuesta…';
+    const b=wEl('button','','➤');b.type='button';b.setAttribute('aria-label','Enviar');
+    b.addEventListener('click',()=>{const t=ta.value.trim();if(!t){msg.className='wabn al';msg.textContent='Escribe el mensaje.';return}enviar(b,{accion:'responder',texto:t},'Enviado y anotado en Atlas')});
+    f.append(ta,b);box.appendChild(f)}
+  else if(v.ya_escribio){const b=wEl('button','wabt','Retomar conversación (plantilla)');b.type='button';
+    b.addEventListener('click',()=>enviar(b,{accion:'retomar'},'Plantilla enviada'));box.appendChild(b);
+    box.appendChild(wEl('p','wagnota','Si responde, se abren otras 24 horas para escribirle libre.'))}
+  box.appendChild(msg);
 }
 const W_RES=[['respondio','💬 Respondió el mensaje'],['contesto','📞 Contestaron'],['no_contesta','📵 No contestaron'],['ocupado','⏳ Estaba ocupado'],['escribi_whatsapp','💬 Le escribí por WhatsApp'],
   ['escribi_correo','✉️ Le escribí por correo'],['reunion_hecha','🤝 Se hizo la reunión'],['equivocado','🚫 El número no es de esta empresa']];
