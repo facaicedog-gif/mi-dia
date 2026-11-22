@@ -2446,7 +2446,8 @@ function atlasMap(e){
   const id='A:'+e.id,p=atlasPrefs[id]||{},due=e.fecha||null;
   return {id,aid:e.id,atlas:true,title:e.titulo||'Pendiente de Atlas',q:p.q||bandOf(due)||2,band:p.q?p.band:bandOf(due),order:p.order!=null?p.order:-1,
     due,end:due&&e.duracion_min?new Date(new Date(due).getTime()+e.duracion_min*6e4).toISOString():null,
-    done:false,notified:true,notas:e.notas||'',tipo:e.tipo||'',clase:e.clase||null,empresa:e.empresa||null,contacto:e.contacto||null,cid:e.company_id||null};
+    done:false,notified:true,notas:e.notas||'',tipo:e.tipo||'',clase:e.clase||null,empresa:e.empresa||null,contacto:e.contacto||null,cid:e.company_id||null,
+    seguimiento:e.seguimiento||null};   // 22-nov · el mensaje ya escrito del botón de WhatsApp (faltaba aquí: el botón abría vacío)
 }
 // Para ordenar los de Atlas en el tablero (ver render): hoy por hora < atrasados del más reciente al más viejo < lo que viene.
 function atlasRango(t){
