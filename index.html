@@ -442,6 +442,21 @@ body.asheet #asheet{transform:none}
 #a-acts{display:flex;gap:7px;margin:10px 0 4px}
 #a-acts a{flex:1;text-align:center;padding:11px 4px;border-radius:12px;background:var(--blue-soft);color:var(--blue);font-weight:700;font-size:13px;text-decoration:none}
 #a-acts a.wa{background:#e7f8ee;color:#128c4a}
+/* 23-nov · ✨ el seguimiento escrito por Atlas (redactarWa) */
+#redov{position:fixed;inset:0;z-index:115;background:rgba(20,32,51,.45);display:flex;align-items:flex-end;justify-content:center}
+#redov .rbox{background:var(--card);width:100%;max-width:640px;border-radius:22px 22px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
+#redov h4{margin:2px 0 4px;font-size:17px}
+#redov .rnota{font-size:12.5px;color:var(--mut);margin:0 0 8px;min-height:16px}
+#redov textarea{width:100%;min-height:150px;border:1.5px solid var(--line);border-radius:14px;padding:11px 12px;font:inherit;font-size:15px;line-height:1.4;color:var(--ink);background:var(--card);resize:vertical}
+#redov textarea:focus{outline:none;border-color:var(--blue)}
+#redov .rchips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 2px}
+#redov .rchips button{font-size:12.5px;font-weight:600;border-radius:999px;padding:6px 11px;background:var(--q4b);color:var(--ink)}
+#redov .rchips button.on{background:var(--blue);color:#fff}
+#redov .racts{display:flex;gap:8px;margin-top:12px}
+#redov .racts a,#redov .racts button{flex:1;text-align:center;border-radius:13px;padding:12px 6px;font-weight:700;font-size:14px;text-decoration:none}
+#redov .racts a{background:#1f9d55;color:#fff;flex:1.6}
+#redov .racts button{background:var(--q4b);color:var(--ink)}
+#redov.cargando textarea{opacity:.55}
 #a-como{display:flex;gap:7px}
 #a-como button{flex:1;padding:10px;border-radius:12px;background:var(--q4b);font-weight:700;font-size:13.5px}
 #a-como button.on{background:var(--blue);color:#fff}
@@ -2687,6 +2702,50 @@ function atlasToque(cid,canal,numero,nombre,texto){
     .then(j=>{if(!j.ok){delete toqueVisto[k];console.warn('Mi día: Atlas no anotó el toque',j.status,j.error)}})
     .catch(()=>{delete toqueVisto[k];console.warn('Mi día: sin conexión para anotar el toque en Atlas')});
 }
+/* ---------- ✨ el seguimiento escrito por Atlas (23-nov) ----------
+   Fabián, 23-nov: el seguimiento a los clientes con los que ya habló, personalizado «tal cual como lo hace él» (lo vio con
+   Zapia en WORKFIX). Sin pestaña nueva («Hacer ya y los otros 3 campos» ya los traen por ciclos): el botón de WhatsApp de
+   siempre abre esta hoja con la plantilla al instante y la reemplaza por el texto que Atlas escribe con la IA
+   (operación «redactar», atlas_deploy/netlify/lib/midia-redactar.js). Se puede cambiar con un toque o a mano. Nada sale
+   solo: «Enviar por WhatsApp» abre SU chat con el texto y se anota «Le escribí por WhatsApp» (atlasToque). Si la IA falla,
+   queda la plantilla y se dice por qué. Se guarda por empresa y tono mientras la app está abierta (no se paga dos veces). */
+const redCache={};
+function redactarWa(o){
+  const cerrar=()=>{ov.remove()};
+  const ov=wEl('div');ov.id='redov';
+  const box=wEl('div','rbox'),nota=wEl('p','rnota','✨ Atlas está escribiendo el mensaje con tu estilo…'),ta=document.createElement('textarea');
+  ta.value=o.base||'';ta.setAttribute('aria-label','Mensaje de WhatsApp');
+  box.append(wEl('h4','',o.titulo||'Mensaje de seguimiento'),nota,ta);
+  const chips=wEl('div','rchips');
+  const TONOS=[['','✨ Otra versión'],['corto','Más corto'],['formal','Más formal'],['hora','Proponer hora'],['sin_cita','Sin cita']];
+  let tonoAct='';
+  for(const [t,txt] of TONOS){const b=wEl('button','',txt);b.type='button';b.addEventListener('click',()=>pedir(t,!t));chips.appendChild(b)}
+  box.appendChild(chips);
+  if(o.extra)box.appendChild(wEl('p','rnota','📅 Al final se agrega tu enlace para agendar.'));
+  const acts=wEl('div','racts'),env=wEl('a','','Enviar por WhatsApp ➤'),can=wEl('button','','Cancelar');can.type='button';
+  env.href='#';env.target='_blank';env.rel='noopener';
+  const textoFinal=()=>ta.value.trim()+(o.extra?'\n\n'+o.extra:'');
+  env.addEventListener('click',()=>{const t=textoFinal();env.href='https://wa.me/57'+o.tel+'?text='+encodeURIComponent(t);atlasToque(o.cid,'whatsapp',o.tel,o.nombre,t);setTimeout(cerrar,300)});
+  can.addEventListener('click',cerrar);
+  acts.append(env,can);box.appendChild(acts);ov.appendChild(box);
+  ov.addEventListener('click',ev=>{if(ev.target===ov)cerrar()});
+  document.body.appendChild(ov);
+  function pedir(tono,nueva){
+    tonoAct=tono;[...chips.children].forEach((b,i)=>b.classList.toggle('on',!!tono&&TONOS[i][0]===tono));
+    const k=o.cid+'|'+tono;
+    if(redCache[k]&&!nueva){ta.value=redCache[k].texto;nota.textContent=redCache[k].nota;return}
+    ov.classList.add('cargando');nota.textContent='✨ Atlas está escribiendo el mensaje con tu estilo…';
+    atlasCall({operacion:'redactar',company_id:o.cid,tono:tono||undefined}).then(j=>{
+      if(!document.body.contains(ov)||tonoAct!==tono)return;
+      ov.classList.remove('cargando');
+      if(j.ok&&j.texto){
+        const n=j.fuente==='ia'?'✨ Lo escribió Atlas con tu estilo. Revísalo antes de enviarlo.':(j.aviso||'Va el mensaje de siempre.');
+        redCache[k]={texto:j.texto,nota:n};ta.value=j.texto;nota.textContent=n;
+      }else nota.textContent=(j.error||'Atlas no pudo escribirlo ahora')+'. Puedes enviar el mensaje de siempre o cambiarlo a mano.';
+    }).catch(()=>{if(!document.body.contains(ov))return;ov.classList.remove('cargando');nota.textContent='Sin conexión: va el mensaje de siempre; puedes cambiarlo a mano.'});
+  }
+  pedir('',false);
+}
 /* ---------- la hoja de un pendiente de Atlas ---------- */
 let aCur=null,aComo='contesto';
 const soloDig=s=>String(s||'').replace(/\D/g,'');
@@ -2701,7 +2760,12 @@ function openAtlas(t){
   const link=(txt,href,cls,canal,msj)=>{const a=document.createElement('a');a.textContent=txt;a.href=href;if(cls)a.className=cls;a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(t.cid,canal,tel,con.nombre,msj));acts.appendChild(a)};
   if(tel.length>=7)link('Llamar','tel:'+tel,'','llamar');
   // 22-nov · Con seguimiento (Atlas lo escribe con la fecha de la última conversación), el chat abre con el mensaje listo.
-  if(tel.length===10&&tel[0]==='3')link(t.seguimiento?'WhatsApp con mensaje':'WhatsApp','https://wa.me/57'+tel+(t.seguimiento?'?text='+encodeURIComponent(t.seguimiento):''),'wa','whatsapp',t.seguimiento||'');
+  // 23-nov · Con seguimiento, el botón abre la hoja ✨ (redactarWa): Atlas lo reescribe con la IA y se envía desde ahí.
+  if(tel.length===10&&tel[0]==='3'){
+    if(t.seguimiento&&t.cid){const a=document.createElement('a');a.textContent='✨ WhatsApp con mensaje';a.href='#';a.className='wa';
+      a.addEventListener('click',ev=>{ev.preventDefault();redactarWa({cid:t.cid,tel,nombre:con.nombre,base:t.seguimiento,titulo:emp.nombre||t.title})});acts.appendChild(a)}
+    else link('WhatsApp','https://wa.me/57'+tel,'wa','whatsapp','');
+  }
   if(/^[^\s@]+@[^\s@]+$/.test(mail))link('Correo','mailto:'+mail,'','correo');
   acts.style.display=acts.children.length?'':'none';
   // Las mismas preguntas que el «Ya lo hice» de Atlas: una llamada pregunta si contestó; lo interno se cierra sin más.
@@ -3038,7 +3102,11 @@ function wsFicha(){
     B.appendChild(wEl('div','wmsg',txtBase));
     if(ag)B.appendChild(wEl('p','wagnota','📅 Al final va tu enlace para que elija la hora: ve sólo tus horas libres y la cita cae sola en Atlas y aquí.'));
     const a2=wEl('div','wacts');a2.style.marginBottom='4px';
-    if(cel){const a=wEl('a','wa','Abrir en WhatsApp con este texto');a.href='https://wa.me/57'+tel+'?text='+encodeURIComponent(msgWa);a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(e.company_id,'whatsapp',tel,k.nombre,msgWa));a2.appendChild(a)}
+    // 23-nov · Si es SEGUIMIENTO, el botón abre la hoja ✨ (redactarWa): Atlas lo reescribe con la IA. El primer contacto sigue igual.
+    if(cel&&d.seguimiento){const a=wEl('button','wa','✨ WhatsApp con mensaje');a.type='button';
+      a.addEventListener('click',()=>redactarWa({cid:e.company_id,tel,nombre:k.nombre,base:d.seguimiento,titulo:e.nombre,
+        extra:ag?'Si le queda más fácil, elija aquí el día y la hora para hablar '+(ag.min||20)+' minutos: '+ag.url:''}));a2.appendChild(a)}
+    else if(cel){const a=wEl('a','wa','Abrir en WhatsApp con este texto');a.href='https://wa.me/57'+tel+'?text='+encodeURIComponent(msgWa);a.target='_blank';a.rel='noopener';a.addEventListener('click',()=>atlasToque(e.company_id,'whatsapp',tel,k.nombre,msgWa));a2.appendChild(a)}
     else{const b=wEl('button','','Copiar este texto');b.type='button';b.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(msgWa);toast('Texto copiado')}catch(x){toast('No se pudo copiar: mantén presionado el texto para copiarlo')}});a2.appendChild(b)}
     B.appendChild(a2);
   }
