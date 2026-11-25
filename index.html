@@ -244,6 +244,13 @@ nav .tn.on{display:grid}
 .pg-h span{color:var(--mut);font-weight:700;letter-spacing:0}
 .pg-c{display:block;width:100%;text-align:left;background:var(--card);border-radius:16px;padding:11px 12px;box-shadow:var(--shadow);margin-bottom:8px;border:none;border-left:4px solid #94A3B8;color:inherit}
 .pg-c.Negociación{border-left-color:#16A37A}.pg-c.Calificado{border-left-color:#F6C445}
+/* 25-nov · ETIQUETAS LATERALES (Fabián: «cuando una cuenta sea grande y llena de seguimientos como la mía, me permita tocarla y me
+   lleve directo al comienzo de ese cuadro para no hacer tanto scroll»). Sólo en el tablero, sólo cuando es largo. */
+#saltos{display:none;position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:7;flex-direction:column;gap:6px}
+body.con-saltos #v-board.act #saltos{display:flex}
+#saltos button{border:none;border-radius:10px 0 0 10px;width:32px;padding:6px 0 5px;font:800 14px/1 inherit;color:#fff;background:var(--qc);box-shadow:0 4px 10px -4px rgba(0,0,0,.35);opacity:.9;text-align:center}
+#saltos button small{display:block;font-weight:800;font-size:8.5px;letter-spacing:.02em;margin-top:3px;opacity:.95}
+#saltos button[data-q="1"]{--qc:var(--q1)}#saltos button[data-q="3"]{--qc:var(--q3)}#saltos button[data-q="2"]{--qc:var(--q2)}#saltos button[data-q="4"]{--qc:var(--q4)}
 /* 25-nov · 🏆 Ganados este mes */
 .wgo.wdel{background:#D93747}.waviso.wdesc{color:#B42318;font-weight:600}
 .pg-c.Cerrado{border-left-color:#D4A017}.pg-c .gan{margin-top:6px;font-size:12.5px;font-weight:700;color:#A16207}
@@ -1011,6 +1018,7 @@ nav{border-top:1px solid var(--line);box-shadow:0 -1px 2px rgba(15,23,42,.04)}
       <div class="quad" data-q="4"><div class="qh"><div><strong>Después</strong><small>Ni urgente ni importante</small></div><span></span></div><div class="list"></div></div>
     </div>
     <div id="bubs"></div>
+    <div id="saltos" aria-label="Ir a un cuadro"></div>
     <div id="atl-sug"></div>
     <p class="tip">Mantén presionada una tarjeta para moverla</p>
   </section>
@@ -1353,6 +1361,30 @@ function dayInfo(k,todayK){
   else planned=todo.filter(t=>!t.done&&dueK(t)===k);
   return {done,missed,planned};
 }
+/* 25-nov · ETIQUETAS LATERALES: una por cuadro con su número; tocarla lleva al comienzo del cuadro (debajo de la cabecera fija).
+   Salen cuando el tablero tiene muchas tarjetas (SALTOS_MIN) o es más largo que dos pantallas. En pantallas anchas (cuadrícula
+   2×2) no hacen falta. */
+const SALTOS_MIN=10,SALTOS_TXT={1:'YA',3:'RÁP',2:'PLAN',4:'DESP'};
+function saltosPaint(board){
+  const S2=document.getElementById('saltos');if(!S2)return;S2.textContent='';
+  const n={1:0,2:0,3:0,4:0};(board||[]).forEach(t=>{if(n[t.q]!=null)n[t.q]++});
+  const tot=n[1]+n[2]+n[3]+n[4];
+  for(const q of [1,3,2,4]){
+    const b=document.createElement('button');b.type='button';b.dataset.q=q;b.setAttribute('aria-label','Ir a '+QN[q]+' ('+n[q]+')');
+    const sm=document.createElement('small');sm.textContent=SALTOS_TXT[q];   // (wEl se declara más abajo: render corre antes)
+    b.append(document.createTextNode(String(n[q])),sm);
+    b.addEventListener('click',()=>{const el=document.querySelector('#grid .quad[data-q="'+q+'"]');if(!el)return;
+      // La cabecera sólo tapa el cuadro si está fija (sticky): entonces se descuenta su alto; si no, 8 px de aire.
+      const H=document.querySelector('header'),fija=H&&/sticky|fixed/.test(getComputedStyle(H).position);
+      window.scrollTo({top:Math.max(0,el.getBoundingClientRect().top+window.scrollY-(fija?H.offsetHeight+6:8)),behavior:'smooth'})});
+    S2.appendChild(b);
+  }
+  // Por el número se decide ya; por lo largo, cuando el tablero ya está pintado (setTimeout: un requestAnimationFrame no
+  // corre con la app en segundo plano y las etiquetas no salían).
+  const poner=()=>{const largo=document.documentElement.scrollHeight>window.innerHeight*2;
+    document.body.classList.toggle('con-saltos',window.innerWidth<700&&(tot>=SALTOS_MIN||largo))};
+  poner();setTimeout(poner,0);
+}
 /* lo que no se hizo un día amanece primero en «Hacer ya» */
 /* lo que tiene fecha va subiendo de cuadrante a medida que se acerca:
    más de 7 días → Después · 3 a 7 → Planear · 1 o 2 → Salir rápido · el día (o atrasada) → Hacer ya.
@@ -1450,6 +1482,7 @@ function render(){
     num.setAttribute('role',sobran?'button':'');num.setAttribute('aria-label',sobran?(abierto?'Mostrar solo '+TOPE_Q:'Ver las '+items.length):'');
     num.onclick=sobran?alternar:null;
   });
+  saltosPaint(board);   // 25-nov · etiquetas laterales
   // agenda
   const A=$('#v-agenda');A.textContent='';
   const todayK=ymd(now);
@@ -2446,6 +2479,23 @@ $('#acct-out').onclick=signOut;
 // gestionarlos aquí, el resultado se guarda EN ATLAS. Mi día no copia esa agenda a su base: la pide cada vez.
 // El navegador no habla con Atlas: lo hace el servidor de Mi día, y Atlas sólo acepta el token de enlace.
 let atlasLink=lsGet('midia.atlas',null),atlasPrefs=lsGet('midia.atlas.prefs',{}),atlasAt=0,atlasBusy=false;
+/* 25-nov · LO YA GESTIONADO VA AL FINAL DE «DESPUÉS». Fabián: «a algunas empresas les escribí el lunes y hoy me está pidiendo
+   que lo haga nuevamente; si lo hago, la empresa debe pasar al final de la cola en "Después"». Medido: es el ciclo de Atlas
+   (sin respuesta → siguiente intento a los 2 días hábiles: PEREA Y CÍA, WhatsApp el lunes 23 → «Intento 3 de 5» el miércoles
+   25). Al gestionarla, la tarjeta seguía en «Hacer ya» hasta la vuelta del ciclo (a los :20 de cada hora) y el intento
+   siguiente entraba por su fecha en «Salir rápido». Ahora, al tocar Llamar/WhatsApp/Correo, anotar «¿Cómo te fue?» o cerrar
+   el pendiente, sus tarjetas de Atlas (y la que el ciclo cree después, durante HECHO_DIAS) van al final de «Después». Siguen
+   la regla de siempre: sólo suben, y el día que les toca vuelven a «Hacer ya». Si la mueves a mano, se respeta. */
+const ATL_HECHO='midia.atlas.hecho',HECHO_DIAS=7;
+let atlasHecho=lsGet(ATL_HECHO,{});
+function atlasHechoDe(cid){const ts=cid&&atlasHecho[cid];return ts&&Date.now()-ts<HECHO_DIAS*864e5?ts:null}
+function atlasMarcarHecho(cid){
+  if(!cid)return;const ts=Date.now();atlasHecho[cid]=ts;
+  for(const k of Object.keys(atlasHecho))if(ts-atlasHecho[k]>HECHO_DIAS*864e5)delete atlasHecho[k];
+  lsSet(ATL_HECHO,atlasHecho);
+  let n=0;for(const t of ATLAS)if(t.cid===cid){t.q=4;t.band=bandOf(t.due);t.order=Math.floor(ts/1000);n++}
+  if(n){atlasKeep();render()}
+}
 /* 12-nov (noche) · Fabián: «todos aquellos usuarios que no tienen Atlas no deben ver nada de tratamiento de datos ni nada
    relacionado con Atlas o Veltrion: ese es mi equipo de la empresa donde trabajo». Lo de Atlas (conectar, la autorización
    de datos, los términos) sólo aparece en «modo Atlas»: con Atlas conectado, o si se entró UNA vez por el enlace
@@ -2463,7 +2513,9 @@ async function atlasCall(llamada,enlace,keepalive){
   j.status=r.status;return j;
 }
 function atlasMap(e){
-  const id='A:'+e.id,p=atlasPrefs[id]||{},due=e.fecha||null;
+  const id='A:'+e.id,due=e.fecha||null,hh=atlasHechoDe(e.company_id);
+  // 25-nov · Sin lugar propio y con la empresa gestionada hace poco: al final de «Después» (ver atlasMarcarHecho).
+  const p=atlasPrefs[id]||(hh?{q:4,band:bandOf(due),order:Math.floor(hh/1000)}:{});
   return {id,aid:e.id,atlas:true,title:e.titulo||'Pendiente de Atlas',q:p.q||bandOf(due)||2,band:p.q?p.band:bandOf(due),order:p.order!=null?p.order:-1,
     due,end:due&&e.duracion_min?new Date(new Date(due).getTime()+e.duracion_min*6e4).toISOString():null,
     done:false,notified:true,notas:e.notas||'',tipo:e.tipo||'',clase:e.clase||null,empresa:e.empresa||null,contacto:e.contacto||null,cid:e.company_id||null,
@@ -2701,6 +2753,7 @@ const toqueVisto={};
 // 22-nov · `texto`: el WhatsApp llevaba el seguimiento ya escrito → canal whatsapp_mensaje, Atlas lo anota «Le escribí por WhatsApp».
 function atlasToque(cid,canal,numero,nombre,texto){
   if(!atlasLink||!cid)return;
+  atlasMarcarHecho(cid);   // 25-nov · la gestionaste: al final de «Después»
   if(canal==='whatsapp'&&texto)canal='whatsapp_mensaje';
   const k=cid+'|'+canal;if(toqueVisto[k]&&Date.now()-toqueVisto[k]<120000)return;toqueVisto[k]=Date.now();
   atlasCall({operacion:'toque',company_id:cid,canal,numero:numero||'',nombre:nombre||'',texto:texto||undefined},null,true)
@@ -3307,6 +3360,7 @@ function wsRegistro(){
       const j=await atlasCall({operacion:'gestion',company_id:c.cid,accion:acc,...(ng&&etapa&&etapa!==ng.etapa?{etapa}:{}),nota:ta.value.trim(),siguiente:f?{fecha:f.toISOString()}:null,evento_id:c.ev||undefined,confirmado});
       if(!j.ok){go.disabled=false;mal((j.error||'Atlas no lo guardó.')+' Lo que escribiste sigue aquí.');return}
       lsSet(WS_BOR,null);
+      atlasMarcarHecho(c.cid);   // 25-nov · gestionada: sus tarjetas de Atlas al final de «Después»
       const m=sugMia();if(m){const n0=m.items.length;m.items=m.items.filter(x=>x.company_id!==c.cid);if(m.items.length<n0)m.total=Math.max(0,(m.total||1)-1);lsSet('midia.atlas.sug',SUG)}
       if(c.ev&&j.cerrado)ATLAS=ATLAS.filter(x=>x.aid!==c.ev);
       if(BUS){BUS.esperando=(BUS.esperando||[]).filter(x=>x.company_id!==c.cid);BUS.total=BUS.esperando.length;busBadge()}
@@ -3326,7 +3380,7 @@ async function atlasDo(llamada,okMsg){
     const j=await atlasCall(Object.assign({id:t.aid},llamada));
     if(!j.ok){err.style.color='var(--q1)';err.textContent=j.error||'Atlas no lo guardó. Inténtalo de nuevo.';return}
     closeAtlas();toast(okMsg);atlasAt=0;
-    if(llamada.operacion==='cerrar'){ATLAS=ATLAS.filter(x=>x.id!==t.id);render()}
+    if(llamada.operacion==='cerrar'){ATLAS=ATLAS.filter(x=>x.id!==t.id);atlasMarcarHecho(t.cid);render()}   // 25-nov · lo siguiente del ciclo, al final de «Después»
     atlasLoad(true);
   }catch(e){err.style.color='var(--q1)';err.textContent='Sin conexión. Lo que escribiste sigue aquí; inténtalo de nuevo.'}
 }
