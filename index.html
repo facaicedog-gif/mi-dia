@@ -244,6 +244,8 @@ nav .tn.on{display:grid}
 .pg-h span{color:var(--mut);font-weight:700;letter-spacing:0}
 .pg-c{display:block;width:100%;text-align:left;background:var(--card);border-radius:16px;padding:11px 12px;box-shadow:var(--shadow);margin-bottom:8px;border:none;border-left:4px solid #94A3B8;color:inherit}
 .pg-c.Negociación{border-left-color:#16A37A}.pg-c.Calificado{border-left-color:#F6C445}
+/* 25-nov · 🏆 Ganados este mes */
+.pg-c.Cerrado{border-left-color:#D4A017}.pg-c .gan{margin-top:6px;font-size:12.5px;font-weight:700;color:#A16207}
 .pg-c .r1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.pg-c b{font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pg-c .v{font-weight:800;font-size:13px;white-space:nowrap}
 .pg-c small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
 .pg-c .sg{margin-top:6px;font-size:12.5px}.pg-c .sg.late{color:#D93747;font-weight:700}.pg-c .sg.sgs{color:var(--blue);font-weight:700}
@@ -2974,7 +2976,7 @@ function busPaint(){
    Fabián: «que Mi día me permitiera ver los negocios que tengo en el pipeline y gestionarlos de igual forma que lo hacemos
    con las otras empresas». Gestión → 💼 Negocios: lo vivo de SU pipeline (atlas lib/midia-negocio.js), por etapa, con el
    próximo paso en rojo si venció. Tocar uno abre la ficha de siempre; en «¿Cómo te fue?» se mueve la etapa. */
-let NEG=null,negAt=0,negBusy=false,negErr='',negVer={};
+let NEG=null,NEG_G=[],negAt=0,negBusy=false,negErr='',negVer={};   // 25-nov · NEG_G: 🏆 ganados este mes
 const NEG_ETAPAS=[['Prospecto','🌱 Prospecto'],['Calificado','✅ Calificado'],['Negociación','🤝 Negociación'],['Cerrado','🏆 Ganado'],['Perdido','✖ Perdido']];
 const NEG_NOMBRE=e=>e==='Cerrado'?'Ganado':e;
 function negPlata(v){const n=Number(v)||0;if(n>=1e6)return '$'+(Math.round(n/1e5)/10).toString().replace('.',',')+' M';if(n>=1e3)return '$'+Math.round(n/1e3)+' mil';return '$'+n}
@@ -2982,14 +2984,15 @@ async function negLoad(force){
   if(!atlasLink||!sess||negBusy)return;
   if(!force&&NEG&&Date.now()-negAt<120000)return;
   negBusy=true;
-  try{const j=await atlasCall({operacion:'negocios'});if(j.ok&&Array.isArray(j.negocios)){NEG=j.negocios;negAt=Date.now();negErr=''}else negErr=j.error||'Atlas no respondió.'}
+  try{const j=await atlasCall({operacion:'negocios'});if(j.ok&&Array.isArray(j.negocios)){NEG=j.negocios;NEG_G=Array.isArray(j.ganados)?j.ganados:[];negAt=Date.now();negErr=''}else negErr=j.error||'Atlas no respondió.'}
   catch(e){negErr='Sin conexión.'}
   negBusy=false;
   empBadge();busPaint();   // 19-nov · Negocios vive en Empresas
 }
 function negPaint(V){
   if(!NEG){V.appendChild(wEl('p','empty',negErr?'No se pudieron traer tus negocios ('+negErr+'). Desliza para reintentar.':'Trayendo tus negocios de Atlas…'));return}
-  if(!NEG.length){V.appendChild(wEl('p','empty','No tienes negocios vivos en tu pipeline. Cuando pases una empresa al pipeline en Atlas, aparece aquí.'));return}
+  // 25-nov · Sin negocios vivos igual se pintan los ganados del mes (negGanados): ganar el último no deja la pestaña vacía.
+  if(!NEG.length){V.appendChild(wEl('p','empty','No tienes negocios vivos en tu pipeline. Cuando pases una empresa al pipeline en Atlas, aparece aquí.'));negGanados(V);return}
   const total=NEG.reduce((s,n)=>s+(Number(n.valor)||0),0),venc=NEG.filter(n=>n.vencido).length;
   const T=wEl('div','pg-tot');
   [[NEG.length,NEG.length===1?'negocio vivo':'negocios vivos',''],[total?negPlata(total):'—','en juego',''],[venc,'con el paso vencido',venc?'#D93747':'']].forEach(([b,s,col])=>{const d=document.createElement('div');const bb=wEl('b','',String(b));if(col)bb.style.color=col;d.append(bb,wEl('span','',s));T.appendChild(d)});
@@ -3025,6 +3028,22 @@ function negPaint(V){
     });
     if(L.length>tope){const m=wEl('button','pg-mas','Ver '+(L.length-tope===1?'1 más':'los '+(L.length-tope)+' más')+' ›');m.type='button';m.addEventListener('click',()=>{negVer[et]=1;paintAsg()});V.appendChild(m)}
   }
+  negGanados(V);
+}
+/* 25-nov · 🏆 GANADOS ESTE MES. Fabián ganó SPINOMAX desde Mi día y «no vi que se cambiara a ganado»: Negocios sólo lista lo vivo y
+   el ganado desaparecía sin rastro. Atlas los trae en la misma lectura (lib/midia-negocio.js ganadosDelMes). Tocar uno abre la ficha. */
+function negGanados(V){
+  if(!NEG_G.length)return;
+  const sum=NEG_G.reduce((s,n)=>s+(Number(n.valor)||0),0);
+  const h=wEl('div','pg-h','🏆 GANADOS ESTE MES · '+NEG_G.length);h.appendChild(wEl('span','',sum?negPlata(sum):''));V.appendChild(h);
+  const dia=s=>new Date(s+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'});
+  NEG_G.forEach(n=>{
+    const c=document.createElement('button');c.type='button';c.className='pg-c Cerrado';
+    const r1=wEl('div','r1');r1.append(wEl('b','',n.nombre||'Empresa'),wEl('span','v',n.valor?negPlata(n.valor):'sin valor'));
+    c.append(r1,wEl('div','gan','🏆 Ganado'+(n.fecha?' el '+dia(n.fecha):'')));
+    c.addEventListener('click',()=>wsOpen(n.company_id,{nombre:n.nombre,desde:'negocios'}));
+    V.appendChild(c);
+  });
 }
 
 function wsClose(){document.body.classList.remove('ws');$('#wsheet').setAttribute('aria-hidden','true');wCur=null}
@@ -3255,7 +3274,7 @@ function wsRegistro(){
       if(BUS){BUS.esperando=(BUS.esperando||[]).filter(x=>x.company_id!==c.cid);BUS.total=BUS.esperando.length;busBadge()}
       if(ng)negAt=0;   // 19-nov · Negocios se vuelve a pedir: la etapa o el próximo paso pudieron cambiar
       const volverNeg=c.desde==='negocios'||c.desde==='buscar';
-      wsClose();render();toast(j.aviso||(j.etapa?'Guardado en Atlas · negocio en '+NEG_NOMBRE(j.etapa):'Guardado en Atlas'));
+      wsClose();render();toast(j.aviso||(j.etapa==='Cerrado'?'🏆 ¡Negocio ganado! Queda en «Ganados este mes».':j.etapa?'Guardado en Atlas · negocio en '+NEG_NOMBRE(j.etapa):'Guardado en Atlas'));   // 25-nov
       if(volverNeg){negLoad(true);busLoad(true);busPaint()}
       atlasAt=0;sugAt=0;atlasLoad(true);
     }catch(x){go.disabled=false;mal('Sin conexión. Lo que escribiste sigue aquí; inténtalo de nuevo.')}
