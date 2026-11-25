@@ -245,6 +245,7 @@ nav .tn.on{display:grid}
 .pg-c{display:block;width:100%;text-align:left;background:var(--card);border-radius:16px;padding:11px 12px;box-shadow:var(--shadow);margin-bottom:8px;border:none;border-left:4px solid #94A3B8;color:inherit}
 .pg-c.Negociación{border-left-color:#16A37A}.pg-c.Calificado{border-left-color:#F6C445}
 /* 25-nov · 🏆 Ganados este mes */
+.wgo.wdel{background:#D93747}.waviso.wdesc{color:#B42318;font-weight:600}
 .pg-c.Cerrado{border-left-color:#D4A017}.pg-c .gan{margin-top:6px;font-size:12.5px;font-weight:700;color:#A16207}
 .pg-c .r1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.pg-c b{font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pg-c .v{font-weight:800;font-size:13px;white-space:nowrap}
 .pg-c small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
@@ -796,7 +797,9 @@ body.ws #bubs{display:none}
 .wres{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .wres button{border-radius:14px;padding:12px 9px;font-weight:700;font-size:13px;background:var(--card);box-shadow:0 0 0 1.5px var(--line);text-align:left;line-height:1.2}
 .wres button.on{background:var(--blue-soft);box-shadow:0 0 0 2px var(--blue);color:var(--blue)}
-.wres button.al{grid-column:1/-1;color:var(--q1)}
+/* 25-nov · Fabián: «el número no es de esta empresa» del mismo tamaño que los demás, al lado de «Se hizo la reunión»; sólo
+   «No le interesa · descartar» ocupa la fila entera. */
+.wres button.al{color:var(--q1)}.wres button.ancho{grid-column:1/-1}
 .wres button.al.on{background:var(--q1b);box-shadow:0 0 0 2px var(--q1);color:var(--q1)}
 #w-nota{width:100%;min-height:84px;border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;font:inherit;font-size:16px;color:var(--ink);background:var(--card);resize:vertical;outline:0}
 #w-nota:focus{border-color:var(--blue)}
@@ -3196,7 +3199,10 @@ async function waCargar(c,box,aviso){
   box.appendChild(msg);
 }
 const W_RES=[['respondio','💬 Respondió el mensaje'],['contesto','📞 Contestaron'],['no_contesta','📵 No contestaron'],['ocupado','⏳ Estaba ocupado'],['escribi_whatsapp','💬 Le escribí por WhatsApp'],
-  ['escribi_correo','✉️ Le escribí por correo'],['reunion_hecha','🤝 Se hizo la reunión'],['equivocado','🚫 El número no es de esta empresa']];
+  ['escribi_correo','✉️ Le escribí por correo'],['reunion_hecha','🤝 Se hizo la reunión'],['equivocado','🚫 El número no es de esta empresa'],
+  // 25-nov · Fabián: «debería poder descartar la empresa únicamente con la opción de que no le interesa y poner allí por qué la
+  // descarto; de igual forma debe quedar en Atlas». Es el «Descartar» del Workspace (atlas lib/midia-evento.js eventoDescarte).
+  ['descartar','🙅 No le interesa · descartar']];
 const a9=d=>{d.setHours(9,0,0,0);return d};
 function wsDias(){
   const hoy=new Date(),man=a9(new Date(hoy.getTime()+864e5)),lun=a9(new Date(hoy.getTime()+(((8-hoy.getDay())%7)||7)*864e5)),sem=a9(new Date(hoy.getTime()+7*864e5));
@@ -3220,24 +3226,25 @@ function wsRegistro(){
   const R=wEl('div','wres');
   // Sin teléfono en la ficha no hay número que quitar: no se ofrece «no es de esta empresa».
   const hayTel=!!(c.d&&((c.d.contacto&&c.d.contacto.telefono)||(c.d.empresa&&c.d.empresa.telefono)));
-  for(const [id,txt] of W_RES){if(id==='equivocado'&&!hayTel)continue;const b=wEl('button',id==='equivocado'?'al':'',txt);b.type='button';b.classList.toggle('on',id===accion);
-    b.addEventListener('click',()=>{accion=id;R.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));guarda()});R.appendChild(b)}
+  for(const [id,txt] of W_RES){if(id==='equivocado'&&!hayTel)continue;const b=wEl('button',id==='equivocado'?'al':id==='descartar'?'al ancho':'',txt);b.type='button';b.classList.toggle('on',id===accion);
+    b.addEventListener('click',()=>{accion=id;R.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));guarda();modo()});R.appendChild(b)}
   B.appendChild(R);
   // 19-nov · 💼 Etapa del negocio: sólo si la empresa está en SU pipeline (la ficha trae `negocio`). «Ganado» = Cerrado.
   const ng=c.d&&c.d.negocio;let etapa=ng?ng.etapa:null;
+  const enEtapa=[];   // 25-nov · lo que se esconde al descartar
   if(ng){
     const h=wTit('💼 Etapa del negocio','hoy: '+NEG_NOMBRE(ng.etapa)+(ng.valor?' · '+negPlata(ng.valor):''));h.classList.add('wneg');B.appendChild(h);
     const D0=wEl('div','wdias');
     for(const [id,txt] of NEG_ETAPAS){const b=wEl('button','',txt);b.type='button';b.classList.toggle('on',id===etapa);
       b.addEventListener('click',()=>{etapa=id;D0.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});D0.appendChild(b)}
-    B.appendChild(D0);
+    B.appendChild(D0);enEtapa.push(h,D0);
   }
-  B.appendChild(wTit('Nota','opcional'));
+  const tNota=wTit('Nota','opcional');B.appendChild(tNota);
   const ta=document.createElement('textarea');ta.id='w-nota';ta.maxLength=2000;ta.placeholder='Qué te dijeron, con quién hablaste, qué quedó pendiente…';B.appendChild(ta);
   if(bor&&bor.nota){ta.value=bor.nota;B.insertBefore(wEl('p','waviso','Recuperé lo que estabas escribiendo.'),B.firstChild)}
   ta.addEventListener('input',guarda);
   // Por defecto NO se agenda nada (Fabián, 8-oct: «sólo si le pido que me recuerde me genera el recordatorio»).
-  B.appendChild(wTit('Siguiente paso','queda en tu agenda de Atlas'));
+  const tSig=wTit('Siguiente paso','queda en tu agenda de Atlas');B.appendChild(tSig);
   const D=wEl('div','wdias'),dias=wsDias();
   const otra=wEl('div','');otra.id='w-otra';const fd=document.createElement('input');fd.type='date';fd.id='w-date';fd.min=ymd(new Date());const fh=document.createElement('input');fh.type='time';fh.id='w-time';fh.value='09:00';otra.append(fd,fh);
   for(const [id,txt] of dias){const b=wEl('button','',txt);b.type='button';b.classList.toggle('on',id===dia);
@@ -3245,7 +3252,17 @@ function wsRegistro(){
   B.append(D,otra);
   const go=wEl('button','wgo','Guardar en Atlas');go.type='button';B.appendChild(go);
   const err=wEl('div','werr','');B.appendChild(err);
-  B.appendChild(wEl('p','waviso','Lo demás (descartar, cambiar de etapa, cotizar) se hace en Atlas.'));
+  const pie=wEl('p','waviso','Lo demás (cotizar, cambiar los datos de la empresa) se hace en Atlas.');B.appendChild(pie);
+  // 25-nov · Con «No le interesa · descartar»: la nota pasa a ser el PORQUÉ (obligatorio) y no hay etapa ni siguiente paso
+  // (Atlas cancela sus pendientes al descartar). El resto de opciones vuelve a mostrarlo todo.
+  const aviD=wEl('p','waviso wdesc','La empresa sale de tu hoja, de tu pipeline y de tu agenda en Atlas, y queda el motivo «No le interesa» con tu porqué. Lo que ya anotaste se conserva.');B.insertBefore(aviD,go);
+  function modo(){const des=accion==='descartar';
+    for(const el of enEtapa.concat([tSig,D,otra]))el.style.display=des?'none':'';
+    if(des)otra.classList.remove('show');else otra.classList.toggle('show',dia==='otra');
+    tNota.firstChild.textContent=des?'¿Por qué la descartas?':'Nota';if(tNota.lastChild!==tNota.firstChild)tNota.lastChild.textContent=des?'obligatorio · queda en Atlas':'opcional';
+    ta.placeholder=des?'Ej.: ya está afiliada a otra caja, no va a contratar personal…':'Qué te dijeron, con quién hablaste, qué quedó pendiente…';
+    go.textContent=des?'Descartar en Atlas':'Guardar en Atlas';go.classList.toggle('wdel',des);aviD.style.display=des?'':'none';err.textContent=''}
+  modo();
   const fechaDe=()=>{
     if(dia==='no')return null;
     if(dia==='otra'){if(!fd.value)return false;const [y,m,da]=fd.value.split('-').map(Number),[hh,mm]=(fh.value||'09:00').split(':').map(Number);return new Date(y,m-1,da,hh,mm)}
@@ -3256,6 +3273,27 @@ function wsRegistro(){
     const mal=m=>{err.style.color='var(--q1)';err.textContent=m};
     if(f===false){mal('Elige el día del siguiente paso, o marca «Ninguno».');return}
     if(f&&f.getTime()<Date.now()-6e4){mal('Esa fecha ya pasó. Elige una que venga.');return}
+    // 25-nov · Descartar: el porqué es obligatorio y se confirma (un toque de más no puede costar una empresa).
+    if(accion==='descartar'){
+      const por=ta.value.trim();if(!por){mal('Escribe por qué la descartas: sin el porqué no se descarta.');ta.focus();return}
+      const ok=await askText('¿Descartar '+(c.nombre||'esta empresa')+'?','Sale de tu hoja, tu pipeline y tu agenda en Atlas, con el motivo «No le interesa»: '+por,'Sí, descartar',false,'No, volver');
+      if(ok==null)return;
+      go.disabled=true;err.style.color='var(--mut)';err.textContent='Descartando en Atlas…';
+      try{
+        const j=await atlasCall({operacion:'gestion',company_id:c.cid,accion:'descartar',nota:por,confirmado:true});
+        if(!j.ok){go.disabled=false;mal((j.error||'Atlas no la descartó.')+' Lo que escribiste sigue aquí.');return}
+        lsSet(WS_BOR,null);
+        const m=sugMia();if(m){const n0=m.items.length;m.items=m.items.filter(x=>x.company_id!==c.cid);if(m.items.length<n0)m.total=Math.max(0,(m.total||1)-1);lsSet('midia.atlas.sug',SUG)}
+        ATLAS=ATLAS.filter(x=>x.cid!==c.cid);   // Atlas cancela sus pendientes: aquí tampoco quedan
+        if(BUS){BUS.esperando=(BUS.esperando||[]).filter(x=>x.company_id!==c.cid);BUS.total=BUS.esperando.length;busBadge()}
+        if(NEG)NEG=NEG.filter(x=>x.company_id!==c.cid);negAt=0;
+        const volverNeg=c.desde==='negocios'||c.desde==='buscar';
+        wsClose();render();toast(j.aviso||'🙅 Empresa descartada en Atlas · motivo: No le interesa');
+        if(volverNeg){negLoad(true);busLoad(true);busPaint()}
+        atlasAt=0;sugAt=0;atlasLoad(true);
+      }catch(x){go.disabled=false;mal('Sin conexión. Lo que escribiste sigue aquí; inténtalo de nuevo.')}
+      return;
+    }
     let confirmado=false;
     if(accion==='equivocado'){
       // Esto QUITA el teléfono de la ficha en Atlas y lo bloquea: en el celular un toque de más no puede costar un teléfono bueno.
