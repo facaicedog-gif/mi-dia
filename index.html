@@ -739,6 +739,10 @@ nav .tab{font-weight:700}
 .sug{display:flex;gap:11px;align-items:center;width:100%;text-align:left;background:var(--card);border-radius:18px;padding:11px 12px;box-shadow:var(--shadow);margin-bottom:9px}
 /* 26-nov · empresas nuevas en «Hacer ya»: verde esmeralda, para no confundirlas con los seguimientos (rojo-naranja) */
 .nuvh{font-size:10.5px;font-weight:800;letter-spacing:.05em;color:#047857;margin:10px 2px 2px;text-transform:uppercase}
+.nuvh span{font-weight:700;color:var(--mut);text-transform:none;letter-spacing:0}
+.nuvn{font-size:12px;line-height:1.4;color:var(--mut);background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;padding:8px 10px;margin-top:7px}
+.nuvn button{display:block;margin-top:4px;color:#047857;font-weight:800;font-size:12.5px}
+.grid .letm{margin:7px 0 0;font-size:12px}
 .nuv{display:block;width:100%;text-align:left;border:0;border-radius:14px;padding:9px 10px;margin-top:7px;font:inherit;color:#fff;cursor:pointer;
   background:linear-gradient(135deg,#047857,#10b981);box-shadow:0 6px 16px rgba(4,120,87,.28)}
 .nuv .tg{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.04em;padding:2px 8px;margin:0;border-radius:99px;background:rgba(255,255,255,.2);color:#fff}   /* .tg ya existe (línea ~510, azul): aquí se pisa */
@@ -1492,7 +1496,7 @@ function render(){
       b.addEventListener('click',alternar);
       list.appendChild(b);
     }
-    if(n===1){const nv=nuevasHy();if(nv.length){const h=document.createElement('div');h.className='nuvh';h.textContent='✨ Empresas nuevas';list.appendChild(h);nv.forEach(x=>list.appendChild(nuevaEl(x)))}}   // 26-nov · ver nuevasHy
+    if(n===1)franjaNuevas(list);   // 26-nov · empresas nuevas en verde (ver franjaNuevas)
     const num=q.querySelector('.qh span');
     num.textContent=items.length+(sobran?(abierto?' ▴':' ▾'):'');
     num.classList.toggle('abre',sobran);
@@ -2902,45 +2906,34 @@ function nuevaEl(x){
   b.append(tg,nb,sm,ch);b.addEventListener('click',()=>wsOpen(x.company_id,{nombre:x.nombre}));
   return b;
 }
+/* 26-nov (3) · Fabián: «quitemos el Atlas sugiere de Mi día ya que pusimos las alertas verdes para que se trabajen, pierde
+   sentido tenerlas en salir ya y en Atlas sugiere». El bloque de abajo ya no se pinta: las nuevas viven en la franja verde de
+   «Hacer ya» (franjaNuevas), que se queda con lo que el bloque hacía y no puede perderse: el aviso si Atlas no responde (Regla 4:
+   un fallo no se ve como «no hay nuevas») y el letrero del tope (17-nov, lib/letrero-tope.js). */
 function paintSug(){
-  const B=$('#atl-sug');if(!B)return;
+  const B=$("#atl-sug");
   const on=!!(atlasLink&&sess);
-  // 26-nov · Desde el 18-nov este bloque NO se veía: `B.classList.toggle('show',on);B.textContent='';` quedó pegado al final
-  // del comentario de la línea de arriba (todo tras `//` no corre). Fabián: «yo no encontré activo Atlas sugiere».
-  document.body.classList.toggle('atl-con',on);   // 18-nov · la pestaña «Buscar» sólo con Atlas conectado
-  B.classList.toggle('show',on);B.textContent='';
-  if(!on)return;
-  const m=sugMia();
-  const h=document.createElement('div');h.className='wtt';h.textContent='Atlas te sugiere';const s=document.createElement('span');h.appendChild(s);B.appendChild(h);
-  const msg=(txt,btn)=>{const d=document.createElement('div');d.className='sugmsg';d.textContent=txt;
-    if(btn){const b=document.createElement('button');b.type='button';b.textContent=btn;b.addEventListener('click',()=>{sugErr='';paintSug();sugLoad(true)});d.appendChild(b)}B.appendChild(d)};
-  // Nunca una lista vacía que parezca «no hay nada»: si no se pudo traer, se dice y se ofrece reintentar.
-  if(!m){msg(sugErr?'No se pudo traer lo que Atlas te sugiere ('+sugErr+'). Tus pendientes de Atlas sí están en el tablero.':'Buscando lo que Atlas te sugiere…',sugErr?'Reintentar':null);return}
-  // 17-nov · El letrero del tope (lo calcula Atlas: lib/letrero-tope.js; maqueta disenos/maqueta_letrero_tope.html): una
-  // franja corta sobre las sugeridas, que son justo las empresas sin gestionar. Sólo sale cerca del tope.
+  document.body.classList.toggle("atl-con",on);   // 18-nov · la pestaña «Buscar» sólo con Atlas conectado
+  if(B){B.classList.remove("show");B.textContent=""}
+}
+function franjaNuevas(list){
+  if(!(atlasLink&&sess))return;
+  const m=sugMia(),nv=m&&Array.isArray(m.items)?m.items.slice(0,N_NUEVAS):[];
+  const nota=(txt,btn)=>{const d=document.createElement("div");d.className="nuvn";d.textContent=txt;
+    if(btn){const b=document.createElement("button");b.type="button";b.textContent=btn;b.addEventListener("click",e=>{e.stopPropagation();sugErr="";render();sugLoad(true)});d.appendChild(b)}list.appendChild(d)};
+  if(!m){if(sugErr){const h=document.createElement("div");h.className="nuvh";h.textContent="✨ Empresas nuevas";list.appendChild(h);nota("No se pudieron traer las empresas nuevas de Atlas ("+sugErr+").","Reintentar")}return}
+  if(!nv.length&&!sugErr)return;   // ya gestionaste las contactables: nada que mostrar aquí
+  const h=document.createElement("div");h.className="nuvh";h.textContent="✨ Empresas nuevas";
+  const tot=m.total||m.items.length;if(nv.length&&tot>nv.length){const c=document.createElement("span");c.textContent=" · "+nv.length+" de "+tot;h.appendChild(c)}
+  list.appendChild(h);
   const L=m.letrero;
   if(L&&L.corto&&L.cupo>0){
-    const f=document.createElement('div');f.className='letm'+(L.nivel==='cerca'?' cerca':'');f.textContent=L.corto;
-    const b=document.createElement('div');b.className='b';const i=document.createElement('i');i.style.width=Math.max(0,Math.min(100,Math.round((L.ocupado||0)/L.cupo*100)))+'%';b.appendChild(i);f.appendChild(b);
-    B.appendChild(f);
+    const f=document.createElement("div");f.className="letm"+(L.nivel==="cerca"?" cerca":"");f.textContent=L.corto;
+    const b=document.createElement("div");b.className="b";const i=document.createElement("i");i.style.width=Math.max(0,Math.min(100,Math.round((L.ocupado||0)/L.cupo*100)))+"%";b.appendChild(i);f.appendChild(b);
+    list.appendChild(f);
   }
-  if(!m.items.length){msg('Hoy no hay empresas nuevas por contactar: ya gestionaste las que tienen cómo contactarlas.'+(m.sin?' Atlas sigue buscando el contacto de '+m.sin+' más.':''));return}
-  s.textContent=m.total>m.items.length?m.items.length+' de '+m.total:m.items.length===1?'1 para hoy':m.items.length+' para hoy';
-  // 26-nov · Las N_NUEVAS primeras ya están en «Hacer ya» (nuevaEl): aquí van las que siguen, sin repetirlas.
-  const resto=m.items.slice(N_NUEVAS);
-  if(!resto.length){msg('Tus empresas nuevas de hoy están en «Hacer ya» ✨. Al gestionarlas, Atlas te trae las siguientes.');return}
-  {const tot=Math.max(resto.length,(m.total||m.items.length)-Math.min(N_NUEVAS,m.items.length));s.textContent=tot>resto.length?resto.length+' de '+tot:resto.length===1?'1 más':resto.length+' más'}
-  for(const x of resto){
-    const b=document.createElement('button');b.type='button';b.className='sug';
-    const lg=document.createElement('span');lg.className='lg';lg.textContent=(String(x.nombre||'?').trim()[0]||'?').toUpperCase();lg.style.setProperty('--av',avColor(x.nombre||''));
-    const n=document.createElement('span');n.className='n';const nb=document.createElement('b');nb.textContent=x.nombre||'Empresa';const ns=document.createElement('small');
-    const c=x.contacto||{};ns.textContent=[x.nit?'NIT '+nitFmt(x):'',x.ciudad,c.nombre?c.nombre+(c.cargo?', '+c.cargo.toLowerCase():''):''].filter(Boolean).join(' · ')||'Sin contacto con nombre';
-    // 17-nov · la dejaste «sin datos de contacto» y Atlas ya encontró uno: se dice antes que el resto de la línea.
-    if(x.volvio){const v=document.createElement('small');v.className='volv';v.textContent='🔁 Ya '+(x.volvio.nuevo===false?'tiene ':'llegó ')+(x.volvio.que||'el contacto')+': haz el primer intento';n.append(nb,v,ns)}else n.append(nb,ns);
-    const k=W_CANAL[x.canal]||['Contacto',''],ch=document.createElement('span');ch.className='wch '+(x.recien_llego||x.volvio?'nu':k[1]);ch.textContent=(x.volvio?'🔁 ':x.recien_llego?'✨ ':'')+k[0];
-    b.append(lg,n,ch);b.addEventListener('click',()=>wsOpen(x.company_id,{nombre:x.nombre}));B.appendChild(b);
-  }
-  if(sugErr){const p=document.createElement('p');p.className='waviso';p.textContent='No se pudo actualizar ('+sugErr+'): esta es la última lista que se trajo.';B.appendChild(p)}
+  nv.forEach(x=>list.appendChild(nuevaEl(x)));
+  if(sugErr)nota(nv.length?"No se pudo actualizar ("+sugErr+"): son las últimas que se trajeron.":"No se pudieron traer las empresas nuevas de Atlas ("+sugErr+").","Reintentar");
 }
 
 // La ficha y el registro comparten la pantalla #wsheet. wCur = {cid, ev (pendiente que se cierra, si vino de uno), nombre, d (lo que respondió Atlas), paso}
