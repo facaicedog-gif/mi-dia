@@ -736,6 +736,14 @@ nav .tab{font-weight:700}
 .wtt{font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--blue);margin:14px 2px 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .wtt span{color:var(--mut);font-weight:600;letter-spacing:0;text-transform:none;font-size:12px}
 .sug{display:flex;gap:11px;align-items:center;width:100%;text-align:left;background:var(--card);border-radius:18px;padding:11px 12px;box-shadow:var(--shadow);margin-bottom:9px}
+/* 26-nov · empresas nuevas en «Hacer ya»: verde esmeralda, para no confundirlas con los seguimientos (rojo-naranja) */
+.nuvh{font-size:10.5px;font-weight:800;letter-spacing:.05em;color:#047857;margin:10px 2px 2px;text-transform:uppercase}
+.nuv{display:block;width:100%;text-align:left;border:0;border-radius:14px;padding:9px 10px;margin-top:7px;font:inherit;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,#047857,#10b981);box-shadow:0 6px 16px rgba(4,120,87,.28)}
+.nuv .tg{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.04em;padding:2px 8px;margin:0;border-radius:99px;background:rgba(255,255,255,.2);color:#fff}   /* .tg ya existe (línea ~510, azul): aquí se pisa */
+.nuv b{display:block;font-size:13.5px;line-height:1.2;margin-top:3px;overflow-wrap:anywhere}
+.nuv small{display:block;font-size:11.5px;opacity:.9;margin-top:2px;overflow-wrap:anywhere}
+.nuv .ch{display:inline-block;margin-top:6px;font-size:10.5px;font-weight:800;background:rgba(255,255,255,.22);padding:3px 8px;border-radius:99px}
 .sug:active{transform:scale(.985)}
 .sug .lg{flex:none;width:42px;height:42px;border-radius:13px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:16px;background:linear-gradient(135deg,var(--av,var(--blue)),color-mix(in srgb,var(--av,var(--blue)) 55%,#fff))}
 .sug .n{flex:1;min-width:0}
@@ -1476,6 +1484,7 @@ function render(){
       b.addEventListener('click',alternar);
       list.appendChild(b);
     }
+    if(n===1){const nv=nuevasHy();if(nv.length){const h=document.createElement('div');h.className='nuvh';h.textContent='✨ Empresas nuevas';list.appendChild(h);nv.forEach(x=>list.appendChild(nuevaEl(x)))}}   // 26-nov · ver nuevasHy
     const num=q.querySelector('.qh span');
     num.textContent=items.length+(sobran?(abierto?' ▴':' ▾'):'');
     num.classList.toggle('abre',sobran);
@@ -2868,10 +2877,30 @@ async function sugLoad(force){
   negLoad();   // 19-nov · 💼 Negocios, para el número de la pestaña Empresas
 }
 const W_CANAL={telefono:['Teléfono','t'],correo:['Correo',''],linkedin:['LinkedIn',''],web:['Web','']};
+/* 26-nov · EMPRESAS NUEVAS EN «HACER YA». Fabián: «ya desocupé mi seguimiento de hacer ya… ¿y las empresas nuevas? Mi día
+   también debería ponérmelas en otro color pero ir poniendo de a 3 o 2 para identificarlas y saber que esas son nuevas y
+   que no son seguimientos». Van las 3 primeras de «Atlas te sugiere» (el orden, el tope y «sólo las que tienen cómo
+   contactarlas» los decide Atlas en la op `sugeridas`; aquí no se elige nada), en verde y debajo de los seguimientos.
+   Al gestionar una, la siguiente entra con la próxima lectura (cada 2 min como mucho, o al volver de la ficha).
+   No son tareas: no se guardan, no se arrastran y no cuentan en el número del cuadro. */
+const N_NUEVAS=3;
+function nuevasHy(){const m=(atlasLink&&sess)?sugMia():null;return m&&Array.isArray(m.items)?m.items.slice(0,N_NUEVAS):[]}
+function nuevaEl(x){
+  const b=document.createElement('button');b.type='button';b.className='nuv';
+  const tg=document.createElement('span');tg.className='tg';tg.textContent=x.volvio?'🔁 YA LLEGÓ EL CONTACTO':'✨ NUEVA · primer contacto';
+  const nb=document.createElement('b');nb.textContent=x.nombre||'Empresa';
+  const c=x.contacto||{},sm=document.createElement('small');sm.textContent=[c.nombre,x.ciudad].filter(Boolean).join(' · ')||'Sin contacto con nombre';
+  const k=W_CANAL[x.canal]||['Contacto',''],ch=document.createElement('span');ch.className='ch';ch.textContent=k[0];
+  b.append(tg,nb,sm,ch);b.addEventListener('click',()=>wsOpen(x.company_id,{nombre:x.nombre}));
+  return b;
+}
 function paintSug(){
   const B=$('#atl-sug');if(!B)return;
   const on=!!(atlasLink&&sess);
-  document.body.classList.toggle('atl-con',on);   // 18-nov · la pestaña «Buscar» sólo con Atlas conectadoB.classList.toggle('show',on);B.textContent='';
+  // 26-nov · Desde el 18-nov este bloque NO se veía: `B.classList.toggle('show',on);B.textContent='';` quedó pegado al final
+  // del comentario de la línea de arriba (todo tras `//` no corre). Fabián: «yo no encontré activo Atlas sugiere».
+  document.body.classList.toggle('atl-con',on);   // 18-nov · la pestaña «Buscar» sólo con Atlas conectado
+  B.classList.toggle('show',on);B.textContent='';
   if(!on)return;
   const m=sugMia();
   const h=document.createElement('div');h.className='wtt';h.textContent='Atlas te sugiere';const s=document.createElement('span');h.appendChild(s);B.appendChild(h);
@@ -2889,7 +2918,11 @@ function paintSug(){
   }
   if(!m.items.length){msg('Hoy no hay empresas nuevas por contactar: ya gestionaste las que tienen cómo contactarlas.'+(m.sin?' Atlas sigue buscando el contacto de '+m.sin+' más.':''));return}
   s.textContent=m.total>m.items.length?m.items.length+' de '+m.total:m.items.length===1?'1 para hoy':m.items.length+' para hoy';
-  for(const x of m.items){
+  // 26-nov · Las N_NUEVAS primeras ya están en «Hacer ya» (nuevaEl): aquí van las que siguen, sin repetirlas.
+  const resto=m.items.slice(N_NUEVAS);
+  if(!resto.length){msg('Tus empresas nuevas de hoy están en «Hacer ya» ✨. Al gestionarlas, Atlas te trae las siguientes.');return}
+  {const tot=Math.max(resto.length,(m.total||m.items.length)-Math.min(N_NUEVAS,m.items.length));s.textContent=tot>resto.length?resto.length+' de '+tot:resto.length===1?'1 más':resto.length+' más'}
+  for(const x of resto){
     const b=document.createElement('button');b.type='button';b.className='sug';
     const lg=document.createElement('span');lg.className='lg';lg.textContent=(String(x.nombre||'?').trim()[0]||'?').toUpperCase();lg.style.setProperty('--av',avColor(x.nombre||''));
     const n=document.createElement('span');n.className='n';const nb=document.createElement('b');nb.textContent=x.nombre||'Empresa';const ns=document.createElement('small');
