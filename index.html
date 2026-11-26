@@ -2515,7 +2515,13 @@ async function atlasCall(llamada,enlace,keepalive){
 function atlasMap(e){
   const id='A:'+e.id,due=e.fecha||null,hh=atlasHechoDe(e.company_id);
   // 25-nov · Sin lugar propio y con la empresa gestionada hace poco: al final de «Después» (ver atlasMarcarHecho).
-  const p=atlasPrefs[id]||(hh?{q:4,band:bandOf(due),order:Math.floor(hh/1000)}:{});
+  let p=atlasPrefs[id]||(hh?{q:4,band:bandOf(due),order:Math.floor(hh/1000)}:{});
+  // 26-nov · Fabián reprogramó 2 seguimientos (p. ej. Nutramerican al 18-dic, mismo id en Atlas) y seguían en «Hacer ya»:
+  // el cuadro guardado ganaba y la escalera sólo sube. Con la fecha fija el tramo sólo puede volverse MÁS urgente; si el
+  // tramo de hoy es MENOS urgente que el guardado, la fecha se corrió hacia adelante (aquí o en el panel de Atlas):
+  // se olvida el lugar guardado y va al cuadro que le toca por la fecha nueva.
+  const bn=bandOf(due);
+  if(p.q&&p.band!=null&&bn!=null&&RANK[bn]<RANK[p.band])p={};
   return {id,aid:e.id,atlas:true,title:e.titulo||'Pendiente de Atlas',q:p.q||bandOf(due)||2,band:p.q?p.band:bandOf(due),order:p.order!=null?p.order:-1,
     due,end:due&&e.duracion_min?new Date(new Date(due).getTime()+e.duracion_min*6e4).toISOString():null,
     done:false,notified:true,notas:e.notas||'',tipo:e.tipo||'',clase:e.clase||null,empresa:e.empresa||null,contacto:e.contacto||null,cid:e.company_id||null,
