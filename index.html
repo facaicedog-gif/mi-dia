@@ -250,6 +250,7 @@ nav .tn.on{display:grid}
 body.con-saltos #v-board.act #saltos{display:flex}
 #saltos button{border:none;border-radius:10px 0 0 10px;width:32px;padding:6px 0 5px;font:800 14px/1 inherit;color:#fff;background:var(--qc);box-shadow:0 4px 10px -4px rgba(0,0,0,.35);opacity:.9;text-align:center}
 #saltos button small{display:block;font-weight:800;font-size:8.5px;letter-spacing:.02em;margin-top:3px;opacity:.95}
+#saltos button.nuev{--qc:#059669}   /* 26-nov · empresas nuevas */
 #saltos button[data-q="1"]{--qc:var(--q1)}#saltos button[data-q="3"]{--qc:var(--q3)}#saltos button[data-q="2"]{--qc:var(--q2)}#saltos button[data-q="4"]{--qc:var(--q4)}
 /* 25-nov · 🏆 Ganados este mes */
 .wgo.wdel{background:#D93747}.waviso.wdesc{color:#B42318;font-weight:600}
@@ -1386,6 +1387,13 @@ function saltosPaint(board){
       const H=document.querySelector('header'),fija=H&&/sticky|fixed/.test(getComputedStyle(H).position);
       window.scrollTo({top:Math.max(0,el.getBoundingClientRect().top+window.scrollY-(fija?H.offsetHeight+6:8)),behavior:'smooth'})});
     S2.appendChild(b);
+    // 26-nov · Fabián: «te faltó poner la pestaña al lado diciendo que están las 3». Verde, debajo de «YA»: lleva a la franja
+    // «✨ Empresas nuevas» (nuevasHy). Sólo si hay nuevas a la vista.
+    if(q===1){const nv=nuevasHy().length;if(nv){const v=document.createElement('button');v.type='button';v.className='nuev';v.setAttribute('aria-label','Ir a las empresas nuevas ('+nv+')');
+      const s2=document.createElement('small');s2.textContent='NUEV';v.append(document.createTextNode(String(nv)),s2);
+      v.addEventListener('click',()=>{const el=document.querySelector('#grid .nuvh');if(!el)return;const H=document.querySelector('header'),fija=H&&/sticky|fixed/.test(getComputedStyle(H).position);
+        window.scrollTo({top:Math.max(0,el.getBoundingClientRect().top+window.scrollY-(fija?H.offsetHeight+6:8)),behavior:'smooth'})});
+      S2.appendChild(v)}}
   }
   // Por el número se decide ya; por lo largo, cuando el tablero ya está pintado (setTimeout: un requestAnimationFrame no
   // corre con la app en segundo plano y las etiquetas no salían).
@@ -2872,7 +2880,7 @@ async function sugLoad(force){
     if(j.ok&&Array.isArray(j.sugeridas)){sugAt=Date.now();sugErr='';SUG={items:j.sugeridas,total:j.total||0,sin:j.sin_canal||0,uid:sess.uid,letrero:j.letrero||null};lsSet('midia.atlas.sug',SUG)}
     else if(j.status!==401)sugErr=j.error||'Atlas no respondió';   // el 401 ya lo atiende atlasLoad (la conexión se cayó)
   }catch(e){sugErr='sin conexión'}
-  sugBusy=false;paintSug();
+  sugBusy=false;render();   // 26-nov · antes paintSug(): las nuevas de «Hacer ya» y su etiqueta lateral no salían hasta el siguiente render (render ya llama a paintSug)
   busLoad();   // 18-nov · 💬 Esperando respuesta: al mismo ritmo (cada 2 min como mucho)
   negLoad();   // 19-nov · 💼 Negocios, para el número de la pestaña Empresas
 }
